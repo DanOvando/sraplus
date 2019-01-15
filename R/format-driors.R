@@ -20,7 +20,7 @@
 #' @param index_years the years in which abundance index data are available
 #' @param effort_years years in which effort data are available
 #' @param use_heuristics logical,TRUE uses catch-msy hueristics for priors, FALSE requires user to pass them
-#' @param f_cv no idea
+#' @param f_cv no idea, at all
 #'
 #' @return a list of data and priors
 #' @export

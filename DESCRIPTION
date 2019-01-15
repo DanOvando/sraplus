@@ -8,13 +8,14 @@ Maintainer: Dan Ovando <danovan@uw.edu>
 Description: Runs assessments in the manner of Ovando et al. 2019
 License: MIT + file LICENSE
 Imports: 
-    Rcpp (>= 1.0.0),
+    Rcpp,
     TMB,
     dplyr,
     purrr,
     stringr,
     FishLife (>= 1.0.2),
-    magrittr
+    magrittr,
+    tidyr
 LinkingTo: Rcpp, RcppArmadillo
 Suggests: 
     testthat,
@@ -25,3 +26,4 @@ Roxygen: list(markdown = TRUE)
 RoxygenNote: 6.1.1
 Remotes: 
     james-thorson/FishLife
+LazyData: true

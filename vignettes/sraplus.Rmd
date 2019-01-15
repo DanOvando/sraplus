@@ -23,9 +23,18 @@ library(sraplus)
 
 example_taxa <- "gadus morhua"
 
-driors <- sraplus::format_driors(taxa = example_taxa,
-                                 catch = seq(1:25),
-                                 years = seq(1:25))
+
+
+driors <- format_driors(taxa = example_taxa,
+                                 catch = cod$catch,
+                                 years = cod$year)
+
+woah <- fit_sraplus(driors = driors, use_sir = TRUE)
+
+woah$results %>% 
+  ggplot(aes(seq_along(mean), mean, color = variable)) + 
+  geom_line() + 
+  facet_wrap(~variable, scales = "free_y")
 
 ```
 

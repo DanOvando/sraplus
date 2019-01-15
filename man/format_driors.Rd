@@ -52,7 +52,7 @@ format_driors(taxa, initial_b = 1, initial_b_cv = 0.1,
 
 \item{use_heuristics}{logical,TRUE uses catch-msy hueristics for priors, FALSE requires user to pass them}
 
-\item{f_cv}{no idea}
+\item{f_cv}{no idea, at all}
 }
 \value{
 a list of data and priors
