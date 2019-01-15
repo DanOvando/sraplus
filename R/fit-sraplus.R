@@ -41,7 +41,7 @@ fit_sraplus <- function(driors,
   sra_data <- list(
     catch_t = driors$catch,
     index_t = driors$index,
-    index_years = driors$index_years,
+    index_years = which(driors$index_years %in% driors$years),
     log_r_prior = log(driors$growth_rate),
     log_r_cv = driors$growth_rate_cv,
     log_init_dep_prior = log(driors$initial_b),
@@ -51,7 +51,7 @@ fit_sraplus <- function(driors,
     time = time,
     fit_index = as.numeric(!all(is.na(driors$index))),
     use_u_prior = as.numeric(!all(is.na(driors$u_v_umsy))),
-    u_years = driors$u_years,
+    u_years = which(driors$u_years %in% driors$years),
     u_priors = driors$u_v_umsy,
     u_cv = driors$u_cv,
     plim = plim,
@@ -153,55 +153,6 @@ fit_sraplus <- function(driors,
       
     }
     
-    # pen <-
-    #   list(
-    #     bstatus.mean =  sra_data$log_final_dep_prior * 2,
-    #     bstatus.sd = sra_data$log_final_dep_cv * 2,
-    #     bstatus.dist = 2,
-    #     ustatus.mean = log(last(sra_data$u_priors)),
-    #     ustatus.sd = sra_data$u_cv,
-    #     ustatus.dist = udist ,
-    #     initial.mean = sra_data$log_init_dep_prior * 2 * 2,
-    #     initial.sd = sra_data$log_init_dep_cv,
-    #     initial.dist = 2
-    #   )
-    
-    # driors$scientific_name <- Taxon <- c(Class="Actinopterygii", Order="Perciformes",
-    #            Family="Scombridae", Genus="Thunnus", Species="albacares")
-    #
-    # start <- Sys.time()
-    # fit <- sraplus::run.SIR(nrep=20000, Catch=sra_data$catch_t, Taxon = driors$scientific_name, penalties=pen,
-    #                         years=seq_along(sra_data$catch_t))
-    #
-    # old_priors <- pen
-    #
-    # old_priors$ustatus.mean <- old_priors$fstatus.mean
-    #
-    # old_priors$ustatus.sd <- old_priors$fstatus.sd
-    #
-    # old_priors$ustatus.dist <- old_priors$fstatus.dist
-    #
-    # old_priors$fstatus.dist <- NULL
-    #
-    # start <- Sys.time()
-    #
-    # set.seed(42)
-    # oldfit <-
-    #   colesraplus::run.SIR(
-    #     nrep = 500000,
-    #     Catch = sra_data$catch_t,
-    #     Taxon = driors$scientific_name,
-    #     penalties = old_priors,
-    #     years = seq_along(sra_data$catch_t)
-    #   )
-    # Sys.time() - start
-    #
-    # sraplus::plot_fit( oldfit)
-    
-    
-    
-    
-    
     lower_k <- log(1.25 * max(driors$catch))
     
     upper_k <- log(50 * max(driors$catch))
@@ -241,6 +192,8 @@ fit_sraplus <- function(driors,
     
     knockout <- purrr::map(knockout, as.factor)
     
+    sraplus::get_tmb_model(model_name = model)
+    
     sra_model <-
       TMB::MakeADFun(
         data = sra_data,
@@ -254,12 +207,12 @@ fit_sraplus <- function(driors,
       )
     
     lower = rep(-Inf,length(sra_model$par)) %>%
-      set_names(names(sra_model$par))
+      purrr::set_names(names(sra_model$par))
     
     lower['log_k'] <- lower_k
     
     upper = rep(Inf,length(sra_model$par)) %>%
-      set_names(names(sra_model$par))
+      purrr::set_names(names(sra_model$par))
     
     upper['log_k'] <- upper_k
     
@@ -267,7 +220,7 @@ fit_sraplus <- function(driors,
     
     set.seed(seed)
     
-    fit <- Optimize(
+    fit <- TMBhelper::Optimize(
       sra_model,
       fn = sra_model$fn,
       gr = sra_model$gr,
@@ -285,7 +238,7 @@ fit_sraplus <- function(driors,
     
     if (fit$max_gradient > 1e-3){
       
-      fit <- Optimize(
+      fit <- TMBhelper::Optimize(
         sra_model,
         fn = sra_model$fn,
         gr = sra_model$gr,
@@ -304,51 +257,20 @@ fit_sraplus <- function(driors,
     
     fit_save <- sra_model
     
-    
-    # wtf <- fit_save$report()
-    #
-    # wtf$wtf
-    #
-    # wtf$dep_t
-    #
-    # fit_report$value["log_dep"]
-    #
-    # foo <- out %>% filter(variable == "log_dep")
-    #
-    # plot(wtf$dep_t, exp(foo$mean))
-    
-    #
-    # plot(wtf$dep_t, wtf$growth_t)
-    #
-    # plot(wtf$index_hat_
-    
     fit_report <- fit_save$report()
     
-    fit_sd_report <- sdreport(fit_save, bias.correct = TRUE)
+    fit_sd_report <- TMB::sdreport(fit_save, bias.correct = TRUE)
     
     out <-
-      data_frame(
+      dplyr::tibble(
         variable = names(fit_sd_report$value),
         mean = fit_sd_report$value,
         sd = fit_sd_report$sd
       )
     
-    # SERIOUS hack. sdreport ignores if statements inside population model, so need to put the report values back in
-    # true_names <- names(fit_report)
-    #
-    # for (i in true_names){
-    #
-    #   if (i %in% out$variable){
-    #
-    #     out$mean[out$variable == i] <- fit_report[[i]]
-    #
-    #     # out$mean[out$variable == i] %>% View()
-    #   }
-    #
-    # } # close hack
     
     out <- out %>%
-      mutate(lower = mean - 1.96 * sd,
+      dplyr::mutate(lower = mean - 1.96 * sd,
              upper = mean + 1.96 * sd)
     
     if (include_fit == FALSE){

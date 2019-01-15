@@ -15,7 +15,8 @@ Imports:
     stringr,
     FishLife (>= 1.0.2),
     magrittr,
-    tidyr
+    tidyr,
+    TMBhelper
 LinkingTo: Rcpp, RcppArmadillo
 Suggests: 
     testthat,

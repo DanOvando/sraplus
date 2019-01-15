@@ -14,7 +14,6 @@ knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>"
 )
-library(sraplus)
 ```
 
 ## Preparing Data
@@ -23,17 +22,47 @@ library(sraplus)
 
 example_taxa <- "gadus morhua"
 
-
+data(cod)
 
 driors <- format_driors(taxa = example_taxa,
                                  catch = cod$catch,
-                                 years = cod$year)
+                                 years = cod$year,
+                        initial_b = 0.5,
+                        terminal_b = 0.5)
 
-woah <- fit_sraplus(driors = driors, use_sir = TRUE)
+sir_fit <- fit_sraplus(driors = driors, use_sir = TRUE)
 
 woah$results %>% 
   ggplot(aes(seq_along(mean), mean, color = variable)) + 
   geom_line() + 
+  facet_wrap(~variable, scales = "free_y")
+```
+
+
+```{r}
+library(sraplus)
+
+example_taxa <- "gadus morhua"
+
+data(cod)
+
+
+driors <- format_driors(taxa = example_taxa,
+                                 catch = cod$catch,
+                                 years = cod$year,
+                        index = cod$index,
+                        index_years = cod$year,
+                        initial_b = 0.5,
+                        terminal_b = 0.5)
+
+tmb_fit <- fit_sraplus(driors = driors, use_sir = FALSE,
+                       model = "sraplus_tmb")
+
+tmb_fit$results %>% 
+  filter(variable %in% c("index_hat_t")) %>% 
+  ggplot() + 
+  geom_line(aes(seq_along(mean), mean, color = variable)) + 
+  geom_point(data = cod, aes(seq_along(index), index), size = 2) +
   facet_wrap(~variable, scales = "free_y")
 
 ```
