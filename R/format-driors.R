@@ -2,9 +2,9 @@
 #'
 #' @param taxa the genus and species of the species
 #' @param initial_b b reference point in the initial year
-#' @param initial_b_cv cv associated with initial b reference point
+#' @param initial_b_sd sigma associated with initial b reference point
 #' @param terminal_b b reference point in the terminal year
-#' @param terminal_b_cv cv associated with terminal b reference point
+#' @param terminal_b_sd sigma associated with terminal b reference point
 #' @param carry prior on carrying capacity
 #' @param carry_cv cv associated with prior on carrying capacity
 #' @param u_v_umsy u/umsy data over time
@@ -21,6 +21,10 @@
 #' @param effort_years years in which effort data are available
 #' @param use_heuristics logical,TRUE uses catch-msy hueristics for priors, FALSE requires user to pass them
 #' @param f_cv no idea, at all
+#' @param fmi vector of fisheries management index scrores
+#' @param fmi_sd overwrite fmi prediction sd
+#' @param sar swept area ratio
+#' @param sar_sd overwrite sar prediction sd
 #'
 #' @return a list of data and priors
 #' @export
@@ -28,9 +32,9 @@
 format_driors <-
   function(taxa = "gadus morhua",
            initial_b = 1,
-           initial_b_cv = 0.1,
+           initial_b_sd = 0.1,
            terminal_b = 0.25,
-           terminal_b_cv = 0.1,
+           terminal_b_sd = 0.1,
            carry = NA,
            carry_cv = 0.1,
            u_v_umsy = NA,
@@ -46,9 +50,54 @@ format_driors <-
            index_years = 1,
            effort_years = 1,
            use_heuristics = FALSE,
+           fmi = c("research" = NA,"management" = NA, "enforcement" = NA, "socioeconomics" = NA),
+           fmi_sd = NA,
+           sar = NA,
+           sar_sd = NA,
            f_cv = 0.1) {
 
 
+    if (!is.na(sar)){
+      
+      temp <- dplyr::tibble(sar = sar)
+      
+      pp <- rstanarm::posterior_predict(regs$sar_f_reg, newdata = temp)
+      
+      pp <- pp[pp > quantile(pp,.05) & pp < quantile(pp,0.9)]
+      
+      final_u <- c(final_u,exp(mean(pp)))
+      
+      usd <- ifelse(is.na(sar_sd),sd(pp),sar_sd)
+      
+      final_u_cv <- c(final_u_cv, usd)
+      
+    }
+    
+    
+    if (any(!is.na(fmi))) {
+      
+      temp <- purrr::map_df(fmi,~.)
+      
+      pp <- rstanarm::posterior_predict(regs$fmi_f_reg, newdata = temp)
+      
+      pp <- pp[pp > quantile(pp,.05) & pp < quantile(pp,0.9)]
+      
+      final_u <- c(final_u,exp(mean(pp)))
+      
+      final_u_cv <- c(final_u_cv, ifelse(is.na(fmi_sd),sd(pp),fmi_sd))
+      
+      pp <- rstanarm::posterior_predict(regs$fmi_b_reg, newdata = temp)
+      
+      pp <- pp[pp > quantile(pp,.05) & pp < quantile(pp,0.9)]
+      
+      terminal_b <- exp(mean(pp))
+      
+      terminal_b_sd = ifelse(is.na(fmi_sd),sd(pp),fmi_sd)
+      
+      ref_type <- "b"
+      
+    }
+    
     if (use_heuristics == TRUE){
 
 
@@ -61,7 +110,7 @@ format_driors <-
       initial_b <-  dplyr::case_when(ref_type == "k" ~ temp,
                                    TRUE ~ temp * 2)
 
-      initial_b_cv <- 0.1
+      initial_b_sd <- 0.1
 
       temp_terminal <-
         ifelse((dplyr::last(catch) / max(catch)) > 0.5, 0.6, 0.2)
@@ -69,7 +118,7 @@ format_driors <-
       terminal_b <-  dplyr::case_when(ref_type == "k" ~ temp_terminal,
                                    TRUE ~ temp_terminal * 2)
 
-      terminal_b_cv <- 0.1
+      terminal_b_sd <- 0.1
 
     }
 
@@ -142,10 +191,7 @@ format_driors <-
     }
     if (is.na(initial_b)){
 
-      initial_b <- 1
-
-      ref_type <- "k"
-
+      initial_b <- ifelse(ref_type == "k",1,2.5)
     }
 
 
@@ -159,7 +205,7 @@ format_driors <-
 
       initial_b <-if (catch[1] / max(catch) < 0.2) c(0.7) else 0.4
 
-      initial_b_cv <- 0.5
+      initial_b_sd <- 0.1
     }
     #
     # if (is.na(terminal_b)){
@@ -169,8 +215,17 @@ format_driors <-
     # }
 
 
-
-
+if (any(!is.na(final_u))){
+  
+  log_final_u <- log(final_u[!is.na(final_u)])
+  
+  log_final_u_cv <- final_u_cv[!is.na(final_u)]
+} else {
+  log_final_u <- NA
+  
+  log_final_u_cv <- NA
+}
+    
     driors <-
       list(
         catch = catch,
@@ -178,9 +233,9 @@ format_driors <-
         carry = carry,
         carry_cv = sqrt(log(carry_cv ^ 2 + 1)),
         terminal_b = terminal_b,
-        terminal_b_cv = sqrt(log(terminal_b_cv ^ 2 + 1)),
+        terminal_b_cv = sqrt(log(terminal_b_sd ^ 2 + 1)),
         initial_b = initial_b,
-        initial_b_cv = sqrt(log(initial_b_cv ^ 2 + 1)),
+        initial_b_cv = sqrt(log(initial_b_sd ^ 2 + 1)),
         index = index,
         effort = effort,
         u_v_umsy = u_v_umsy,
@@ -193,8 +248,8 @@ format_driors <-
         sigma_r =exp(mean_lh["ln_var"])/2,
         sigma_r_cv = exp(cov_lh["ln_var"]),
         f_cv = f_cv,
-        log_final_u = ifelse(any(!is.na(final_u)),log(final_u[!is.na(final_u)]), NA),
-        log_final_u_cv = ifelse(any(!is.na(final_u)),final_u_cv[!is.na(final_u)], NA)
+        log_final_u = log_final_u,
+        log_final_u_cv = log_final_u_cv
       )
 
     driors$ref_type <- ref_type

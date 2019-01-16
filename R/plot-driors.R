@@ -43,6 +43,21 @@ plot_driors <- function(driors) {
     ggplot2::labs(x = "Year")  +
     theme_sraplus(base_size = 12)
   
+
+  if (length(driors$log_final_u) > 1){
+    
+    driors$log_final_u1 = driors$log_final_u[1]
+    
+    driors$log_final_u1_cv = driors$log_final_u_cv[1]
+    
+    driors$log_final_u2 = driors$log_final_u[2]
+    
+    driors$log_final_u2_cv = driors$log_final_u_cv[2]
+    
+    driors <- purrr::list_modify(driors, "log_final_u" = NULL, "log_final_u_cv" = NULL)
+    
+  }
+    
   
   vars <- names(driors)
   
@@ -50,9 +65,11 @@ plot_driors <- function(driors) {
   
   plot_vars <- names(var_count)[var_count == 2]
   
-  has_values <- purrr::map_lgl(plot_vars, ~ !is.na(driors[[.x]]))
+  has_values <- purrr::map_lgl(plot_vars, ~ !all(is.na(driors[[.x]])))
   
   plot_vars <- plot_vars[has_values]
+  
+  
   
   foo <- function(var, driors, n = 1000) {
     sims <- rnorm(n, driors[[var]], driors[[paste0(var, "_cv")]])
