@@ -25,12 +25,8 @@
 #' @return a list of data and priors
 #' @export
 #'
-#' @examples
-#' #' \dontrun{
-#' sum("a")
-#' }
 format_driors <-
-  function(taxa,
+  function(taxa = "gadus morhua",
            initial_b = 1,
            initial_b_cv = 0.1,
            terminal_b = 0.25,
@@ -68,7 +64,7 @@ format_driors <-
       initial_b_cv <- 0.1
 
       temp_terminal <-
-        ifelse((last(catch) / max(catch)) > 0.5, 0.6, 0.2)
+        ifelse((dplyr::last(catch) / max(catch)) > 0.5, 0.6, 0.2)
 
       terminal_b <-  dplyr::case_when(ref_type == "k" ~ temp_terminal,
                                    TRUE ~ temp_terminal * 2)

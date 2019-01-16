@@ -14,10 +14,7 @@
 #' @return a fitted sraplus object
 #' @export
 #'
-#' @examples
-#' #' \dontrun{
-#' sum("a")
-#' }
+#' 
 fit_sraplus <- function(driors,
                         include_fit = TRUE,
                         seed = 42,
@@ -219,6 +216,10 @@ fit_sraplus <- function(driors,
     upper["log_init_dep"] <- log(1.5)
     
     set.seed(seed)
+    
+    browser()
+    
+    test <- tmbstan::tmbstan(sra_model, lower = lower, upper = upper)
     
     fit <- TMBhelper::Optimize(
       sra_model,

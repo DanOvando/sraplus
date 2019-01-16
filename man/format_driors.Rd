@@ -4,12 +4,13 @@
 \alias{format_driors}
 \title{Format data and priors for sraplus}
 \usage{
-format_driors(taxa, initial_b = 1, initial_b_cv = 0.1,
-  terminal_b = 0.25, terminal_b_cv = 0.1, carry = NA,
-  carry_cv = 0.1, u_v_umsy = NA, u_years = NA, u_cv = 0.1,
-  final_u = NA, final_u_cv = NA, catch = NA, years = NA,
-  index = NA, effort = NA, ref_type = "k", index_years = 1,
-  effort_years = 1, use_heuristics = FALSE, f_cv = 0.1)
+format_driors(taxa = "gadus morhua", initial_b = 1,
+  initial_b_cv = 0.1, terminal_b = 0.25, terminal_b_cv = 0.1,
+  carry = NA, carry_cv = 0.1, u_v_umsy = NA, u_years = NA,
+  u_cv = 0.1, final_u = NA, final_u_cv = NA, catch = NA,
+  years = NA, index = NA, effort = NA, ref_type = "k",
+  index_years = 1, effort_years = 1, use_heuristics = FALSE,
+  f_cv = 0.1)
 }
 \arguments{
 \item{taxa}{the genus and species of the species}
@@ -59,9 +60,4 @@ a list of data and priors
 }
 \description{
 Format data and priors for sraplus
-}
-\examples{
-#' \dontrun{
-sum("a")
-}
 }

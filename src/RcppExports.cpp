@@ -6,49 +6,6 @@
 
 using namespace Rcpp;
 
-// rcpparma_hello_world
-arma::mat rcpparma_hello_world();
-RcppExport SEXP _sraplus_rcpparma_hello_world() {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    rcpp_result_gen = Rcpp::wrap(rcpparma_hello_world());
-    return rcpp_result_gen;
-END_RCPP
-}
-// rcpparma_outerproduct
-arma::mat rcpparma_outerproduct(const arma::colvec& x);
-RcppExport SEXP _sraplus_rcpparma_outerproduct(SEXP xSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const arma::colvec& >::type x(xSEXP);
-    rcpp_result_gen = Rcpp::wrap(rcpparma_outerproduct(x));
-    return rcpp_result_gen;
-END_RCPP
-}
-// rcpparma_innerproduct
-double rcpparma_innerproduct(const arma::colvec& x);
-RcppExport SEXP _sraplus_rcpparma_innerproduct(SEXP xSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const arma::colvec& >::type x(xSEXP);
-    rcpp_result_gen = Rcpp::wrap(rcpparma_innerproduct(x));
-    return rcpp_result_gen;
-END_RCPP
-}
-// rcpparma_bothproducts
-Rcpp::List rcpparma_bothproducts(const arma::colvec& x);
-RcppExport SEXP _sraplus_rcpparma_bothproducts(SEXP xSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const arma::colvec& >::type x(xSEXP);
-    rcpp_result_gen = Rcpp::wrap(rcpparma_bothproducts(x));
-    return rcpp_result_gen;
-END_RCPP
-}
 // sraplus
 List sraplus(NumericVector catches, NumericVector rs, NumericVector ms, NumericVector init_deps, NumericVector ks, NumericVector qs, NumericVector sigma_procs, NumericVector drawdex, NumericVector index_t, NumericVector sigma_obs, NumericVector log_final_u, NumericVector log_final_u_cv, IntegerVector index_years, IntegerVector u_years, int draws, int n_keep, int ref_type, int fit_index, int use_final_u, double log_final_ref, double sigma_dep, double plim, int u_prior, NumericVector u_priors, double sigma_u);
 RcppExport SEXP _sraplus_sraplus(SEXP catchesSEXP, SEXP rsSEXP, SEXP msSEXP, SEXP init_depsSEXP, SEXP ksSEXP, SEXP qsSEXP, SEXP sigma_procsSEXP, SEXP drawdexSEXP, SEXP index_tSEXP, SEXP sigma_obsSEXP, SEXP log_final_uSEXP, SEXP log_final_u_cvSEXP, SEXP index_yearsSEXP, SEXP u_yearsSEXP, SEXP drawsSEXP, SEXP n_keepSEXP, SEXP ref_typeSEXP, SEXP fit_indexSEXP, SEXP use_final_uSEXP, SEXP log_final_refSEXP, SEXP sigma_depSEXP, SEXP plimSEXP, SEXP u_priorSEXP, SEXP u_priorsSEXP, SEXP sigma_uSEXP) {
@@ -84,25 +41,9 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// timesTwo
-NumericVector timesTwo(NumericVector x);
-RcppExport SEXP _sraplus_timesTwo(SEXP xSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< NumericVector >::type x(xSEXP);
-    rcpp_result_gen = Rcpp::wrap(timesTwo(x));
-    return rcpp_result_gen;
-END_RCPP
-}
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_sraplus_rcpparma_hello_world", (DL_FUNC) &_sraplus_rcpparma_hello_world, 0},
-    {"_sraplus_rcpparma_outerproduct", (DL_FUNC) &_sraplus_rcpparma_outerproduct, 1},
-    {"_sraplus_rcpparma_innerproduct", (DL_FUNC) &_sraplus_rcpparma_innerproduct, 1},
-    {"_sraplus_rcpparma_bothproducts", (DL_FUNC) &_sraplus_rcpparma_bothproducts, 1},
     {"_sraplus_sraplus", (DL_FUNC) &_sraplus_sraplus, 25},
-    {"_sraplus_timesTwo", (DL_FUNC) &_sraplus_timesTwo, 1},
     {NULL, NULL, 0}
 };
 

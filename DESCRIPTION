@@ -5,7 +5,7 @@ Version: 1.0.0.9000
 Date: 2019-01-09
 Author: Dan Ovando
 Maintainer: Dan Ovando <danovan@uw.edu>
-Description: Runs assessments in the manner of Ovando et al. 2019
+Description: Runs assessments in the manner of Ovando et al 2019. Allows for SIR, Maximum LIkelihood, or HMC based fitting.
 License: MIT + file LICENSE
 Imports: 
     Rcpp,
@@ -16,7 +16,8 @@ Imports:
     FishLife (>= 1.0.2),
     magrittr,
     tidyr,
-    TMBhelper
+    TMBhelper,
+    tmbstan
 LinkingTo: Rcpp, RcppArmadillo
 Suggests: 
     testthat,

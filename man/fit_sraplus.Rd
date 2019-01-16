@@ -36,8 +36,3 @@ a fitted sraplus object
 \description{
 Run sraplus
 }
-\examples{
-#' \dontrun{
-sum("a")
-}
-}

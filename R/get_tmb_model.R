@@ -6,9 +6,9 @@
 #'
 get_tmb_model <- function(model_name = "sraplus_tmb" ){
 
-invisible(TMB::compile(system.file("tmb", paste0(model_name,".cpp"), package = "sraplus")))
+TMB::compile(system.file("tmb", paste0(model_name,".cpp"), package = "sraplus"))
 
-invisible(dyn.load(TMB::dynlib(
-  gsub(".cpp","",system.file("tmb", paste0(model_name,".cpp"), package = "sraplus")))))
+dyn.load(TMB::dynlib(
+  gsub(".cpp","",system.file("tmb", paste0(model_name,".cpp"), package = "sraplus"))))
 
 }
