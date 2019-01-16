@@ -12,7 +12,7 @@ plot_driors <- function(driors) {
   
   if (any(!is.na(driors$u_v_umsy))) {
     u_frame <- dplyr::tibble(year = driors$u_v_umsy,
-                             u_umsy = driors$u_years)
+                             u_v_umsy = driors$u_years)
     timeseries <- timeseries %>%
       dplyr::left_join(u_frame, by = "year")
     
@@ -34,6 +34,12 @@ plot_driors <- function(driors) {
     scale_y_continuous(labels = scales::comma) + 
     labs(x = "Year")
   
+  vars <- names(driors)
+  
+  var_count <- table(stringr::str_replace_all(vars, "_cv","")) 
+  
+  
+
   
   
 }
