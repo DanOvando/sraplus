@@ -39,6 +39,8 @@ driors <- format_driors(
   terminal_b = 0.5
 )
 
+plot_driors(driors)
+
 sir_fit <- fit_sraplus(driors = driors, use_sir = TRUE)
 
 sir_fit$results %>%
@@ -52,17 +54,17 @@ sir_fit$results %>%
 
 ```{r}
 
-example_taxa <- "gadus morhua"
-
-data(cod)
-
 driors <- format_driors(taxa = example_taxa,
                                  catch = cod$catch,
                                  years = cod$year,
                         index = cod$index,
                         index_years = cod$year,
-                        initial_b = 0.5,
+                        initial_b = 1,
+                        initial_b_cv = 0.01,
                         terminal_b = 0.5)
+
+plot_driors(driors)
+
 
 tmb_fit <- fit_sraplus(driors = driors,
                        use_sir = FALSE,

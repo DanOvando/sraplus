@@ -78,8 +78,8 @@ plot_driors <- function(driors) {
     
   
   
-  timeseries_plot + 
-    var_plots  
+  patchwork::wrap_plots(timeseries_plot,
+    var_plots)
     
 
   
