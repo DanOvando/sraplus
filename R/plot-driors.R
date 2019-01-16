@@ -26,7 +26,13 @@ plot_driors <- function(driors) {
     
   }
   
-  
+  timeseries_plot <- timeseries %>% 
+    tidyr::gather(metric,value,-year) %>% 
+    ggplot(aes(year, value, color = metric)) + 
+    geom_line(size = 2) + 
+    facet_wrap(~metric, scales = "free_y") + 
+    scale_y_continuous(labels = scales::comma) + 
+    labs(x = "Year")
   
   
   
