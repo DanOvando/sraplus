@@ -1,6 +1,6 @@
 #' Plot data and priors for sralpus
 #'
-#' @param driors 
+#' @param driors
 #'
 #' @return a ggplot2 object
 #' @export
@@ -33,54 +33,51 @@ plot_driors <- function(driors) {
     
   }
   
-  timeseries_plot <- timeseries %>% 
-    tidyr::gather(metric,value,-year) %>% 
-    ggplot2::ggplot(aes(year, value, color = metric)) + 
-    ggplot2::geom_line(size = 1, show.legend = FALSE) + 
+  timeseries_plot <- timeseries %>%
+    tidyr::gather(metric, value, -year) %>%
+    ggplot2::ggplot(aes(year, value, color = metric)) +
+    ggplot2::geom_line(size = 1, show.legend = FALSE) +
     ggplot2::geom_point(size = 2, show.legend = FALSE) +
-    ggplot2::facet_grid(metric ~ ., scales = "free_y") + 
-    ggplot2::scale_y_continuous(labels = scales::comma, name = "") + 
-    ggplot2::labs(x = "Year")  + 
+    ggplot2::facet_grid(metric ~ ., scales = "free_y") +
+    ggplot2::scale_y_continuous(labels = scales::comma, name = "") +
+    ggplot2::labs(x = "Year")  +
     theme_sraplus(base_size = 12)
-    
+  
   
   vars <- names(driors)
   
-  var_count <- table(stringr::str_replace_all(vars, "_cv","")) 
+  var_count <- table(stringr::str_replace_all(vars, "_cv", ""))
   
   plot_vars <- names(var_count)[var_count == 2]
   
-  has_values <- purrr::map_lgl(plot_vars, ~!is.na(driors[[.x]]))
-
+  has_values <- purrr::map_lgl(plot_vars, ~ !is.na(driors[[.x]]))
+  
   plot_vars <- plot_vars[has_values]
   
-  foo <- function(var,driors, n = 1000){
-    
-    sims <- rnorm(n, driors[[var]], driors[[paste0(var,"_cv")]])
+  foo <- function(var, driors, n = 1000) {
+    sims <- rnorm(n, driors[[var]], driors[[paste0(var, "_cv")]])
     
   }
   
-  sims <- dplyr::tibble(variable = plot_vars) %>% 
-    dplyr::mutate(draws = purrr::map(variable, foo, driors = driors)) %>% 
+  sims <- dplyr::tibble(variable = plot_vars) %>%
+    dplyr::mutate(draws = purrr::map(variable, foo, driors = driors)) %>%
     tidyr::unnest()
   
-  var_plots <- sims %>% 
-    ggplot2:: ggplot(aes(variable, draws)) + 
+  var_plots <- sims %>%
+    ggplot2::ggplot(aes(variable, draws)) +
     ggplot2::geom_boxplot() +
-    ggplot2::facet_wrap(~variable, scales = "free") +
-    ggplot2::labs(y = "",x = "") +
+    ggplot2::facet_wrap( ~ variable, scales = "free") +
+    ggplot2::labs(y = "", x = "") +
     theme_sraplus(base_size = 10) +
     ggplot2::theme(
       strip.text = ggplot2::element_blank(),
       strip.background = ggplot2::element_blank(),
       axis.text.y = ggplot2::element_text(size = 8)
     )
-    
+  
   
   
   patchwork::wrap_plots(timeseries_plot,
-    var_plots)
-    
-
+                        var_plots)
   
 }

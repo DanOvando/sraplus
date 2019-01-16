@@ -20,7 +20,8 @@ Imports:
     tmbstan,
     ggplot2,
     ThorsonUtilities (>= 1.0),
-    patchwork (>= 0.0.1)
+    patchwork (>= 0.0.1),
+    tidybayes
 LinkingTo: Rcpp, RcppArmadillo
 Suggests: 
     testthat,
@@ -29,7 +30,7 @@ Suggests:
 VignetteBuilder: knitr
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 6.1.1
-Remotes:  
+Remotes: 
     james-thorson/FishLife,
     kaskr/TMB_contrib_R/TMBhelper,
     james-thorson/utilities,
