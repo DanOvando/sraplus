@@ -217,9 +217,9 @@ fit_sraplus <- function(driors,
     
     set.seed(seed)
     
-    browser()
+    # browser()
     
-    test <- tmbstan::tmbstan(sra_model, lower = lower, upper = upper)
+    # test <- tmbstan::tmbstan(sra_model, lower = lower, upper = upper)
     
     fit <- TMBhelper::Optimize(
       sra_model,

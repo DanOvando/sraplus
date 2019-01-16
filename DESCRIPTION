@@ -16,8 +16,9 @@ Imports:
     FishLife (>= 1.0.2),
     magrittr,
     tidyr,
-    TMBhelper,
-    tmbstan
+    TMBhelper (>= 1.0),
+    tmbstan,
+    ggplot2
 LinkingTo: Rcpp, RcppArmadillo
 Suggests: 
     testthat,
@@ -27,5 +28,6 @@ VignetteBuilder: knitr
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 6.1.1
 Remotes: 
-    james-thorson/FishLife
+    james-thorson/FishLife,
+    kaskr/TMB_contrib_R
 LazyData: true

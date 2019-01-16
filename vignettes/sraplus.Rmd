@@ -15,9 +15,15 @@ knitr::opts_chunk$set(
   comment = "#>"
 )
 library(sraplus)
+library(ggplot2)
+library(dplyr)
 ```
 
-## Preparing Data
+`sraplus` is a flexible assessment package based around Ovando et al. 2019. At the most "data limited" end, the model approximates the behavior of catch-msy, sampling from prior distributions to obtain parameter values that given a catch history do not crash the population and are match supplied priors on initial and final depletion. At the most data rich end the model the model can fit to an abundance index with priors on fishing mortality over time and initial and final depletion.
+
+
+## SIR example
+
 
 ```{r}
 
@@ -34,13 +40,15 @@ driors <- format_driors(
 )
 
 sir_fit <- fit_sraplus(driors = driors, use_sir = TRUE)
-# 
-# woah$results %>% 
-#   ggplot(aes(seq_along(mean), mean, color = variable)) + 
-#   geom_line() + 
-#   facet_wrap(~variable, scales = "free_y")
+
+sir_fit$results %>%
+  ggplot(aes(seq_along(mean), mean, color = variable)) +
+  geom_line() +
+  facet_wrap(~variable, scales = "free_y")
 ```
 
+
+## Maximum Likelihood Example
 
 ```{r}
 
@@ -60,12 +68,12 @@ tmb_fit <- fit_sraplus(driors = driors,
                        use_sir = FALSE,
                        model = "sraplus_tmb")
 
-# tmb_fit$results %>% 
-#   filter(variable %in% c("index_hat_t")) %>% 
-#   ggplot() + 
-#   geom_line(aes(seq_along(mean), mean, color = variable)) + 
-#   geom_point(data = cod, aes(seq_along(index), index), size = 2) +
-#   facet_wrap(~variable, scales = "free_y")
+tmb_fit$results %>%
+  filter(variable %in% c("index_hat_t")) %>%
+  ggplot() +
+  geom_line(aes(seq_along(mean), mean, color = variable)) +
+  geom_point(data = cod, aes(seq_along(index), index), size = 2) +
+  facet_wrap(~variable, scales = "free_y")
 
 ```
 
