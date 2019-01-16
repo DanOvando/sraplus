@@ -18,7 +18,8 @@ Imports:
     tidyr,
     TMBhelper (>= 1.0),
     tmbstan,
-    ggplot2
+    ggplot2,
+    ThorsonUtilities (>= 1.0)
 LinkingTo: Rcpp, RcppArmadillo
 Suggests: 
     testthat,
@@ -27,7 +28,8 @@ Suggests:
 VignetteBuilder: knitr
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 6.1.1
-Remotes: 
+Remotes:  
     james-thorson/FishLife,
-    kaskr/TMB_contrib_R
+    kaskr/TMB_contrib_R,
+    james-thorson/utilities
 LazyData: true
