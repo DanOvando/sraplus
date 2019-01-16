@@ -34,6 +34,10 @@ library(dplyr)
 
 example_taxa <- "gadus morhua"
 
+# regs <- sraplus::regs
+# cod <- sraplus::cod
+# FishLifeData <- sraplus::FishLifeData
+
 data(cod)
 
 driors <- format_driors(
