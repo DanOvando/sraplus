@@ -25,16 +25,16 @@ plot_sraplus <- function(...){
    dplyr::group_by(variable,fit) %>% 
    dplyr::mutate(year = seq_along(mean)) %>% 
     dplyr::ungroup() %>% 
-    ggplot() + 
-    geom_ribbon(aes(year, ymin = lower, ymax = upper, fill = fit),
+    ggplot2::ggplot() + 
+   ggplot2::geom_ribbon(aes(year, ymin = lower, ymax = upper, fill = fit),
                 size = 0.5, alpha = 0.5) +
-    geom_line(aes(year, mean, color = fit),
+   ggplot2::geom_line(aes(year, mean, color = fit),
               size = 1) +
-    facet_wrap(~variable, scales = "free_y") + 
+   ggplot2::facet_wrap(~variable, scales = "free_y") + 
     sraplus::theme_sraplus() + 
-    scale_y_continuous( name = "") +
+   ggplot2::scale_y_continuous( name = "") +
     labs(x = "Time") +
-    scale_fill_discrete(name = "Fit") + 
-    scale_color_discrete(name = "Fit")
+   ggplot2::scale_fill_discrete(name = "Fit") + 
+   ggplot2::scale_color_discrete(name = "Fit")
   
 }
