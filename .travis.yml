@@ -3,8 +3,3 @@ language: R
 dist: trusty
 cache: packages
 r_check_args: --no-vignettes
-
-env:
-  global:
-    - CXX14 = g++ # or clang++ if you have that
-    - CXX14FLAGS = -O3
