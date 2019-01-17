@@ -1,3 +1,18 @@
+---
+output: github_document
+---
+
+<!-- README.md is generated from README.Rmd. Please edit that file -->
+
+```{r, echo = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.path = "man/figures/README-",
+  message = FALSE
+)
+```
+
 # sraplus
 
 `sraplus` is a flexible assessment package based around Ovando et al. 2019. At the most "data limited" end, the model approximates the behavior of catch-msy, sampling from prior distributions to obtain parameter values that given a catch history do not crash the population and are match supplied priors on initial and final depletion. At the most data rich end the model the model can fit to an abundance index with priors on fishing mortality over time and initial and final depletion.
