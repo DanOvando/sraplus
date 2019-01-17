@@ -328,15 +328,14 @@ Type objective_function<Type>::operator() ()
 
   vector<Type> log_u = log(u_v_umsy);
 
-  vector<Type> log_c = log(catch_t / msy);
+  // recompile please
+  vector<Type> log_c_div_msy = log(catch_t / msy);
 
   vector<Type> log_chat = log(catch_hat_t);
 
   vector<Type> log_ihat = log(index_hat_t);
 
   vector<Type> ck = catch_t / k;
-
-  vector<Type> huh = log(catch_t / b_t);
 
   REPORT(log_chat)
 
@@ -348,8 +347,6 @@ Type objective_function<Type>::operator() ()
 
   REPORT(log_ihat);
 
-  ADREPORT(huh);
-
   ADREPORT(log_ihat);
 
   ADREPORT(log_b);
@@ -360,8 +357,8 @@ Type objective_function<Type>::operator() ()
 
   ADREPORT(log_u);
 
-  ADREPORT(log_c);
-
+  ADREPORT(log_c_div_msy);
+  
   ADREPORT(log_chat);
 
   // one more time for true report
@@ -374,7 +371,7 @@ Type objective_function<Type>::operator() ()
 
   REPORT(log_u);
 
-  REPORT(log_c);
+  REPORT(log_c_div_msy);
 
   REPORT(log_chat);
 

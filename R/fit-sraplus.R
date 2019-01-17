@@ -5,7 +5,7 @@
 #' @param seed seed for model runs
 #' @param plim minimum for hockey stick in pt model
 #' @param model the name of the sraplus TMB version to be run
-#' @param fit_catches logicatl indicating whether catches should be fit or passed
+#' @param fit_catches logical indicating whether catches should be fit or passed
 #' @param randos random effects when passing to TMB
 #' @param draws the number of SIR samples to run
 #' @param n_keep the number of SIR samples to keep
@@ -112,10 +112,12 @@ fit_sraplus <- function(driors,
     
     outs <- stringr::str_detect(names(sra_fit),"_t")
     
+    sra_fit$b_t[,keepers] -> a
+    
     tidy_fits <-
       purrr::map_df(
         purrr::keep(sra_fit, outs),
-        ~ dplyr::tibble(.x[, keepers]) %>% dplyr::mutate(year = 1:nrow(.)) %>% tidyr::gather(draw, value, -year),
+        ~ as.data.frame(.x[, keepers]) %>% dplyr::mutate(year = 1:nrow(.)) %>% tidyr::gather(draw, value, -year),
         keepers = keepers,
         .id = "variable"
       ) %>%
@@ -129,7 +131,12 @@ fit_sraplus <- function(driors,
                 upper = quantile(value, 0.9)) %>%
       dplyr::ungroup()
     
-    
+    out$variable <- dplyr::case_when(out$variable == "b_bmsy_t" ~ "b_div_bmsy",
+                                     out$variable == "b_t" ~ "b",
+                                     out$variable == "c_msy_t" ~ "c_div_msy",
+                                     out$variable == "dep_t" ~ "depletion",
+                                     out$variable == "u_umsy_t" ~ "u_div_umsy",
+                                     TRUE ~ out$variable)
     out <- list(results = out,
                 fit = tidy_fits)
     
@@ -217,9 +224,24 @@ fit_sraplus <- function(driors,
     
     set.seed(seed)
     
-    browser()
     
-    test <- tmbstan::tmbstan(sra_model, lower = lower, upper = upper)
+    # stan_fit <- tmbstan::tmbstan(sra_model, lower = lower, upper = upper)
+    # 
+    # browser()
+    # 
+    # draws = tidybayes::tidy_draws(stan_fit) %>% 
+    #   tidyr::nest(-.chain,.iteration,-.draw,-.iteration)
+    # 
+    # draws <- draws %>% 
+    #   dplyr::mutate(pars = map(data, 
+    #                 get_posterior, 
+    #                 inits = inits,
+    #                 sra_data = sra_data,
+    #                 model = model,
+    #                 randos = randos,
+    #                 knockout = knockout)) %>% 
+    #   dplyr::select(-data)
+    
     
     fit <- TMBhelper::Optimize(
       sra_model,
@@ -260,19 +282,35 @@ fit_sraplus <- function(driors,
     
     fit_report <- fit_save$report()
     
-    fit_sd_report <- TMB::sdreport(fit_save, bias.correct = TRUE)
+    fit <- TMB::sdreport(fit_save, bias.correct = TRUE)
     
     out <-
       dplyr::tibble(
-        variable = names(fit_sd_report$value),
-        mean = fit_sd_report$value,
-        sd = fit_sd_report$sd
+        variable = names(fit$value),
+        mean = fit$value,
+        sd = fit$sd
       )
+
+    out$variable <- dplyr::case_when(out$variable == "log_b" ~ "log_b_div_bmsy",
+                                     out$variable == "log_bt" ~ "log_b",
+                                     out$variable == "log_dep" ~ "log_depletion",
+                                     out$variable == "log_u" ~ "log_u_div_umsy",
+                                     TRUE ~ out$variable)
     
     
     out <- out %>%
       dplyr::mutate(lower = mean - 1.96 * sd,
              upper = mean + 1.96 * sd)
+    
+    logs <- out %>% 
+      dplyr::filter(stringr::str_detect(variable,"log_")) %>% 
+      dplyr::mutate(mean = exp(mean),
+             lower = exp(lower),
+             upper = exp(upper),
+             variable = stringr::str_remove_all(variable, "log_"))
+    
+    out <- out %>% 
+      dplyr::bind_rows(logs)
     
     if (include_fit == FALSE){
       fit = NA

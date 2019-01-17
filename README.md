@@ -1,6 +1,136 @@
+
+<!-- README.md is generated from README.Rmd. Please edit that file -->
+
 # sraplus
 
-A package for running sraplus assessments in the manner of Ovando et al. 2019
+`sraplus` is a flexible assessment package based around Ovando et
+al. 2019. At the most “data limited” end, the model approximates the
+behavior of catch-msy, sampling from prior distributions to obtain
+parameter values that given a catch history do not crash the population
+and are match supplied priors on initial and final depletion. At the
+most data rich end the model the model can fit to an abundance index
+with priors on fishing mortality over time and initial and final
+depletion.
+
+## Installing
+
+This is an in-development package hosted on github, so you will need to
+do a few things to install it.
+
+1.  open R
+
+2.  If you don’t have the `devtools` package installed yet, run
+
+<!-- end list -->
+
+``` r
+install.packages("devtools")
+```
+
+You’ll need to be connected to the internet.
+
+3.  Once `devtools` has been installed, you can then install `sraplus`
+    by running
+
+<!-- end list -->
+
+``` r
+devtools::install_github("danovando/sraplus")
+```
+
+That’s probably going to ask you to install many other packages, agree
+to the prompts.
+
+## SIR example
+
+Once you’ve succesfully installed `sraplus` you can take for a test
+drive with these examples.
+
+For the first example we’ll run use a sampling-importance-resampling
+(SIR) algorithm, using fisheries management index scores and swept area
+ratio data to provide priors on B/Bmsy and U/Umsy in the final year
+
+``` r
+
+library(sraplus)
+library(ggplot2)
+library(dplyr)
+
+example_taxa <- "gadus morhua"
+
+data(cod)
+
+driors <- format_driors(
+  taxa = example_taxa,
+  catch = cod$catch,
+  years = cod$year,
+  initial_b = 1,
+  terminal_b = 0.5,
+  use_heuristics = TRUE,
+  sar = 2,
+  fmi = c(
+    "research" = 0.5,
+    "management" = 0.8,
+    "enforcement" = 0.8,
+    "socioeconomics" = 0.9
+  )
+)
+
+plot_driors(driors)
+```
+
+![](README_files/figure-gfm/unnamed-chunk-4-1.svg)<!-- -->
+
+``` r
+
+sir_fit <- fit_sraplus(driors = driors,
+                       use_sir = TRUE,
+                       draws = 1e6)
+
+plot_sraplus(sir_fit = sir_fit)
+```
+
+![](README_files/figure-gfm/unnamed-chunk-4-2.svg)<!-- -->
+
+## Maximum Likelihood Example
+
+We’ll now use maximum likelihood to fit to the same fishery, but now
+using an index of abundance and a swept area ratio as a penalty on
+U/Umsy in the final year
+
+``` r
+
+driors <- format_driors(
+  taxa = example_taxa,
+  catch = cod$catch,
+  years = cod$year,
+  index = cod$index,
+  index_years = cod$year,
+  initial_b = 1,
+  initial_b_sd = 0.01,
+  terminal_b = 0.5,
+  sar = 2,
+  sar_sd = 0.1
+)
+
+plot_driors(driors)
+```
+
+![](README_files/figure-gfm/unnamed-chunk-5-1.svg)<!-- -->
+
+``` r
 
 
-[![Travis build status](https://travis-ci.org/DanOvando/sraplus.svg?branch=master)](https://travis-ci.org/DanOvando/sraplus)
+ml_fit <- fit_sraplus(driors = driors,
+                      use_sir = FALSE,
+                      model = "sraplus_tmb")
+```
+
+And we can now compare the two results
+
+``` r
+
+plot_sraplus(sir_fit = sir_fit, ml_fit = ml_fit)
+```
+
+![](README_files/figure-gfm/unnamed-chunk-6-1.svg)<!-- -->
