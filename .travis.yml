@@ -1,5 +1,14 @@
-# R for travis: see documentation at https://docs.travis-ci.com/user/languages/r
-language: R
-dist: trusty
+language: r
+r: devel
+sudo: FALSE
 cache: packages
-r_check_args: --no-vignettes
+
+warnings_are_errors: TRUE
+
+r_build_args: '--no-build-vignettes'
+r_check_args: '--ignore-vignettes'
+
+before_install:
+  - mkdir -p ~/.R
+  - echo "CXX14FLAGS=-O3 -mtune=native -march=native -Wno-unused-variable -Wno-unused-function  -Wno-macro-redefined" >> ~/.R/Makevars
+  - echo "CXX14=g++ -std=c++1y -fPIC" >> ~/.R/Makevars
