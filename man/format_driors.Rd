@@ -5,11 +5,13 @@
 \title{Format data and priors for sraplus}
 \usage{
 format_driors(taxa = "gadus morhua", initial_b = 1,
-  initial_b_cv = 0.1, terminal_b = 0.25, terminal_b_cv = 0.1,
+  initial_b_sd = 0.1, terminal_b = 0.25, terminal_b_sd = 0.1,
   carry = NA, carry_cv = 0.1, u_v_umsy = NA, u_years = NA,
   u_cv = 0.1, final_u = NA, final_u_cv = NA, catch = NA,
   years = NA, index = NA, effort = NA, ref_type = "k",
   index_years = 1, effort_years = 1, use_heuristics = FALSE,
+  fmi = c(research = NA, management = NA, enforcement = NA,
+  socioeconomics = NA), fmi_sd = NA, sar = NA, sar_sd = NA,
   f_cv = 0.1)
 }
 \arguments{
@@ -17,11 +19,11 @@ format_driors(taxa = "gadus morhua", initial_b = 1,
 
 \item{initial_b}{b reference point in the initial year}
 
-\item{initial_b_cv}{cv associated with initial b reference point}
+\item{initial_b_sd}{sigma associated with initial b reference point}
 
 \item{terminal_b}{b reference point in the terminal year}
 
-\item{terminal_b_cv}{cv associated with terminal b reference point}
+\item{terminal_b_sd}{sigma associated with terminal b reference point}
 
 \item{carry}{prior on carrying capacity}
 
@@ -52,6 +54,14 @@ format_driors(taxa = "gadus morhua", initial_b = 1,
 \item{effort_years}{years in which effort data are available}
 
 \item{use_heuristics}{logical,TRUE uses catch-msy hueristics for priors, FALSE requires user to pass them}
+
+\item{fmi}{vector of fisheries management index scrores}
+
+\item{fmi_sd}{overwrite fmi prediction sd}
+
+\item{sar}{swept area ratio}
+
+\item{sar_sd}{overwrite sar prediction sd}
 
 \item{f_cv}{no idea, at all}
 }

@@ -24,7 +24,7 @@ Imports:
     tidybayes,
     rstan,
     rstanarm
-LinkingTo: Rcpp, RcppArmadillo
+LinkingTo: Rcpp
 Suggests: 
     testthat,
     knitr,

@@ -75,8 +75,7 @@ plot_driors(driors)
 
 sir_fit <- fit_sraplus(driors = driors,
                        use_sir = TRUE,
-                       draws = 1e6)
-
+                       draws = 1e4)
 plot_sraplus(sir_fit = sir_fit)
 
 ```
