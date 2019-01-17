@@ -43,6 +43,9 @@ to the prompts.
 
 ### Troubleshooting
 
+Make sure you try the install with a fresh R session (go to
+“Session\>Restart R” to make sure)
+
 If you run into an error, first off try updating your R packages. From
 there….
 
