@@ -21,7 +21,9 @@ Imports:
     ggplot2,
     ThorsonUtilities (>= 1.0),
     patchwork (>= 0.0.1),
-    tidybayes
+    tidybayes,
+    rstan,
+    rstanarm
 LinkingTo: Rcpp, RcppArmadillo
 Suggests: 
     testthat,
