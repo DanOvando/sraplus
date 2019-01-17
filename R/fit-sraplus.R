@@ -5,7 +5,7 @@
 #' @param seed seed for model runs
 #' @param plim minimum for hockey stick in pt model
 #' @param model the name of the sraplus TMB version to be run
-#' @param fit_catches logicatl indicating whether catches should be fit or passed
+#' @param fit_catches logical indicating whether catches should be fit or passed
 #' @param randos random effects when passing to TMB
 #' @param draws the number of SIR samples to run
 #' @param n_keep the number of SIR samples to keep
@@ -112,10 +112,12 @@ fit_sraplus <- function(driors,
     
     outs <- stringr::str_detect(names(sra_fit),"_t")
     
+    sra_fit$b_t[,keepers] -> a
+    
     tidy_fits <-
       purrr::map_df(
         purrr::keep(sra_fit, outs),
-        ~ dplyr::tibble(.x[, keepers]) %>% dplyr::mutate(year = 1:nrow(.)) %>% tidyr::gather(draw, value, -year),
+        ~ as.data.frame(.x[, keepers]) %>% dplyr::mutate(year = 1:nrow(.)) %>% tidyr::gather(draw, value, -year),
         keepers = keepers,
         .id = "variable"
       ) %>%
@@ -135,8 +137,6 @@ fit_sraplus <- function(driors,
                                      out$variable == "dep_t" ~ "depletion",
                                      out$variable == "u_umsy_t" ~ "u_div_umsy",
                                      TRUE ~ out$variable)
-    
-    
     out <- list(results = out,
                 fit = tidy_fits)
     

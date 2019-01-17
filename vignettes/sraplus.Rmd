@@ -14,29 +14,47 @@ knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>"
 )
-library(sraplus)
-library(ggplot2)
-library(dplyr)
+
 ```
 
 `sraplus` is a flexible assessment package based around Ovando et al. 2019. At the most "data limited" end, the model approximates the behavior of catch-msy, sampling from prior distributions to obtain parameter values that given a catch history do not crash the population and are match supplied priors on initial and final depletion. At the most data rich end the model the model can fit to an abundance index with priors on fishing mortality over time and initial and final depletion.
 
 
+## Installing
+
+This is an in-development package hosted on github, so you will need to do a few things to install it. 
+
+1. open R
+
+2. If you don't have the `devtools` package installed yet, run
+
+```{r, eval = FALSE}
+install.packages("devtools")
+```
+
+You'll need to be connected to the internet.
+
+3. Once `devtools` has been installed, you can then install `sraplus` by running
+
+```{r, eval = FALSE}
+devtools::install_github("danovando/sraplus")
+```
+
+That's probably going to ask you to install many other packages, agree to the prompts. 
+
 ## SIR example
 
+Once you've succesfully installed `sraplus` you can take for a test drive with these examples. 
+
+For the first example we'll run use a sampling-importance-resampling (SIR) algorithm, using fisheries management index scores and swept area ratio data to provide priors on B/Bmsy and U/Umsy in the final year
 
 ```{r}
 
-# functions <- list.files(here::here("R"))
-# 
-# purrr::walk(functions, ~ source(here::here("R", .x)))
-
+library(sraplus)
+library(ggplot2)
+library(dplyr)
 
 example_taxa <- "gadus morhua"
-
-# regs <- sraplus::regs
-# cod <- sraplus::cod
-# FishLifeData <- sraplus::FishLifeData
 
 data(cod)
 
@@ -51,22 +69,20 @@ driors <- format_driors(
   fmi = c("research" = 0.5,"management" = 0.8, "enforcement" = 0.8, "socioeconomics" = 0.9)
 )
 
-# ,
-#   fmi = c("research" = 0.5,"management" = 0.8, "enforcement" = 0.8, "socioeconomics" = 0.9)
 plot_driors(driors)
 
 sir_fit <- fit_sraplus(driors = driors,
                        use_sir = TRUE,
-                       draws = 1e6)
+                       draws = 1e4)
 
-sir_fit$results %>%
-  ggplot(aes(seq_along(mean), mean, color = variable)) +
-  geom_line() +
-  facet_wrap(~variable, scales = "free_y")
+plot_sraplus(sir_fit = sir_fit)
+
 ```
 
 
 ## Maximum Likelihood Example
+
+We'll now use maximum likelihood to fit to the same fishery, but now using an index of abundance and a swept area ratio as a penalty on U/Umsy in the final year
 
 ```{r}
 
@@ -84,67 +100,18 @@ driors <- format_driors(taxa = example_taxa,
 plot_driors(driors)
 
 
-tmb_fit <- fit_sraplus(driors = driors,
+ml_fit <- fit_sraplus(driors = driors,
                        use_sir = FALSE,
                        model = "sraplus_tmb")
-
-tmb_fit$results %>%
-  filter(variable %in% c("index_hat_t")) %>%
-  ggplot() +
-  geom_line(aes(seq_along(mean), mean, color = variable)) +
-  geom_point(data = cod, aes(seq_along(index), index), size = 2) +
-  facet_wrap(~variable, scales = "free_y")
-
 ```
 
 
-look through priors some
+And we can now compare the two results
 
 
-Vignettes are long form documentation commonly included in packages. Because they are part of the distribution of the package, they need to be as compact as possible. The `html_vignette` output type provides a custom style sheet (and tweaks some options) to ensure that the resulting html is as small as possible. The `html_vignette` format:
+```{r}
 
-- Never uses retina figures
-- Has a smaller default figure size
-- Uses a custom CSS stylesheet instead of the default Twitter Bootstrap style
+plot_sraplus(sir_fit = sir_fit, ml_fit = ml_fit)
 
-## Vignette Info
-
-Note the various macros within the `vignette` section of the metadata block above. These are required in order to instruct R how to build the vignette. Note that you should change the `title` field and the `\VignetteIndexEntry` to match the title of your vignette.
-
-## Styles
-
-The `html_vignette` template includes a basic CSS theme. To override this theme you can specify your own CSS in the document metadata as follows:
-
-    output: 
-      rmarkdown::html_vignette:
-        css: mystyles.css
-
-## Figures
-
-The figure sizes have been customised so that you can easily put two images side-by-side. 
-
-```{r, fig.show='hold'}
-plot(1:10)
-plot(10:1)
 ```
 
-You can enable figure captions by `fig_caption: yes` in YAML:
-
-    output:
-      rmarkdown::html_vignette:
-        fig_caption: yes
-
-Then you can use the chunk option `fig.cap = "Your figure caption."` in **knitr**.
-
-## More Examples
-
-You can write math expressions, e.g. $Y = X\beta + \epsilon$, footnotes^[A footnote here.], and tables, e.g. using `knitr::kable()`.
-
-```{r, echo=FALSE, results='asis'}
-knitr::kable(head(mtcars, 10))
-```
-
-Also a quote using `>`:
-
-> "He who gives up [code] safety for [code] speed deserves neither."
-([via](https://twitter.com/hadleywickham/status/504368538874703872))

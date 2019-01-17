@@ -329,7 +329,7 @@ Type objective_function<Type>::operator() ()
   vector<Type> log_u = log(u_v_umsy);
 
   // recompile please
-  vector<Type> log_c_div_cmsy = log(catch_t / msy);
+  vector<Type> log_c_div_msy = log(catch_t / msy);
 
   vector<Type> log_chat = log(catch_hat_t);
 
@@ -357,7 +357,7 @@ Type objective_function<Type>::operator() ()
 
   ADREPORT(log_u);
 
-  ADREPORT(log_c_div_cmsy);
+  ADREPORT(log_c_div_msy);
   
   ADREPORT(log_chat);
 
@@ -371,7 +371,7 @@ Type objective_function<Type>::operator() ()
 
   REPORT(log_u);
 
-  REPORT(log_c_div_cmsy);
+  REPORT(log_c_div_msy);
 
   REPORT(log_chat);
 
