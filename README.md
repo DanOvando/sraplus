@@ -47,7 +47,7 @@ If you run into an error, first off try updating your R packages. From
 there….
 
 If your version of R is lower than 3.5, you might want to consider
-updating R itself. Updating from 3.3 to 3.5 shouldn’t be any hastle. BIG
+updating R itself. Updating from 3.3 to 3.5 shouldn’t be any hassle. BIG
 WARNING THOUGH, updating from say R 2.9 to 3.5 is a major update, and
 you’ll lose all your installed packages in the process. I recommend
 following the instructions
@@ -79,7 +79,7 @@ again
 
 ## SIR example
 
-Once you’ve succesfully installed `sraplus` you can take for a test
+Once you’ve successfully installed `sraplus` you can take for a test
 drive with these examples.
 
 For the first example we’ll run use a sampling-importance-resampling
