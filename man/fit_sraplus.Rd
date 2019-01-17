@@ -20,7 +20,7 @@ fit_sraplus(driors, include_fit = TRUE, seed = 42, plim = 0.2,
 
 \item{model}{the name of the sraplus TMB version to be run}
 
-\item{fit_catches}{logicatl indicating whether catches should be fit or passed}
+\item{fit_catches}{logical indicating whether catches should be fit or passed}
 
 \item{randos}{random effects when passing to TMB}
 
