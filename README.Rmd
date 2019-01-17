@@ -8,8 +8,10 @@ output: github_document
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>",
-  fig.path = "man/figures/README-",
-  message = FALSE
+  message = FALSE,
+  warnings = FALSE,
+  eval = TRUE,
+  dev = "svg"
 )
 ```
 
@@ -64,14 +66,19 @@ driors <- format_driors(
   terminal_b = 0.5,
   use_heuristics = TRUE,
   sar = 2,
-  fmi = c("research" = 0.5,"management" = 0.8, "enforcement" = 0.8, "socioeconomics" = 0.9)
+  fmi = c(
+    "research" = 0.5,
+    "management" = 0.8,
+    "enforcement" = 0.8,
+    "socioeconomics" = 0.9
+  )
 )
 
 plot_driors(driors)
 
 sir_fit <- fit_sraplus(driors = driors,
                        use_sir = TRUE,
-                       draws = 1e4)
+                       draws = 1e6)
 
 plot_sraplus(sir_fit = sir_fit)
 
@@ -84,23 +91,25 @@ We'll now use maximum likelihood to fit to the same fishery, but now using an in
 
 ```{r}
 
-driors <- format_driors(taxa = example_taxa,
-                                 catch = cod$catch,
-                                 years = cod$year,
-                        index = cod$index,
-                        index_years = cod$year,
-                        initial_b = 1,
-                        initial_b_sd = 0.01,
-                        terminal_b = 0.5,
-                        sar = 2,
-                        sar_sd = 0.1)
+driors <- format_driors(
+  taxa = example_taxa,
+  catch = cod$catch,
+  years = cod$year,
+  index = cod$index,
+  index_years = cod$year,
+  initial_b = 1,
+  initial_b_sd = 0.01,
+  terminal_b = 0.5,
+  sar = 2,
+  sar_sd = 0.1
+)
 
 plot_driors(driors)
 
 
 ml_fit <- fit_sraplus(driors = driors,
-                       use_sir = FALSE,
-                       model = "sraplus_tmb")
+                      use_sir = FALSE,
+                      model = "sraplus_tmb")
 ```
 
 
@@ -108,6 +117,7 @@ And we can now compare the two results
 
 
 ```{r}
+
 plot_sraplus(sir_fit = sir_fit, ml_fit = ml_fit)
 
 ```
