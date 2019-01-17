@@ -42,6 +42,31 @@ devtools::install_github("danovando/sraplus")
 
 That's probably going to ask you to install many other packages, agree to the prompts. 
 
+### Troubleshooting
+
+If you run into an error, first off try updating your R packages. From there....
+
+If your version of R is lower than 3.5, you might want to consider updating R itself. Updating from 3.3 to 3.5 shouldn't be any hastle. BIG WARNING THOUGH, updating from say R 2.9 to 3.5 is a major update, and you'll lose all your installed packages in the process. I recommend following the instructions [here](https://www.datascienceriot.com/r/upgrade-R-packages/) to deal with that, but even with that fix it can take a while, so I don't recommend doing a major R update if you're on a deadline.
+
+From there...
+
+- On Windows, make sure you have the appropriate version of Rtools installed ([here](https://cran.r-project.org/bin/windows/Rtools/)), most likely Rtools35 if you have R version 3.3 or higher 
+
+- On macOS, there might be some issues with the your compiler. If you get an error that says something like `clang: error: unsupported option '-fopenmp'`, follow the instructions [here](https://thecoatlessprofessor.com/programming/r-compiler-tools-for-rcpp-on-macos/)
+
+Once you've tried those, restart your computer and try running
+
+```{r, eval = FALSE}
+
+install.packages("devtools")
+
+devtools::install_github("danovando/sraplus")
+
+
+```
+
+again
+
 ## SIR example
 
 Once you've succesfully installed `sraplus` you can take for a test drive with these examples. 
