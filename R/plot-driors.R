@@ -1,6 +1,6 @@
 #' Plot data and priors for sralpus
 #'
-#' @param driors
+#' @param driors a list of driors created by sraplus::format_driors
 #'
 #' @return a ggplot2 object
 #' @export

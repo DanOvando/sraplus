@@ -5,8 +5,8 @@
 #' @return a theme object
 #' @export
 #'
-theme_sraplus <- function(base_size = 12){
+theme_sraplus <- function(base_size = 14){
   
-  out <- theme_light(base_size = base_size)
+  out <- theme_bw(base_size = base_size)
   
 }

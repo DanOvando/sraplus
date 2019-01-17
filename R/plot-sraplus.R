@@ -9,6 +9,12 @@ plot_sraplus <- function(...){
   
   fit_names<- names(list(...))
   
+  if (is.null(fit_names)){
+    
+    fit_names <- letters[seq_along(list(...))]
+    
+  }
+  
   fits <- list(...)  %>% 
     purrr::set_names(fit_names) 
   

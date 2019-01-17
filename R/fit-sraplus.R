@@ -3,7 +3,7 @@
 #' @param driors a list of driors passed from sraplus::format_driors
 #' @param include_fit logical indicating whether to return the fitted object
 #' @param seed seed for model runs
-#' @param plim minimum for hockey stick in pt model
+#' @param plim cutoff (in units of B/K) for hockey stick PT function
 #' @param model the name of the sraplus TMB version to be run
 #' @param fit_catches logical indicating whether catches should be fit or passed
 #' @param randos random effects when passing to TMB
@@ -27,7 +27,7 @@ fit_sraplus <- function(driors,
                         use_sir = FALSE) {
   
   
-  knockout <- list()
+  knockout <- list() #parameters to knockout from TMB estimation using TMB::map
   
   index_years <- driors$index_years
   
@@ -77,6 +77,7 @@ fit_sraplus <- function(driors,
     uc_proc_errors = rep(0, time - 1),
     log_m = log(2))
   
+  # fit SIR model
   if ((sra_data$fit_index == 0 & sra_data$use_u_prior == 0) | use_sir == TRUE) {
     
     sra_fit <- sraplus::sraplus(
@@ -145,7 +146,7 @@ fit_sraplus <- function(driors,
 
   }
   
-  else {
+  else { # fit TMB model
     
     if (sra_data$use_u_prior == 0){
       

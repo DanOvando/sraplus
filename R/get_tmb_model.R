@@ -1,4 +1,4 @@
-#' Compile and load TMB models for srapls
+#' Compile and load TMB models for sraplus
 #'
 #' @param model_name the name of the sraplus model to load
 #'
