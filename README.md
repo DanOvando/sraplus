@@ -65,15 +65,12 @@ driors <- format_driors(
   catch = cod$catch,
   years = cod$year,
   initial_b = 1,
-  terminal_b = 0.5,
-  use_heuristics = TRUE,
+  initial_b_sd = 0.2,
+  terminal_b = 0.75,
+  terminal_b_sd = 1,
+  use_heuristics = FALSE,
   sar = 2,
-  fmi = c(
-    "research" = 0.5,
-    "management" = 0.8,
-    "enforcement" = 0.8,
-    "socioeconomics" = 0.9
-  )
+  fmi = c("research" = 0.5,"management" = 0.8, "enforcement" = 0.75, "socioeconomics" = .67),
 )
 
 plot_driors(driors)

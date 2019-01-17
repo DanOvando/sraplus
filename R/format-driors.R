@@ -92,7 +92,7 @@ format_driors <-
       
       terminal_b <- exp(mean(pp))
       
-      terminal_b_sd = ifelse(is.na(fmi_sd),sd(pp),fmi_sd)
+      terminal_b_sd <- ifelse(is.na(fmi_sd),sd(pp),fmi_sd)
       
       ref_type <- "b"
       
