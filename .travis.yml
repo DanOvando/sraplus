@@ -4,9 +4,6 @@ r: devel
 sudo: FALSE
 cache: packages
 
-os:
-  - windows
-
 warnings_are_errors: FALSE
 
 r_build_args: '--no-build-vignettes'
