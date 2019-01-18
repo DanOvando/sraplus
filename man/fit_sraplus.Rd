@@ -16,7 +16,7 @@ fit_sraplus(driors, include_fit = TRUE, seed = 42, plim = 0.2,
 
 \item{seed}{seed for model runs}
 
-\item{plim}{minimum for hockey stick in pt model}
+\item{plim}{cutoff (in units of B/K) for hockey stick PT function}
 
 \item{model}{the name of the sraplus TMB version to be run}
 

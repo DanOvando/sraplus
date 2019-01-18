@@ -4,7 +4,7 @@
 \alias{theme_sraplus}
 \title{plotting theme for sraplus}
 \usage{
-theme_sraplus(base_size = 12)
+theme_sraplus(base_size = 14)
 }
 \arguments{
 \item{base_size}{the font size}

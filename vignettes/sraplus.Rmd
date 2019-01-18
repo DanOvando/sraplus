@@ -1,6 +1,6 @@
 ---
-title: "Vignette Title"
-author: "Vignette Author"
+title: "Stock Assessment with the sraplus package"
+author: "Dan Ovando"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >

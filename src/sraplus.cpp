@@ -29,12 +29,6 @@ NumericVector u_priors,
 double sigma_u
 ) {
 
-
-  //hello?
-  // is it me you're looking for?
-  // because if so sweeet
-  // are you there?
-  // mayve?
   int years = catches.size();
 
   NumericMatrix b_t(years, draws);
@@ -153,10 +147,6 @@ double sigma_u
 
     for (int t = 0; t < u_years.size(); t++) {
 
-      //std::cout << u_priors(t) << "\n";
-
-      // please work
-
       log_like(i) += R::dnorm(log(u_priors(t) + 1e-6), log(u_umsy_t(u_years(t) - 1,i) + 1e-6), sigma_u, true);
 
     }
@@ -188,7 +178,6 @@ double sigma_u
   log_like(i) = exp(log_like(i)) * (1 - crashed(i));
 
 } // closd SIR loop
-
 
 
 //// run SIR ////

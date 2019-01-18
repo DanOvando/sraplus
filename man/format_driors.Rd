@@ -6,38 +6,38 @@
 \usage{
 format_driors(taxa = "gadus morhua", initial_b = 1,
   initial_b_sd = 0.1, terminal_b = 0.25, terminal_b_sd = 0.1,
-  carry = NA, carry_cv = 0.1, u_v_umsy = NA, u_years = NA,
-  u_cv = 0.1, final_u = NA, final_u_cv = NA, catch = NA,
+  carry = NA, carry_sd = 0.1, u_v_umsy = NA, u_years = NA,
+  u_sd = 0.1, final_u = NA, final_u_sd = NA, catch = NA,
   years = NA, index = NA, effort = NA, ref_type = "k",
   index_years = 1, effort_years = 1, use_heuristics = FALSE,
   fmi = c(research = NA, management = NA, enforcement = NA,
   socioeconomics = NA), fmi_sd = NA, sar = NA, sar_sd = NA,
-  f_cv = 0.1)
+  f_sd = 0.1)
 }
 \arguments{
-\item{taxa}{the genus and species of the species}
+\item{taxa}{the genus and species of the species (case insensitive)}
 
-\item{initial_b}{b reference point in the initial year}
+\item{initial_b}{b reference point in the initial year, units of depletion of B/Bmsy (set ref_type accordingly)}
 
 \item{initial_b_sd}{sigma associated with initial b reference point}
 
-\item{terminal_b}{b reference point in the terminal year}
+\item{terminal_b}{b reference point in the terminal year, units of depletion of B/Bmsy (set ref_type accordingly)}
 
 \item{terminal_b_sd}{sigma associated with terminal b reference point}
 
-\item{carry}{prior on carrying capacity}
+\item{carry}{prior on carrying capacity, deprecated}
 
-\item{carry_cv}{cv associated with prior on carrying capacity}
+\item{carry_sd}{cv associated with prior on carrying capacity, deprecated}
 
 \item{u_v_umsy}{u/umsy data over time}
 
 \item{u_years}{years in which u/umsy data are available}
 
-\item{u_cv}{cv associated with u/umsy data}
+\item{u_sd}{cv associated with u/umsy data}
 
 \item{final_u}{vector of priors on u/umsy in the terminal years}
 
-\item{final_u_cv}{vector of cvs on u/umsy in the terminal years}
+\item{final_u_sd}{vector of cvs on u/umsy in the terminal years}
 
 \item{catch}{vector of catches over lifetime of fishery}
 
@@ -55,7 +55,7 @@ format_driors(taxa = "gadus morhua", initial_b = 1,
 
 \item{use_heuristics}{logical,TRUE uses catch-msy hueristics for priors, FALSE requires user to pass them}
 
-\item{fmi}{vector of fisheries management index scrores}
+\item{fmi}{named vector of fisheries management index scrores}
 
 \item{fmi_sd}{overwrite fmi prediction sd}
 
@@ -63,7 +63,7 @@ format_driors(taxa = "gadus morhua", initial_b = 1,
 
 \item{sar_sd}{overwrite sar prediction sd}
 
-\item{f_cv}{no idea, at all}
+\item{f_sd}{deprecated}
 }
 \value{
 a list of data and priors

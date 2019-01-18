@@ -3,19 +3,30 @@
 template<class Type>
 Type growfoo(Type r, Type m, Type b, Type plim)
 {
-  if ( b > plim ){
+  // if ( b > plim ){
 
     Type growth = (r  / (m - 1)) * b * (1 - pow(b,m - 1));
 
-    return growth;
-  } else {
+  //   return growth;
+  // } else {
 
-    Type growth = (b * 1/plim) * ((r  / (m - 1)) * b * (1 - pow(b,m - 1)));
+    // Type growth = (b * 1/plim) * ((r  / (m - 1)) * b * (1 - pow(b,m - 1)));
 
     return growth;
-  }
+  //}
 
 } // close function
+
+template<class Type>
+Type posfun(Type x, Type eps, Type &pen)
+{
+  if ( x >= eps ){
+    return x;
+  } else {
+    pen += Type(0.01) * pow(x-eps,2);
+    return eps/(Type(2.0)-x/eps);
+  }
+}
 
 
 template<class Type>
@@ -37,7 +48,7 @@ Type objective_function<Type>::operator() ()
 
   DATA_INTEGER(ref_type); //0 means that initial and final are relative to K, 1 to Bmsy
 
-  DATA_INTEGER(use_init); // use initial reference point
+  // DATA_INTEGER(use_init); // use initial reference point
 
   DATA_INTEGER(use_final); // use final reference point
 
@@ -63,9 +74,9 @@ Type objective_function<Type>::operator() ()
 
   DATA_SCALAR(log_r_prior);
 
-  DATA_SCALAR(sigma_proc_prior);
+  // DATA_SCALAR(sigma_proc_prior);
 
-  DATA_SCALAR(sigma_proc_prior_cv);
+  // DATA_SCALAR(sigma_proc_prior_cv);
 
   DATA_SCALAR(log_r_cv);
 
@@ -100,8 +111,6 @@ Type objective_function<Type>::operator() ()
   PARAMETER_VECTOR(inv_f_t);
 
   //// model ////
-
-  Type hole = 0;
 
   Type crashed = 0;
 
@@ -162,6 +171,8 @@ Type objective_function<Type>::operator() ()
 
   // b_t(0) = k * init_dep;
 
+  Type fpen = 0.;
+  
   b_t(0) = init_dep;
 
   // index_hat_t(0) = b_t(0) * q;
@@ -175,17 +186,10 @@ Type objective_function<Type>::operator() ()
 
     growth_t(t - 1) = growfoo(r,m,b_t(t - 1),plim);
 
-    // b_t(t) = (b_t(t - 1) +  growth_t(t - 1) - catch_t(t - 1) / k) * proc_errors(t - 1);
-
     b_t(t) = (b_t(t - 1) +  growth_t(t - 1) - catch_hat_t(t - 1) / k) * proc_errors(t - 1);
 
-    // b_t(t) = pmin(Type(2),b_t(t));
-
-    if (b_t(t) > 1.2){
-
-      b_t(t) =  1.2;
-
-    }
+    b_t(t) = posfun(b_t(t) ,Type(.001),fpen);
+    
 
   } // close population model
 
@@ -198,8 +202,6 @@ Type objective_function<Type>::operator() ()
 
   growth_t(time - 1) = (r  / (m - 1)) * b_t(time - 1) * (1 - pow(b_t(time - 1),m - 1));
 
-  vector<Type> wtf = b_t;
-
   b_t = b_t * k;
 
   b_v_bmsy = b_t / bmsy;
@@ -209,7 +211,9 @@ Type objective_function<Type>::operator() ()
   dep_t = b_t / k;
 
   index_hat_t = q * b_t;
-
+  
+  nll += fpen;
+  
   // umsy penalty
 
   if (umsy > 1){
@@ -269,8 +273,6 @@ Type objective_function<Type>::operator() ()
   if (ref_type == 0){
 
     final_ref = dep_t(time - 1);
-
-    // final_ref = (b_t(time - 1) + hole) / k;
 
     init_ref = dep_t(0);
 
@@ -374,8 +376,6 @@ Type objective_function<Type>::operator() ()
   REPORT(log_c_div_msy);
 
   REPORT(log_chat);
-
-  //
 
   REPORT(final_ref);
 

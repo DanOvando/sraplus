@@ -7,7 +7,7 @@
 plot_driors(driors)
 }
 \arguments{
-\item{driors}{}
+\item{driors}{a list of driors created by sraplus::format_driors}
 }
 \value{
 a ggplot2 object

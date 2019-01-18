@@ -2,7 +2,7 @@
 % Please edit documentation in R/get_tmb_model.R
 \name{get_tmb_model}
 \alias{get_tmb_model}
-\title{Compile and load TMB models for srapls}
+\title{Compile and load TMB models for sraplus}
 \usage{
 get_tmb_model(model_name = "sraplus_tmb")
 }
@@ -10,5 +10,5 @@ get_tmb_model(model_name = "sraplus_tmb")
 \item{model_name}{the name of the sraplus model to load}
 }
 \description{
-Compile and load TMB models for srapls
+Compile and load TMB models for sraplus
 }
