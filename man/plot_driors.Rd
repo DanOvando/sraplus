@@ -4,10 +4,12 @@
 \alias{plot_driors}
 \title{Plot data and priors for sralpus}
 \usage{
-plot_driors(driors)
+plot_driors(driors, fontsize = 10)
 }
 \arguments{
 \item{driors}{a list of driors created by sraplus::format_driors}
+
+\item{fontsize}{font size for plots}
 }
 \value{
 a ggplot2 object

@@ -1,11 +1,12 @@
 #' Plot timeseries of estimates from multiple sraplus models
 #'
 #' @param ... any number of sraplus models
+#' @param fontsize font size for plots
 #'
 #' @return a ggplot object
 #' @export
 #'
-plot_sraplus <- function(...){
+plot_sraplus <- function(..., fontsize = 14){
   
   fit_names<- names(list(...))
   
@@ -37,7 +38,7 @@ plot_sraplus <- function(...){
    ggplot2::geom_line(aes(year, mean, color = fit),
               size = 1) +
    ggplot2::facet_wrap(~variable, scales = "free_y") + 
-    sraplus::theme_sraplus() + 
+    sraplus::theme_sraplus(base_size = fontsize) + 
    ggplot2::scale_y_continuous( name = "") +
     labs(x = "Time") +
    ggplot2::scale_fill_discrete(name = "Fit") + 

@@ -4,10 +4,12 @@
 \alias{plot_sraplus}
 \title{Plot timeseries of estimates from multiple sraplus models}
 \usage{
-plot_sraplus(...)
+plot_sraplus(..., fontsize = 14)
 }
 \arguments{
 \item{...}{any number of sraplus models}
+
+\item{fontsize}{font size for plots}
 }
 \value{
 a ggplot object

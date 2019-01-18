@@ -66,9 +66,9 @@ driors <- format_driors(
   initial_b_sd = 0.2,
   terminal_b = 0.75,
   terminal_b_sd = 1,
-  use_heuristics = FALSE,
+  use_heuristics = TRUE,
   sar = 2,
-  sar_sd = .1,
+  sar_sd = 2,
   fmi = c("research" = 0.5,"management" = 0.8, "enforcement" = 0.75, "socioeconomics" = .67),
 )
 
@@ -77,7 +77,7 @@ plot_driors(driors)
 sir_fit <- fit_sraplus(driors = driors,
                        use_sir = TRUE,
                        draws = 1e4)
-plot_sraplus(sir_fit = sir_fit)
+plot_sraplus(sir_fit = sir_fit, fontsize = 22)
 
 ```
 

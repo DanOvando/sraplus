@@ -1,11 +1,12 @@
 #' Plot data and priors for sralpus
 #'
 #' @param driors a list of driors created by sraplus::format_driors
+#' @param fontsize font size for plots
 #'
 #' @return a ggplot2 object
 #' @export
 #'
-plot_driors <- function(driors) {
+plot_driors <- function(driors,fontsize = 10) {
   timeseries <- dplyr::tibble(year = driors$years,
                               catch = driors$catch)
   
@@ -85,7 +86,7 @@ plot_driors <- function(driors) {
     ggplot2::geom_boxplot() +
     ggplot2::facet_wrap( ~ variable, scales = "free") +
     ggplot2::labs(y = "", x = "") +
-    theme_sraplus(base_size = 10) +
+    theme_sraplus(base_size = fontsize) +
     ggplot2::theme(
       strip.text = ggplot2::element_blank(),
       strip.background = ggplot2::element_blank(),

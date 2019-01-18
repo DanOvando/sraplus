@@ -1,8 +1,6 @@
 ---
 output: github_document
 ---
-[![Build Status](https://travis-ci.org/DanOvando/sraplus.svg?branch=master)](https://travis-ci.org/DanOvando/sraplus)
-<!-- README.md is generated from README.Rmd. Please edit that file -->
 
 ```{r, echo = FALSE}
 knitr::opts_chunk$set(
@@ -16,6 +14,10 @@ knitr::opts_chunk$set(
 ```
 
 # sraplus
+
+[![Build Status](https://travis-ci.org/DanOvando/sraplus.svg?branch=master)](https://travis-ci.org/DanOvando/sraplus)
+<!-- README.md is generated from README.Rmd. Please edit that file -->
+
 
 **THIS PACKAGE IS IN ACTIVE DEVELOPMENT AND SHOULD NOT BE USED FOR INDIVIDUAL STOCK ASSESSMENT AT THIS TIME**
 

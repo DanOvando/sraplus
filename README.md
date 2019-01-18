@@ -1,9 +1,9 @@
 
+# sraplus
+
 [![Build
 Status](https://travis-ci.org/DanOvando/sraplus.svg?branch=master)](https://travis-ci.org/DanOvando/sraplus)
 <!-- README.md is generated from README.Rmd. Please edit that file -->
-
-# sraplus
 
 **THIS PACKAGE IS IN ACTIVE DEVELOPMENT AND SHOULD NOT BE USED FOR
 INDIVIDUAL STOCK ASSESSMENT AT THIS TIME**

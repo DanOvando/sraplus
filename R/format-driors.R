@@ -50,24 +50,27 @@ format_driors <-
            index_years = 1,
            effort_years = 1,
            use_heuristics = FALSE,
-           fmi = c("research" = NA,"management" = NA, "enforcement" = NA, "socioeconomics" = NA),
+           fmi = c(
+             "research" = NA,
+             "management" = NA,
+             "enforcement" = NA,
+             "socioeconomics" = NA
+           ),
            fmi_sd = NA,
            sar = NA,
            sar_sd = NA,
            f_sd = 0.1) {
-
-
-    if (!is.na(sar)){
-      
+    if (!is.na(sar)) {
       temp <- dplyr::tibble(sar = sar)
       
-      pp <- rstanarm::posterior_predict(regs$sar_f_reg, newdata = temp)
+      pp <-
+        rstanarm::posterior_predict(regs$sar_f_reg, newdata = temp)
       
-      pp <- pp[pp > quantile(pp,.05) & pp < quantile(pp,0.9)]
+      pp <- pp[pp > quantile(pp, .05) & pp < quantile(pp, 0.9)]
       
-      final_u <- c(final_u,exp(mean(pp)))
+      final_u <- c(final_u, exp(mean(pp)))
       
-      usd <- ifelse(is.na(sar_sd),sd(pp),sar_sd)
+      usd <- ifelse(is.na(sar_sd), sd(pp), sar_sd)
       
       final_u_sd <- c(final_u_sd, usd)
       
@@ -75,156 +78,157 @@ format_driors <-
     
     
     if (any(!is.na(fmi))) {
+      temp <- purrr::map_df(fmi,  ~ .)
       
-      temp <- purrr::map_df(fmi,~.)
+      pp <-
+        rstanarm::posterior_predict(regs$fmi_f_reg, newdata = temp)
       
-      pp <- rstanarm::posterior_predict(regs$fmi_f_reg, newdata = temp)
+      pp <- pp[pp > quantile(pp, .05) & pp < quantile(pp, 0.9)]
       
-      pp <- pp[pp > quantile(pp,.05) & pp < quantile(pp,0.9)]
+      final_u <- c(final_u, exp(mean(pp)))
       
-      final_u <- c(final_u,exp(mean(pp)))
+      final_u_sd <-
+        c(final_u_sd, ifelse(is.na(fmi_sd), sd(pp), fmi_sd))
       
-      final_u_sd <- c(final_u_sd, ifelse(is.na(fmi_sd),sd(pp),fmi_sd))
+      pp <-
+        rstanarm::posterior_predict(regs$fmi_b_reg, newdata = temp)
       
-      pp <- rstanarm::posterior_predict(regs$fmi_b_reg, newdata = temp)
-      
-      pp <- pp[pp > quantile(pp,.05) & pp < quantile(pp,0.9)]
+      pp <- pp[pp > quantile(pp, .05) & pp < quantile(pp, 0.9)]
       
       terminal_b <- exp(mean(pp))
       
-      terminal_b_sd <- ifelse(is.na(fmi_sd),sd(pp),fmi_sd)
+      terminal_b_sd <- ifelse(is.na(fmi_sd), sd(pp), fmi_sd)
       
       ref_type <- "b"
       
     }
     
-    if (use_heuristics == TRUE){
-
-
+    
+    genus_species <-
+      taxa %>% stringr::str_split(" ", simplify = TRUE)
+    
+    shh <- purrr::safely(FishLife::Search_species)
+    
+    fish_search <-
+      shh(Genus = genus_species[1], Species = genus_species[2])
+    
+    if (is.null(fish_search$error)) {
+      taxon <- fish_search$result$match_taxonomy[1] %>%
+        stringr::str_split("_") %>%
+        unlist()
+      
+    } else{
+      shh <- purrr::safely(FishLife::Search_species)
+      
+      taxon <-
+        shh(Genus = genus_species[1])$result$match_taxonomy[1] %>%
+        stringr::str_split("_") %>%
+        unlist()
+      
+    }
+    
+    params_mvn <-
+      c("r", "ln_var")
+    if (is.null(fish_search$error)) {
+      taxon <-
+        dplyr::tibble(
+          Class = taxon[[1]],
+          Order = taxon[[2]],
+          Family = taxon[[3]],
+          Genus = taxon[[4]],
+          Species = taxon[[5]]
+        )
+      
+      sp <- shh(
+        Class = taxon["Class"],
+        Order = taxon["Order"],
+        Family = taxon["Family"],
+        Genus = taxon["Genus"],
+        Species = taxon["Species"],
+        ParentChild_gz = FishLifeData$ParentChild_gz
+      )$result$match_taxonomy[1]
+      
+      taxa_location <-
+        grep(sp, FishLifeData$ParentChild_gz[, "ChildName"])[1]
+      
+      mean_lh <- FishLifeData$beta_gv[taxa_location, ]
+      
+      cov_lh <- FishLifeData$Cov_gvv[taxa_location, , ]
+      
+      
+      mean_lh <- mean_lh[which(names(mean_lh) %in% params_mvn)]
+      
+      cov_lh <-
+        cov_lh[which(rownames(cov_lh) %in% params_mvn), which(colnames(cov_lh) %in% params_mvn)] %>% diag()
+      
+    } else {
+      mean_lh <-
+        c("r" = median(FishLifeData$beta_gv[, "r"]),
+          "ln_var" = log(0.05))
+      
+      cov_lh <-
+        c("r" = sd(FishLifeData$beta_gv[, "r"]),
+          "ln_var" = 0.05)
+      
+      
+    }
+    if (is.na(initial_b)) {
+      initial_b <- ifelse(ref_type == "k", 1, 2.5)
+    }
+    
+    if (is.na(initial_b)) {
+      initial_b <- if (catch[1] / max(catch) < 0.2)
+        c(0.7)
+      else
+        0.4
+      
+      initial_b_sd <- 0.1
+    }
+    
+    
+    if (any(!is.na(final_u))) {
+      log_final_u <- log(final_u[!is.na(final_u)])
+      
+      log_final_u_sd <- final_u_sd[!is.na(final_u)]
+      
+      if (is.na(terminal_b)){ # if no terminal b prior use approx from U/Umsy
+        
+        terminal_b <- pmax(.05,2.5 - mean(final_u[!is.na(final_u)]))
+        
+        terminal_b_sd <- 0.2
+      }
+      
+    } else {
+      log_final_u <- NA
+      
+      log_final_u_sd <- NA
+    }
+    
+    if (use_heuristics == TRUE) {
+      ref_type <-  "k"
+      
       temp <-
         if (catch[1] / max(catch, na.rm = TRUE) < 0.2)
           0.7
       else
         0.4
-
+      
       initial_b <-  dplyr::case_when(ref_type == "k" ~ temp,
-                                   TRUE ~ temp * 2)
-
-      initial_b_sd <- 0.1
-
+                                     TRUE ~ temp * 2.5)
+      
+      initial_b_sd <- 0.2
+      
       temp_terminal <-
         ifelse((dplyr::last(catch) / max(catch)) > 0.5, 0.6, 0.2)
-
-      terminal_b <-  dplyr::case_when(ref_type == "k" ~ temp_terminal,
-                                   TRUE ~ temp_terminal * 2)
-
-      terminal_b_sd <- 0.1
-
+      
+      terminal_b <-
+        dplyr::case_when(ref_type == "k" ~ temp_terminal,
+                         TRUE ~ temp_terminal * 2.5)
+      
+      terminal_b_sd <- 0.2
+      
     }
-
-    genus_species <-
-      taxa %>% stringr::str_split(" ", simplify = TRUE)
-
-    shh <- purrr::safely(FishLife::Search_species)
-
-    fish_search <-
-      shh(Genus = genus_species[1], Species = genus_species[2])
-
-    if (is.null(fish_search$error)) {
-      taxon <- fish_search$result$match_taxonomy[1] %>%
-        stringr::str_split("_") %>%
-        unlist()
-
-    } else{
-      shh <- purrr::safely(FishLife::Search_species)
-
-      taxon <-
-        shh(Genus = genus_species[1])$result$match_taxonomy[1] %>%
-        stringr::str_split("_") %>%
-        unlist()
-
-    }
-
-    params_mvn <-
-      c("r", "ln_var")
-    if (is.null(fish_search$error)) {
-
-
-    taxon <-
-      dplyr::tibble(
-        Class = taxon[[1]],
-        Order = taxon[[2]],
-        Family = taxon[[3]],
-        Genus = taxon[[4]],
-        Species = taxon[[5]]
-      )
-
-    sp <- shh(
-      Class = taxon["Class"],
-      Order = taxon["Order"],
-      Family = taxon["Family"],
-      Genus = taxon["Genus"],
-      Species = taxon["Species"],
-      ParentChild_gz = FishLifeData$ParentChild_gz
-    )$result$match_taxonomy[1]
-
-    taxa_location <- grep(sp, FishLifeData$ParentChild_gz[, "ChildName"])[1]
-
-    mean_lh <- FishLifeData$beta_gv[taxa_location,]
-
-    cov_lh <- FishLifeData$Cov_gvv[taxa_location, ,]
-
-
-    mean_lh <- mean_lh[which(names(mean_lh) %in% params_mvn)]
-
-    cov_lh <-
-      cov_lh[which(rownames(cov_lh) %in% params_mvn), which(colnames(cov_lh) %in% params_mvn)] %>% diag()
-
-    } else {
-
-
-      mean_lh <-  c("r" = median(FishLifeData$beta_gv[,"r"]),"ln_var" = log(0.05))
-
-      cov_lh <- c("r" = sd(FishLifeData$beta_gv[,"r"]),"ln_var" = 0.05)
-
-
-    }
-    if (is.na(initial_b)){
-
-      initial_b <- ifelse(ref_type == "k",1,2.5)
-    }
-
-
-    # if (is.na(initial_b) | is.na(terminal_b)){
-    #
-    #   ref_type <- "k"
-    #
-    # }
-    #
-    if (is.na(initial_b)){
-
-      initial_b <-if (catch[1] / max(catch) < 0.2) c(0.7) else 0.4
-
-      initial_b_sd <- 0.1
-    }
-    #
-    # if (is.na(terminal_b)){
-    #
-    #   terminal_b = if(last(catch)/max(catch) > 0.5) c(0.5) else c(0.205)
-    #
-    # }
-
-
-if (any(!is.na(final_u))){
-  
-  log_final_u <- log(final_u[!is.na(final_u)])
-  
-  log_final_u_sd <- final_u_sd[!is.na(final_u)]
-} else {
-  log_final_u <- NA
-  
-  log_final_u_sd <- NA
-}
+    
     
     driors <-
       list(
@@ -245,15 +249,15 @@ if (any(!is.na(final_u))){
         effort_years = effort_years,
         growth_rate = mean_lh["r"],
         growth_rate_cv = (cov_lh["r"]),
-        sigma_r =exp(mean_lh["ln_var"])/2,
+        sigma_r = exp(mean_lh["ln_var"]) / 2,
         sigma_r_cv = exp(cov_lh["ln_var"]),
         f_cv = f_sd,
         log_final_u = log_final_u,
         log_final_u_cv = log_final_u_sd
       )
-
+    
     driors$ref_type <- ref_type
-
+    
     return(driors)
-
+    
   } # close function
