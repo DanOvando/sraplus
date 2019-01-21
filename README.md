@@ -68,7 +68,8 @@ From there…
   - On Windows, make sure you have the appropriate version of Rtools
     installed ([here](https://cran.r-project.org/bin/windows/Rtools/)),
     most likely Rtools35 if you have R version 3.3 or higher
-
+      - Make sure that you select the box that says something about
+        adding Rtools to the PATH variable
   - On macOS, there might be some issues with the your compiler. If you
     get an error that says something like `clang: error: unsupported
     option '-fopenmp'`, follow the instructions

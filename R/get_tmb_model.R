@@ -10,9 +10,11 @@ get_tmb_model <- function(model_name = "sraplus_tmb") {
     
   }
   
-  file.copy(from = system.file("tmb", paste0(model_name, ".cpp"), package = "sraplus"),
-            to =   file.path(getwd(), "tmb"),
-            overwrite = FALSE)
+  file.copy(
+    from = system.file("tmb", paste0(model_name, ".cpp"), package = "sraplus"),
+    to =   file.path(getwd(), "tmb"),
+    overwrite = FALSE
+  )
   
   TMB::compile(file.path("tmb", paste0(model_name, ".cpp")))
   
