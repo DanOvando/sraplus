@@ -317,9 +317,7 @@ Type objective_function<Type>::operator() ()
 
   nll -= dnorm(log_k,log_k_guess,Type(4), true);
 
-  // nll -= dnorm(log_q,Type(-7),Type(2), true);
-
-  nll -= dnorm(log_m,Type(0.1),Type(.1), true);
+  nll -= dnorm(log_m,Type(0.1),Type(0.5), true);
 
 
   vector<Type> log_bt = log(b_t);
@@ -330,7 +328,6 @@ Type objective_function<Type>::operator() ()
 
   vector<Type> log_u = log(u_v_umsy);
 
-  // recompile please
   vector<Type> log_c_div_msy = log(catch_t / msy);
 
   vector<Type> log_chat = log(catch_hat_t);

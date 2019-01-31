@@ -225,25 +225,6 @@ fit_sraplus <- function(driors,
     
     set.seed(seed)
     
-    
-    # stan_fit <- tmbstan::tmbstan(sra_model, lower = lower, upper = upper)
-    # 
-    # browser()
-    # 
-    # draws = tidybayes::tidy_draws(stan_fit) %>% 
-    #   tidyr::nest(-.chain,.iteration,-.draw,-.iteration)
-    # 
-    # draws <- draws %>% 
-    #   dplyr::mutate(pars = map(data, 
-    #                 get_posterior, 
-    #                 inits = inits,
-    #                 sra_data = sra_data,
-    #                 model = model,
-    #                 randos = randos,
-    #                 knockout = knockout)) %>% 
-    #   dplyr::select(-data)
-    
-    
     fit <- TMBhelper::Optimize(
       sra_model,
       fn = sra_model$fn,

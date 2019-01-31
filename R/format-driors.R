@@ -155,7 +155,6 @@ format_driors <-
       
       cov_lh <- FishLifeData$Cov_gvv[taxa_location, , ]
       
-      
       mean_lh <- mean_lh[which(names(mean_lh) %in% params_mvn)]
       
       cov_lh <-
@@ -229,7 +228,6 @@ format_driors <-
       
     }
     
-    
     driors <-
       list(
         catch = catch,
@@ -248,7 +246,7 @@ format_driors <-
         index_years = index_years,
         effort_years = effort_years,
         growth_rate = mean_lh["r"],
-        growth_rate_cv = (cov_lh["r"]),
+        growth_rate_cv = sqrt(cov_lh["r"]),
         sigma_r = exp(mean_lh["ln_var"]) / 2,
         sigma_r_cv = exp(cov_lh["ln_var"]),
         f_cv = f_sd,
