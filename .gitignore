@@ -7,3 +7,4 @@ inst/doc
 *.so
 *.Rhistory
 tmb/
+vignettes/tmb/
