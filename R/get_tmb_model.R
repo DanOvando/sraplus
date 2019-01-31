@@ -5,6 +5,10 @@
 #' @export
 #'
 get_tmb_model <- function(model_name = "sraplus_tmb") {
+  
+  
+  if (!model_name %in% names(getLoadedDLLs()) ) { # check whether DLL is already loaded, if not compile and load
+  
   if (!dir.exists(file.path(getwd(), "tmb"))) {
     dir.create("tmb")
     
@@ -19,6 +23,5 @@ get_tmb_model <- function(model_name = "sraplus_tmb") {
   TMB::compile(file.path("tmb", paste0(model_name, ".cpp")))
   
   dyn.load(TMB::dynlib(file.path("tmb", model_name)))
-  # gsub(".cpp","",system.file("tmb", paste0(model_name,".cpp"), package = "sraplus"))))
-  
+  }
 }

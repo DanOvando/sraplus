@@ -290,6 +290,9 @@ fit_sraplus <- function(driors,
     rm(sra_model)
     
     rm(fit)
+    
+    # dyn.unload(TMB::dynlib(file.path("tmb", model)))
+    
 
   }
   else { # fit TMB model
@@ -450,6 +453,9 @@ fit_sraplus <- function(driors,
     rm(sra_model)
     
     rm(fit)
+    
+    # dyn.unload(TMB::dynlib(file.path("tmb", model)))
+    
     
   } # close else
   

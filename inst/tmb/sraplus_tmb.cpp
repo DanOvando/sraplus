@@ -3,22 +3,22 @@
 template<class Type>
 Type growfoo(Type r, Type m, Type b, Type plim,Type &pen)
 {
-  if ( b > plim ){
+  // if ( b > plim ){
 
     
     Type growth = (r  / (m - 1)) * b * (1 - pow(b,m - 1));
 
-    pen += Type(0.0);
+    // pen += Type(0.0);
     
     return growth;
-  } else {
-
-    Type growth = (b * 1/plim) * ((r  / (m - 1)) * b * (1 - pow(b,m - 1)));
-    
-    pen += Type(0.0);
-    
-    return growth;
-  }
+  // } else {
+  // 
+  //   Type growth = (b * 1/plim) * ((r  / (m - 1)) * b * (1 - pow(b,m - 1)));
+  //   
+  //   pen += Type(0.0);
+  //   
+  //   return growth;
+  // }
 
 } // close function
 
