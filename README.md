@@ -126,7 +126,7 @@ plot_driors(driors)
 ``` r
 
 sir_fit <- fit_sraplus(driors = driors,
-                       use_sir = TRUE,
+                       engine = "sir",
                        draws = 1e6)
 
 plot_sraplus(sir_fit = sir_fit)
@@ -164,7 +164,7 @@ plot_driors(driors)
 
 
 ml_fit <- fit_sraplus(driors = driors,
-                      use_sir = FALSE,
+                      engine = "tmb",
                       model = "sraplus_tmb")
 ```
 
