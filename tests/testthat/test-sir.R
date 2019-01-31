@@ -13,7 +13,7 @@ test_that(" sir works", {
                           initial_b = 1,
                           terminal_b = 0.5)
   
-  sir_fit <- try(sraplus::fit_sraplus(driors = driors, use_sir = TRUE,
+  sir_fit <- try(sraplus::fit_sraplus(driors = driors, engine = "sir",
                          draws = 100),TRUE)
   
   expect_is(sir_fit,"list")
