@@ -29,7 +29,7 @@ get_posterior <-  function(
     par_list <- dplyr::tibble(par = draw_names[draw_locs], vals = as.numeric(draws[draw_locs])) %>% 
       tidyr::nest(-par) 
     
-    pars <- map(par_list$data, ~dplyr::pull(.x[,1])) %>% 
+    pars <- purrr::map(par_list$data, ~dplyr::pull(.x[,1])) %>% 
       purrr::set_names(par_list$par)
 
     temp <-

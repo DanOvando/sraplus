@@ -19,12 +19,14 @@ fit_sraplus <- function(driors,
                         include_fit = TRUE,
                         seed = 42,
                         plim = 0.2,
-                        model = "sraplus_v2",
+                        model = "sraplus_tmb",
                         fit_catches = TRUE,
                         randos = "uc_proc_errors",
                         draws = 1e6,
                         n_keep = 2000,
-                        use_sir = FALSE) {
+                        engine = "sir",
+                        cores = 4,
+                        chains = 1) {
   
   
   knockout <- list() #parameters to knockout from TMB estimation using TMB::map
@@ -78,7 +80,7 @@ fit_sraplus <- function(driors,
     log_m = log(2))
   
   # fit SIR model
-  if ((sra_data$fit_index == 0 & sra_data$use_u_prior == 0) | use_sir == TRUE) {
+  if ((sra_data$fit_index == 0 & sra_data$use_u_prior == 0) | engine == "sir") {
     
     sra_fit <- sraplus::sraplus(
       catches = sra_data$catch_t,
@@ -144,8 +146,150 @@ fit_sraplus <- function(driors,
    
     # index_tests <- sra_fit$index_hat[, sra_fit$keepers]
 
-  }
   
+    }
+  else if (engine == "stan"){
+    
+    if (sra_data$use_u_prior == 0){
+      
+      udist <- NULL
+      
+    } else {
+      
+      udist <- 2
+      
+    }
+    
+    lower_k <- log(1.25 * max(driors$catch))
+    
+    upper_k <- log(50 * max(driors$catch))
+    
+    if (fit_catches == TRUE){
+      
+      inits$inv_f_t = rep(-2, time - 1);
+      
+    }
+    
+    
+    if (sra_data$fit_index == 0){
+      
+      knockout$log_q <- NA
+      
+      knockout$log_sigma_obs <- NA
+      
+    }
+    
+    # knockout$log_init_dep = NA
+    
+    if (sra_data$fit_index == 0 & sra_data$use_u_prior == 0){
+      
+      knockout$log_sigma_proc <- NA
+      
+      knockout$uc_proc_errors <- rep(NA, time - 1)
+      
+      inits$log_sigma_proc <- -1e6
+      
+      inits$uc_proc_errors <- rep(0, time - 1)
+      
+      randos <- NULL
+      
+      randos <- "inv_f_t"
+      
+    }
+    
+    knockout <- purrr::map(knockout, as.factor)
+    
+    sraplus::get_tmb_model(model_name = model)
+    
+    sra_model <-
+      TMB::MakeADFun(
+        data = sra_data,
+        parameters = inits,
+        DLL = model,
+        random = randos,
+        silent = TRUE,
+        inner.control=list(maxit=1e3),
+        hessian=FALSE,
+        map = knockout
+      )
+    
+    lower = rep(-Inf,length(sra_model$par)) %>%
+      purrr::set_names(names(sra_model$par))
+    
+    lower['log_k'] <- lower_k
+    
+    upper = rep(Inf,length(sra_model$par)) %>%
+      purrr::set_names(names(sra_model$par))
+    
+    upper['log_k'] <- upper_k
+    
+    upper["log_init_dep"] <- log(1.5)
+    
+    set.seed(seed)
+    
+    fit <- tmbstan::tmbstan(sra_model, lower = lower, upper = upper, cores = cores,
+                                 chains = chains)
+
+    draws = tidybayes::tidy_draws(fit) %>%
+      tidyr::nest(-.chain,.iteration,-.draw,-.iteration)
+
+    draws <- draws %>%
+      dplyr::mutate(pars = purrr::map(data,
+                    get_posterior,
+                    inits = inits,
+                    sra_data = sra_data,
+                    model = model,
+                    randos = randos,
+                    knockout = knockout)) %>%
+      dplyr::select(-data)
+    
+    draws <- draws %>% 
+      mutate(stack = purrr::map(pars, stack_stan)) %>% 
+      select(-pars) %>% 
+      tidyr::unnest()
+    
+    draws <- draws %>% 
+      dplyr::group_by(variable, .draw) %>% 
+      mutate(year = seq_along(value))
+    
+    
+    draws$variable <- dplyr::case_when(draws$variable == "log_b" ~ "log_b_div_bmsy",
+                                       draws$variable == "log_bt" ~ "log_b",
+                                       draws$variable == "log_dep" ~ "log_depletion",
+                                       draws$variable == "log_u" ~ "log_u_div_umsy",
+                                     TRUE ~ draws$variable)
+    
+    
+    logs <- draws %>% 
+      ungroup() %>% 
+      dplyr::filter(stringr::str_detect(variable,"log_")) %>%
+      dplyr::mutate(value = exp(value)) %>% 
+      dplyr::mutate(variable = stringr::str_remove_all(variable, "log_"))
+    
+    draws <- draws %>% 
+      dplyr::filter(!stringr::str_detect(variable,"log_")) %>%
+      dplyr::bind_rows(logs) 
+    
+    out <- logs %>%
+      dplyr::group_by(variable, year) %>%
+      dplyr::summarise(mean = mean(value),
+                       sd = sd(value),
+                       lower = quantile(value, 0.1),
+                       upper = quantile(value, 0.9)) %>%
+      dplyr::ungroup()
+    
+    if (include_fit == FALSE){
+      fit = NA
+    }
+    
+    out <- list(results = out,
+                fit = fit)
+    
+    rm(sra_model)
+    
+    rm(fit)
+
+  }
   else { # fit TMB model
     
     if (sra_data$use_u_prior == 0){
