@@ -147,7 +147,7 @@ And we can now compare the two results
 
 ```{r}
 
-plot_sraplus(sir_fit = sir_fit, ml_fit = ml_fit)
+plot_sraplus(sir_fit = sir_fit, ml_fit = ml_fit, years = driors$years)
 
 ```
 

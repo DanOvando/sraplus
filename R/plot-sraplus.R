@@ -6,7 +6,8 @@
 #' @return a ggplot object
 #' @export
 #'
-plot_sraplus <- function(..., fontsize = 14){
+plot_sraplus <- function(..., fontsize = 14,
+                         years = NA){
   
   fit_names<- names(list(...))
   
@@ -30,7 +31,13 @@ plot_sraplus <- function(..., fontsize = 14){
  fitframe %>% 
    dplyr::filter(variable %in% plotvars) %>% 
    dplyr::group_by(variable,fit) %>% 
-   dplyr::mutate(year = seq_along(mean)) %>% 
+   dplyr::mutate(year = seq_along(mean)) %>% {
+     if (!all(is.na(years))){
+       mutate(., year = years)
+     } else {
+       .
+     }
+   } %>% 
     dplyr::ungroup() %>% 
     ggplot2::ggplot() + 
    ggplot2::geom_ribbon(aes(year, ymin = lower, ymax = upper, fill = fit),
@@ -39,8 +46,8 @@ plot_sraplus <- function(..., fontsize = 14){
               size = 1) +
    ggplot2::facet_wrap(~variable, scales = "free_y") + 
     sraplus::theme_sraplus(base_size = fontsize) + 
-   ggplot2::scale_y_continuous( name = "") +
-    labs(x = "Time") +
+   ggplot2::scale_y_continuous( name = "", limits = c(0,NA)) +
+    labs(x = "Year") +
    ggplot2::scale_fill_discrete(name = "Fit") + 
    ggplot2::scale_color_discrete(name = "Fit")
   
