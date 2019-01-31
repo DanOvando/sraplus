@@ -1,19 +1,24 @@
 #include <TMB.hpp>
 
 template<class Type>
-Type growfoo(Type r, Type m, Type b, Type plim)
+Type growfoo(Type r, Type m, Type b, Type plim,Type &pen)
 {
-  // if ( b > plim ){
+  if ( b > plim ){
 
+    
     Type growth = (r  / (m - 1)) * b * (1 - pow(b,m - 1));
 
-  //   return growth;
-  // } else {
-
-    // Type growth = (b * 1/plim) * ((r  / (m - 1)) * b * (1 - pow(b,m - 1)));
-
+    pen += Type(0.0);
+    
     return growth;
-  //}
+  } else {
+
+    Type growth = (b * 1/plim) * ((r  / (m - 1)) * b * (1 - pow(b,m - 1)));
+    
+    pen += Type(0.0);
+    
+    return growth;
+  }
 
 } // close function
 
@@ -171,8 +176,6 @@ Type objective_function<Type>::operator() ()
 
   // b_t(0) = k * init_dep;
 
-  Type fpen = 0.;
-  
   b_t(0) = init_dep;
 
   // index_hat_t(0) = b_t(0) * q;
@@ -183,22 +186,17 @@ Type objective_function<Type>::operator() ()
 
     catch_hat_t(t - 1) = u_t(t - 1) * b_t(t - 1) * k;
 
-
-    growth_t(t - 1) = growfoo(r,m,b_t(t - 1),plim);
+    growth_t(t - 1) = growfoo(r,m,b_t(t - 1),plim, penalty);
 
     b_t(t) = (b_t(t - 1) +  growth_t(t - 1) - catch_hat_t(t - 1) / k) * proc_errors(t - 1);
 
-    b_t(t) = posfun(b_t(t) ,Type(.001),fpen);
+    b_t(t) = posfun(b_t(t) ,Type(.001),penalty);
     
 
   } // close population model
 
 
   u_t(time - 1) = catch_t(time -1)  / (b_t(time - 1) * k);
-
-  // 1 / (1 + exp(-inv_f_t(time - 1)));
-
-  // catch_hat_t(time - 1) = u_t(time -1) * b_t(time - 1) * k;
 
   growth_t(time - 1) = (r  / (m - 1)) * b_t(time - 1) * (1 - pow(b_t(time - 1),m - 1));
 
@@ -212,7 +210,7 @@ Type objective_function<Type>::operator() ()
 
   index_hat_t = q * b_t;
   
-  nll += fpen;
+  nll += penalty;
   
   // umsy penalty
 
@@ -420,7 +418,7 @@ Type objective_function<Type>::operator() ()
 
   REPORT(m);
 
-  ADREPORT(penalty);
+  REPORT(penalty);
 
 
   return nll;

@@ -8,8 +8,10 @@
 #' @param fit_catches logical indicating whether catches should be fit or passed
 #' @param randos random effects when passing to TMB
 #' @param draws the number of SIR samples to run
+#' @param engine one of 'sir','stan', or 'tmb'
+#' @param cores number of cores for stan fits
+#' @param chains number of chains for stan fits
 #' @param n_keep the number of SIR samples to keep
-#' @param use_sir logical indicating whether to use SIR or TMB
 #'
 #' @return a fitted sraplus object
 #' @export
@@ -244,13 +246,13 @@ fit_sraplus <- function(driors,
       dplyr::select(-data)
     
     draws <- draws %>% 
-      mutate(stack = purrr::map(pars, stack_stan)) %>% 
-      select(-pars) %>% 
+      dplyr::mutate(stack = purrr::map(pars, stack_stan)) %>% 
+      dplyr::select(-pars) %>% 
       tidyr::unnest()
     
     draws <- draws %>% 
       dplyr::group_by(variable, .draw) %>% 
-      mutate(year = seq_along(value))
+      dplyr::mutate(year = seq_along(value))
     
     
     draws$variable <- dplyr::case_when(draws$variable == "log_b" ~ "log_b_div_bmsy",
@@ -261,7 +263,7 @@ fit_sraplus <- function(driors,
     
     
     logs <- draws %>% 
-      ungroup() %>% 
+      dplyr::ungroup() %>% 
       dplyr::filter(stringr::str_detect(variable,"log_")) %>%
       dplyr::mutate(value = exp(value)) %>% 
       dplyr::mutate(variable = stringr::str_remove_all(variable, "log_"))

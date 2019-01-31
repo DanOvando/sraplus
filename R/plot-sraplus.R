@@ -2,6 +2,7 @@
 #'
 #' @param ... any number of sraplus models
 #' @param fontsize font size for plots
+#' @param years the years that the model fit applies to
 #'
 #' @return a ggplot object
 #' @export

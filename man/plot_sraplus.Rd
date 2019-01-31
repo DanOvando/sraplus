@@ -10,6 +10,8 @@ plot_sraplus(..., fontsize = 14, years = NA)
 \item{...}{any number of sraplus models}
 
 \item{fontsize}{font size for plots}
+
+\item{years}{the years that the model fit applies to}
 }
 \value{
 a ggplot object

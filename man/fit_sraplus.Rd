@@ -28,7 +28,11 @@ fit_sraplus(driors, include_fit = TRUE, seed = 42, plim = 0.2,
 
 \item{n_keep}{the number of SIR samples to keep}
 
-\item{use_sir}{logical indicating whether to use SIR or TMB}
+\item{engine}{one of 'sir','stan', or 'tmb'}
+
+\item{cores}{number of cores for stan fits}
+
+\item{chains}{number of chains for stan fits}
 }
 \value{
 a fitted sraplus object
