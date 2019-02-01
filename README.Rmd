@@ -85,6 +85,7 @@ For the first example we'll run use a sampling-importance-resampling (SIR) algor
 library(sraplus)
 library(ggplot2)
 library(dplyr)
+library(tmbstan)
 
 example_taxa <- "gadus morhua"
 
@@ -138,7 +139,8 @@ plot_driors(driors)
 
 ml_fit <- fit_sraplus(driors = driors,
                       engine = "tmb",
-                      model = "sraplus_tmb")
+                      model = "sraplus_tmb", 
+                      cleanup = TRUE)
 ```
 
 

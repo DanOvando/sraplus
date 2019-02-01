@@ -66,7 +66,7 @@ format_driors <-
       pp <-
         rstanarm::posterior_predict(regs$sar_f_reg, newdata = temp)
       
-      pp <- pp[pp > quantile(pp, .05) & pp < quantile(pp, 0.9)]
+      pp <- pp[pp > quantile(pp, .05) & pp < quantile(pp, 0.95)]
       
       final_u <- c(final_u, exp(mean(pp)))
       
@@ -83,7 +83,7 @@ format_driors <-
       pp <-
         rstanarm::posterior_predict(regs$fmi_f_reg, newdata = temp)
       
-      pp <- pp[pp > quantile(pp, .05) & pp < quantile(pp, 0.9)]
+      pp <- pp[pp > quantile(pp, .05) & pp < quantile(pp, 0.95)]
       
       final_u <- c(final_u, exp(mean(pp)))
       
@@ -93,7 +93,7 @@ format_driors <-
       pp <-
         rstanarm::posterior_predict(regs$fmi_b_reg, newdata = temp)
       
-      pp <- pp[pp > quantile(pp, .05) & pp < quantile(pp, 0.9)]
+      pp <- pp[pp > quantile(pp, .05) & pp < quantile(pp, 0.95)]
       
       terminal_b <- exp(mean(pp))
       

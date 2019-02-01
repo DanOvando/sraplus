@@ -7,7 +7,7 @@
 fit_sraplus(driors, include_fit = TRUE, seed = 42, plim = 0.2,
   model = "sraplus_tmb", fit_catches = TRUE,
   randos = "uc_proc_errors", draws = 1e+06, n_keep = 2000,
-  engine = "sir", cores = 4, chains = 1)
+  engine = "sir", cores = 4, chains = 1, cleanup = FALSE)
 }
 \arguments{
 \item{driors}{a list of driors passed from sraplus::format_driors}

@@ -28,7 +28,8 @@ fit_sraplus <- function(driors,
                         n_keep = 2000,
                         engine = "sir",
                         cores = 4,
-                        chains = 1) {
+                        chains = 1,
+                        cleanup = FALSE) {
   
   
   knockout <- list() #parameters to knockout from TMB estimation using TMB::map
@@ -230,7 +231,8 @@ fit_sraplus <- function(driors,
     set.seed(seed)
     
     fit <- tmbstan::tmbstan(sra_model, lower = lower, upper = upper, cores = cores,
-                                 chains = chains)
+                                 chains = chains,
+                            iter = n_keep)
 
     draws = tidybayes::tidy_draws(fit) %>%
       tidyr::nest(-.chain,.iteration,-.draw,-.iteration)
@@ -459,6 +461,20 @@ fit_sraplus <- function(driors,
     
   } # close else
   
+  if (cleanup == TRUE){
+  unlink(file.path(getwd(), "tmb"), recursive = TRUE)
+  }
+  
+  # ldll <- getLoadedDLLs() 
+  # 
+  # if (any(names(ldll) == model)){
+  # 
+  # temp <- ldll[names(ldll) == model][[1]]
+  # 
+  # dyn.unload(temp[['path']])
+  # 
+  # }
+  # 
   
   return(out)
   

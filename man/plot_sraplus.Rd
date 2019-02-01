@@ -4,7 +4,8 @@
 \alias{plot_sraplus}
 \title{Plot timeseries of estimates from multiple sraplus models}
 \usage{
-plot_sraplus(..., fontsize = 14, years = NA)
+plot_sraplus(..., fontsize = 14, years = NA,
+  plotvars = c("b_div_bmsy", "c_div_msy", "depletion", "u_div_umsy"))
 }
 \arguments{
 \item{...}{any number of sraplus models}
@@ -12,6 +13,8 @@ plot_sraplus(..., fontsize = 14, years = NA)
 \item{fontsize}{font size for plots}
 
 \item{years}{the years that the model fit applies to}
+
+\item{plotvars}{variables to plot}
 }
 \value{
 a ggplot object

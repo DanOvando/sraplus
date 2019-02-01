@@ -3,12 +3,15 @@
 #' @param ... any number of sraplus models
 #' @param fontsize font size for plots
 #' @param years the years that the model fit applies to
+#' @param plotvars variables to plot
 #'
 #' @return a ggplot object
 #' @export
 #'
 plot_sraplus <- function(..., fontsize = 14,
-                         years = NA){
+                         years = NA,
+                         plotvars = c("b_div_bmsy","c_div_msy","depletion","u_div_umsy")
+){
   
   fit_names<- names(list(...))
   
@@ -26,8 +29,6 @@ plot_sraplus <- function(..., fontsize = 14,
     dplyr::mutate(results = purrr::map(temp,"results")) %>% 
     dplyr::select(-temp) %>% 
     tidyr::unnest()
-  
-  plotvars <- c("b_div_bmsy","c_div_msy","depletion","u_div_umsy")
   
  fitframe %>% 
    dplyr::filter(variable %in% plotvars) %>% 
