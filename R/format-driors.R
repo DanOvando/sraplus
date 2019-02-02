@@ -33,7 +33,7 @@ format_driors <-
   function(taxa = "gadus morhua",
            initial_b = 1,
            initial_b_sd = 0.1,
-           terminal_b = 0.25,
+           terminal_b = NA,
            terminal_b_sd = 0.1,
            carry = NA,
            carry_sd = 0.1,
@@ -195,6 +195,14 @@ format_driors <-
         terminal_b <- pmax(.05,2.5 - mean(final_u[!is.na(final_u)]))
         
         terminal_b_sd <- 0.2
+        
+        if (ref_type == "k"){
+          
+          ref_type = "b"
+          
+          initial_b <- initial_b * 2.5
+        }
+        
       }
       
     } else {
