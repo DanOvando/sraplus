@@ -19,7 +19,6 @@ Imports:
     TMBhelper (>= 1.0),
     tmbstan,
     ggplot2,
-    ThorsonUtilities (>= 1.0),
     patchwork (>= 0.0.1),
     tidybayes,
     rstan,
@@ -35,6 +34,5 @@ RoxygenNote: 6.1.1
 Remotes: 
     james-thorson/FishLife,
     kaskr/TMB_contrib_R/TMBhelper,
-    james-thorson/utilities,
     thomasp85/patchwork
 LazyData: true
