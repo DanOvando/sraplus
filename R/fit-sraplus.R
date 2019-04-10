@@ -475,6 +475,12 @@ fit_sraplus <- function(driors,
   # 
   # }
   # 
+  # put years back
+  
+  out$results$year <- out$results$year - 1 + min(driors$years)
+  
+  out$fit$year <- out$fit$year - 1 + min(driors$years)
+  
   
   return(out)
   

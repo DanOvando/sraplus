@@ -5,7 +5,7 @@
 \title{Format data and priors for sraplus}
 \usage{
 format_driors(taxa = "gadus morhua", initial_b = 1,
-  initial_b_sd = 0.1, terminal_b = 0.25, terminal_b_sd = 0.1,
+  initial_b_sd = 0.1, terminal_b = NA, terminal_b_sd = 0.1,
   carry = NA, carry_sd = 0.1, u_v_umsy = NA, u_years = NA,
   u_sd = 0.1, final_u = NA, final_u_sd = NA, catch = NA,
   years = NA, index = NA, effort = NA, ref_type = "k",

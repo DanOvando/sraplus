@@ -32,8 +32,8 @@ plot_sraplus <- function(..., fontsize = 14,
   
  fitframe %>% 
    dplyr::filter(variable %in% plotvars) %>% 
-   dplyr::group_by(variable,fit) %>% 
-   dplyr::mutate(year = seq_along(mean)) %>% {
+   dplyr::group_by(variable,fit) %>% {
+   # dplyr::mutate(year = seq_along(mean)) %>% {
      if (!all(is.na(years))){
        mutate(., year = years)
      } else {

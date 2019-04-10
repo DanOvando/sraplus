@@ -60,6 +60,13 @@ format_driors <-
            sar = NA,
            sar_sd = NA,
            f_sd = 0.1) {
+    
+    if (use_heuristics == TRUE){
+      
+      warning("WARNING: You are using catch heursitics as your stock assessment")
+      
+    }
+    
     if (!is.na(sar)) {
       temp <- dplyr::tibble(sar = sar)
       
@@ -235,7 +242,6 @@ format_driors <-
       terminal_b_sd <- 0.2
       
     }
-    
     driors <-
       list(
         catch = catch,
