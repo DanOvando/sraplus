@@ -258,7 +258,7 @@ format_driors <-
         u_years = u_years,
         u_cv = u_sd,
         index_years = index_years,
-        effort_years = effort_years,
+        effort_years = index_years,
         growth_rate = mean_lh["r"],
         growth_rate_cv = sqrt(cov_lh["r"]),
         sigma_r = exp(mean_lh["ln_var"]) / 2,
