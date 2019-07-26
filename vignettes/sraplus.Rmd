@@ -78,7 +78,7 @@ plot_driors(driors)
 
 sir_fit <- fit_sraplus(driors = driors,
                        engine = 'sir',
-                       draws = 1e4)
+                       draws = 1e5)
 plot_sraplus(sir_fit = sir_fit, fontsize = 22)
 
 ```
@@ -97,7 +97,7 @@ driors <- format_driors(taxa = example_taxa,
                         index_years = cod$year,
                         initial_b = 1,
                         initial_b_sd = 0.01,
-                        terminal_b = 0.5,
+                        terminal_b = NA,
                         sar = 2,
                         sar_sd = 0.5)
 
@@ -107,6 +107,14 @@ plot_driors(driors)
 ml_fit <- fit_sraplus(driors = driors,
                        engine = "tmb",
                        model = "sraplus_tmb", cleanup = FALSE)
+
+
+stan_fit <- fit_sraplus(driors = driors,
+                       engine = "stan",
+                       model = "sraplus_tmb", cleanup = FALSE,
+                       n_keep = 4000,
+                       chains = 4, 
+                       cores = 4)
 ```
 
 
@@ -115,7 +123,7 @@ And we can now compare the two results
 
 ```{r}
 
-plot_sraplus(sir_fit = sir_fit, ml_fit = ml_fit, years = driors$years)
+plot_sraplus(sir_fit = sir_fit, ml_fit = ml_fit, stan_fit = stan_fit,years = driors$years)
 
 ```
 

@@ -59,7 +59,8 @@ format_driors <-
            fmi_sd = NA,
            sar = NA,
            sar_sd = NA,
-           f_sd = 0.1) {
+           f_sd = 0.1,
+           q_slope = 0) {
     
     if (use_heuristics == TRUE){
       
@@ -265,7 +266,8 @@ format_driors <-
         sigma_r_cv = exp(cov_lh["ln_var"]),
         f_cv = f_sd,
         log_final_u = log_final_u,
-        log_final_u_cv = log_final_u_sd
+        log_final_u_cv = log_final_u_sd,
+        q_slope = q_slope
       )
     
     driors$ref_type <- ref_type

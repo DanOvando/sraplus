@@ -78,7 +78,8 @@ fit_sraplus <- function(driors,
     use_init =  !is.na(driors$initial_b),
     sigma_u = driors$u_cv,
     log_k_guess = log(10 * max(driors$catch)),
-    f_cv = driors$f_cv
+    f_cv = driors$f_cv,
+    q_slope = driors$q_slope
   )
   
   k_guess <- log(10 * max(driors$catch))
@@ -91,7 +92,8 @@ fit_sraplus <- function(driors,
     log_init_dep = log(1),
     log_sigma_proc = log(0.01),
     uc_proc_errors = rep(0, time - 1),
-    log_m = log(2)
+    log_m = log(2)#,
+    # q_slope = 0.025
   )
   
   # fit SIR model
@@ -424,7 +426,6 @@ fit_sraplus <- function(driors,
     
     set.seed(seed)
     
-    browser()
     fit <- TMBhelper::Optimize(
       sra_model,
       fn = sra_model$fn,
