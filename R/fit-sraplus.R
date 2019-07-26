@@ -77,17 +77,35 @@ fit_sraplus <- function(driors,
     log_final_u_cv = driors$log_final_u_cv,
     use_init =  !is.na(driors$initial_b),
     sigma_u = driors$u_cv,
-    log_k_guess = log(10 * max(driors$catch)),
+    # log_k_guess = log(10 * max(driors$catch)),
     f_cv = driors$f_cv,
     q_slope = driors$q_slope
   )
   
   k_guess <- log(10 * max(driors$catch))
   
+  
+  if (sra_data$fit_index == 1 & sra_data$calc_cpue == 0){
+    
+    q_guess = mean(sra_data$index_t / sra_data$catch_t[sra_data$index_years])
+    
+    
+  } else if (sra_data$calc_cpue == 1){
+    
+    q_guess = mean(sra_data$catch_t[sra_data$index_years] /(sra_data$effort_t ))
+    
+  } else {
+    
+    q_guess <- 1e-2
+    
+    
+  }
+  
   inits <- list(
-    log_k = log(10 * max(driors$catch)),
+    # log_k = log(10 * max(driors$catch)),
     log_r = log(driors$growth_rate),
-    log_q = log(1e-3),
+    # q = q_guess,
+    log_q = log(q_guess),
     log_sigma_obs = log(0.2),
     log_init_dep = log(1),
     log_sigma_proc = log(0.01),
@@ -216,6 +234,7 @@ fit_sraplus <- function(driors,
     
     if (sra_data$fit_index == 0) {
       knockout$log_q <- NA
+      # knockout$q <- NA
       
       knockout$log_sigma_obs <- NA
       
@@ -257,17 +276,19 @@ fit_sraplus <- function(driors,
     lower = rep(-Inf, length(sra_model$par)) %>%
       purrr::set_names(names(sra_model$par))
     
-    lower['log_k'] <- lower_k
+    # lower['q'] <- 1e-10
+    # lower['log_k'] <- lower_k
     
     upper = rep(Inf, length(sra_model$par)) %>%
       purrr::set_names(names(sra_model$par))
     
-    upper['log_k'] <- upper_k
+    # upper['log_k'] <- upper_k
     
     upper["log_init_dep"] <- log(1.5)
     
-    set.seed(seed)
+    upper['log_q'] <- log(1)
     
+    set.seed(seed)
     fit <-
       tmbstan::tmbstan(
         sra_model,
@@ -374,6 +395,7 @@ fit_sraplus <- function(driors,
     
     if (sra_data$fit_index == 0) {
       knockout$log_q <- NA
+      # knockout$q <- NA
       
       knockout$log_sigma_obs <- NA
       
@@ -397,9 +419,7 @@ fit_sraplus <- function(driors,
     }
     
     knockout <- purrr::map(knockout, as.factor)
-    
     sraplus::get_tmb_model(model_name = model)
-    
     sra_model <-
       TMB::MakeADFun(
         data = sra_data,
@@ -415,17 +435,20 @@ fit_sraplus <- function(driors,
     lower = rep(-Inf, length(sra_model$par)) %>%
       purrr::set_names(names(sra_model$par))
     
-    lower['log_k'] <- lower_k
+    # lower['q'] <- 1e-8
+    
+    # lower['log_k'] <- lower_k
     
     upper = rep(Inf, length(sra_model$par)) %>%
       purrr::set_names(names(sra_model$par))
     
-    upper['log_k'] <- upper_k
+    # upper['log_k'] <- upper_k
+    
+    upper['log_q'] <- 0
     
     upper["log_init_dep"] <- log(1.5)
     
     set.seed(seed)
-    
     fit <- TMBhelper::Optimize(
       sra_model,
       fn = sra_model$fn,

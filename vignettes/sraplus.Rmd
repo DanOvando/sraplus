@@ -77,7 +77,7 @@ driors <- format_driors(
 plot_driors(driors)
 
 sir_fit <- fit_sraplus(driors = driors,
-                       engine = 'sir',
+                       engine = 'stan',
                        draws = 1e4)
 plot_sraplus(sir_fit = sir_fit, fontsize = 22)
 
@@ -113,9 +113,10 @@ bayes_fit <- fit_sraplus(driors = driors,
                        model = "sraplus_tmb", cleanup = FALSE,
                        chains = 4, 
                        cores = 4,
-                       n_keep = 4000)
+                       n_keep = 2000)
 
 rstanarm::launch_shinystan(bayes_fit$fit)
+
 ```
 
 
@@ -124,7 +125,7 @@ And we can now compare the two results
 
 ```{r}
 
-plot_sraplus(sir_fit = sir_fit, ml_fit = ml_fit, years = driors$years)
+plot_sraplus(sir_fit = sir_fit, ml_fit = ml_fit,bayes_fit = bayes_fit, years = driors$years)
 
 ```
 
