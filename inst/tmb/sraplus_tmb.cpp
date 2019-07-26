@@ -101,6 +101,8 @@ Type objective_function<Type>::operator() ()
   
   DATA_SCALAR(q_slope);
   
+  DATA_SCALAR(log_q_guess);
+  
   //// parameters ////
   
   PARAMETER(log_init_dep);
@@ -365,7 +367,7 @@ Type objective_function<Type>::operator() ()
   
   // nll -= dbeta(q, Type(0.5), Type(1), true);
   
-  // nll -= dnorm(log_q, Type(-4), Type(0.75));
+  nll -= dnorm(log_q, log_q_guess, Type(1));
   
   nll -= dnorm(log_sigma_proc,Type(-3), Type(0.1), true);
   

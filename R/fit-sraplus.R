@@ -92,7 +92,7 @@ fit_sraplus <- function(driors,
     
   } else if (sra_data$calc_cpue == 1){
     
-    q_guess = mean(sra_data$catch_t[sra_data$index_years] /(sra_data$effort_t ))
+    q_guess = mean(0.2 / sra_data$effort_t)
     
   } else {
     
@@ -100,6 +100,8 @@ fit_sraplus <- function(driors,
     
     
   }
+  
+  sra_data$log_q_guess = log(q_guess)
   
   inits <- list(
     # log_k = log(10 * max(driors$catch)),
