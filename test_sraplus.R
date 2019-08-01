@@ -4,7 +4,7 @@ library(sraplus)
 
 library(tmbstan)
 
-sim <- sraplus_simulator(sigma_proc = 0.2, sigma_u = 0.1, q_slope = 0.025, r = 0.4, years = 50,q = 1e-3)
+sim <- sraplus_simulator(sigma_proc = 0.2, sigma_u = 0.1, q_slope = 0.025, r = 0.4, years = 50,q = 1e-3, m = 2)
 
 sim$pop %>% 
   ggplot(aes(year, depletion)) + 
@@ -109,6 +109,33 @@ bayes_fit$results %>%
   geom_point(data = pop, aes(year, b_bmsy))
 
 
+# plot prior-posterior ----------------------------------------------------
+
+
+
+log_sigma_obs_hat <- bayesplot::mcmc_hist(as.matrix(bayes_fit$fit), "log_sigma_obs", freq = FALSE) + 
+  geom_density(data = data_frame(log_sigma_obs = rnorm(1000,-3,.1)), aes(log_sigma_obs), fill = "lightgrey",
+               alpha = 0.5)
+
+
+log_sigma_proc_hat <- bayesplot::mcmc_hist(as.matrix(bayes_fit$fit), "log_sigma_proc", freq = FALSE) + 
+  geom_density(data = data_frame(log_sigma_proc = rnorm(1000,-3,.5)), aes(log_sigma_proc), fill = "lightgrey",
+               alpha = 0.5)
+
+log_q_guess <- log(mean(ml_driors$index / ml_driors$catch))
+
+
+log_q_hat <- bayesplot::mcmc_hist(as.matrix(bayes_fit$fit), "log_q", freq = FALSE) + 
+  geom_density(data = data_frame(log_q = rnorm(1000,log_q_guess,.2)), aes(log_q), fill = "lightgrey",
+               alpha = 0.5)
+
+
+log_m_hat <- bayesplot::mcmc_hist(as.matrix(bayes_fit$fit), "log_m", freq = FALSE) + 
+  geom_density(data = data_frame(log_m = rnorm(1000,.1,.5)), aes(log_m), fill = "lightgrey",
+               alpha = 0.5)
+
+
+
 # test effort -------------------------------------------------------------
 
 
@@ -123,7 +150,7 @@ effort_ml_driors <- format_driors(taxa = example_taxa,
                            terminal_b = NA,
                            growth_rate = 0.4,
                            growth_rate_cv = 0.1,
-                           q_slope = 0.025)
+                           q_slope = 0)
 
 
 effort_ml_fit <- fit_sraplus(driors = effort_ml_driors,
