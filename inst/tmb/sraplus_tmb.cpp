@@ -287,7 +287,7 @@ Type objective_function<Type>::operator() ()
   
   for (int t = 0; t < (time - 1); t++){
     
-    nll -= dnorm(log(catch_t(t)), log(catch_hat_t(t)), Type(.05), true);
+    nll -= dnorm(log(catch_t(t) + 1e-3), log(catch_hat_t(t) + 1e-3), Type(.05), true);
     
     nll -= dnorm(uc_proc_errors(t), Type(0), Type(1), true);
     
@@ -354,7 +354,7 @@ Type objective_function<Type>::operator() ()
   
   nll -= dnorm(log(init_ref), log_init_dep_prior, log_init_dep_cv, true);
   
-  nll -= dnorm(log_sigma_obs,Type(-3),Type(0.1), true);
+  nll -= dnorm(log_sigma_obs,Type(-3),Type(0.25), true);
   
   // nll -= dnorm(q_slope,Type(0.025),Type(0.05), true);
   

@@ -4,7 +4,8 @@ library(sraplus)
 
 library(tmbstan)
 
-sim <- sraplus_simulator(sigma_proc = 0.2, sigma_u = 0.1, q_slope = 0.025, r = 0.4, years = 50,q = 1e-3, m = 2)
+set.seed(42)
+sim <- sraplus_simulator(sigma_proc = 0.2, sigma_u = 0.1, q_slope = 0, r = 0.4, years = 25,q = 1e-3, m = 2)
 
 sim$pop %>% 
   ggplot(aes(year, depletion)) + 
@@ -138,8 +139,10 @@ log_m_hat <- bayesplot::mcmc_hist(as.matrix(bayes_fit$fit), "log_m", freq = FALS
 
 # test effort -------------------------------------------------------------
 
+sim <- sraplus_simulator(sigma_proc = 0.2, sigma_u = 0.1, q_slope = 0.025, r = 0.4, years = 25,q = 1e-3, m = 2)
 
-  
+pop <- sim$pop  
+
 effort_ml_driors <- format_driors(taxa = example_taxa,
                            catch = pop$catch,
                            years = pop$year,
@@ -150,7 +153,7 @@ effort_ml_driors <- format_driors(taxa = example_taxa,
                            terminal_b = NA,
                            growth_rate = 0.4,
                            growth_rate_cv = 0.1,
-                           q_slope = 0)
+                           q_slope = 0.025)
 
 
 effort_ml_fit <- fit_sraplus(driors = effort_ml_driors,

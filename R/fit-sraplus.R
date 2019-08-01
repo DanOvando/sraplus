@@ -452,7 +452,7 @@ fit_sraplus <- function(driors,
     upper["log_init_dep"] <- log(1.5)
     
     set.seed(seed)
-    fit <- TMBhelper::Optimize(
+    fit <- TMBhelper::fit_tmb(
       sra_model,
       fn = sra_model$fn,
       gr = sra_model$gr,
@@ -469,7 +469,7 @@ fit_sraplus <- function(driors,
     
     
     if (fit$max_gradient > 1e-3) {
-      fit <- TMBhelper::Optimize(
+      fit <- TMBhelper::fit_tmb(
         sra_model,
         fn = sra_model$fn,
         gr = sra_model$gr,
