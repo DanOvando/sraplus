@@ -298,7 +298,8 @@ fit_sraplus <- function(driors,
         upper = upper,
         cores = cores,
         chains = chains,
-        iter = n_keep
+        iter = n_keep,
+        init = map(chains,~map(inits, jitter), inits = inits)
       )
     
     draws = tidybayes::tidy_draws(fit) %>%

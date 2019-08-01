@@ -273,15 +273,6 @@ Type objective_function<Type>::operator() ()
     
   }
   
-  if (calc_cpue == 1) {
-    
-    for (int t = 0; t < index_years.size(); t++){
-      
-      nll -= dnorm(log(index_t(t)), log(index_hat_t(index_years(t) - 1)), Type(0.00001) + sigma_obs, true);
-      
-    }
-    
-  }
   
   if (use_u_prior == 1){
     
@@ -312,6 +303,8 @@ Type objective_function<Type>::operator() ()
   // nll -= dbinom(crashed, Type(time), Type(0.01), true);
   
   // nll += crashed;
+  
+  // nll -= dnorm(log_r, Type(-1.6), Type(0.05), true);
   
   nll -= dnorm(log_r, log_r_prior, log_r_cv, true);
   
@@ -361,15 +354,15 @@ Type objective_function<Type>::operator() ()
   
   nll -= dnorm(log(init_ref), log_init_dep_prior, log_init_dep_cv, true);
   
-  nll -= dnorm(log_sigma_obs,Type(-3),Type(0.2), true);
+  nll -= dnorm(log_sigma_obs,Type(-3),Type(0.1), true);
   
   // nll -= dnorm(q_slope,Type(0.025),Type(0.05), true);
   
   // nll -= dbeta(q, Type(0.5), Type(1), true);
   
-  nll -= dnorm(log_q, log_q_guess, Type(1));
+  nll -= dnorm(log_q, log_q_guess, Type(0.2));
   
-  nll -= dnorm(log_sigma_proc,Type(-3), Type(0.1), true);
+  nll -= dnorm(log_sigma_proc,Type(-3), Type(0.5), true);
   
   // nll -= dnorm(log_k,log_k_guess,Type(10), true);
   
