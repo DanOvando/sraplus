@@ -362,7 +362,7 @@ Type objective_function<Type>::operator() ()
   
   nll -= dnorm(log_q, log_q_guess, Type(0.2));
   
-  nll -= dnorm(log_sigma_proc,Type(-3), Type(0.5), true);
+  nll -= dnorm(log_sigma_proc,Type(-3), Type(0.25), true);
   
   // nll -= dnorm(log_k,log_k_guess,Type(10), true);
   
