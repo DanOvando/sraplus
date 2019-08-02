@@ -380,8 +380,7 @@ Type objective_function<Type>::operator() ()
   
   nll -= dnorm(log_k,log_k_guess,Type(10), true);
   
-  // nll -= dnorm(log_m,Type(0.1),Type(0.5), true);
-  
+  nll -= dnorm(log_m,Type(0.1),Type(0.5), true);
   
   vector<Type> log_bt = log(b_t);
   

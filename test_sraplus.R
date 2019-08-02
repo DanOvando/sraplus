@@ -5,7 +5,17 @@ library(sraplus)
 library(tmbstan)
 
 set.seed(42)
-sim <- sraplus_simulator(sigma_proc = 0, sigma_u = 0, q_slope = 0, r = 0.4, years = 25,q = 1e-3, m = 2,init_u_umsy = 0.5)
+sim <-
+  sraplus_simulator(
+    sigma_proc = 0,
+    sigma_u = 0,
+    q_slope = 0,
+    r = 0.4,
+    years = 25,
+    q = 1e-3,
+    m = 0.8,
+    init_u_umsy = 1.8
+  )
 
 sim$pop %>% 
   ggplot(aes(year, depletion)) + 
@@ -44,7 +54,7 @@ sir_fit <- fit_sraplus(driors = driors,
 ml_driors <- format_driors(taxa = example_taxa,
                         catch = pop$catch,
                         years = pop$year,
-                        index = pop$biomass * 1e-3,
+                        index = pop$biomass * 1e-3 * exp(rnorm(length(pop$biomass),0,.2)),
                         index_years = pop$year,
                         initial_b = 1,
                         initial_b_sd = 0.05,
@@ -57,7 +67,8 @@ plot_driors(ml_driors)
 
 ml_fit <- fit_sraplus(driors = ml_driors,
                       engine = "tmb",
-                      model = "sraplus_tmb", cleanup = FALSE)
+                      model = "sraplus_tmb", cleanup = FALSE,
+                      estimate_m = TRUE)
 
 plot_sraplus(ml_fit = ml_fit, years = ml_driors$years)
 
@@ -65,7 +76,15 @@ plot_sraplus(ml_fit = ml_fit, years = ml_driors$years)
 bayes_fit <- fit_sraplus(driors = ml_driors,
                       engine = "stan",
                       model = "sraplus_tmb", cleanup = FALSE,
-                      n_keep = 4000)
+                      n_keep = 2000,
+                      estimate_m = TRUE)
+
+test <- names(bayes_fit$fit)
+
+pair_vars <- test[!str_detect(test,"uc_proc")]
+
+pairs(bayes_fit$fit, pars = pair_vars)
+
 
 plot_sraplus(ml_fit = ml_fit, bayes_fit = bayes_fit,years = ml_driors$years)
 
@@ -83,8 +102,8 @@ r_hat <- bayesplot::mcmc_hist(as.matrix(bayes_fit$fit), "log_r",transformations 
   geom_vline(aes(xintercept = sim$params$r), color = "red")
 
 
-# m_hat <- bayesplot::mcmc_hist(as.matrix(bayes_fit$fit), "log_m",transformations = "exp") + 
-#   geom_vline(aes(xintercept = sim$params$m), color = "red")
+m_hat <- bayesplot::mcmc_hist(as.matrix(bayes_fit$fit), "log_m",transformations = "exp") +
+  geom_vline(aes(xintercept = sim$params$m), color = "red")
 
 q_hat <- bayesplot::mcmc_hist(as.matrix(bayes_fit$fit), "log_q",transformations = "exp") + 
   geom_vline(aes(xintercept = sim$pop$q[1]), color = "red")
@@ -235,6 +254,10 @@ effort_bayes_fit <- fit_sraplus(driors = effort_ml_driors,
                              n_keep = 2000,
                              chains = 4, 
                              cores = 4)
+
+
+effort_q_hat <- bayesplot::mcmc_hist(as.matrix(effort_bayes_fit$fit), "log_q",transformations = "exp") + 
+  geom_vline(aes(xintercept = sim$pop$q[1]), color = "red")
 
 
 # a = tidybayes::gather_draws(effort_bayes_fit$fit,log_f_t[year]) %>% 

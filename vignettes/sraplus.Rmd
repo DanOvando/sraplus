@@ -111,9 +111,10 @@ ml_fit <- fit_sraplus(driors = driors,
 bayes_fit <- fit_sraplus(driors = driors,
                        engine = "stan",
                        model = "sraplus_tmb", cleanup = FALSE,
-                       chains = 1, 
-                       cores = 1,
-                       n_keep = 2000)
+                       chains = 4, 
+                       cores = 4,
+                       n_keep = 2000,
+                       adapt_delta = 0.95)
 
 ```
 
@@ -123,7 +124,7 @@ And we can now compare the two results
 
 ```{r}
 
-plot_sraplus(sir_fit = sir_fit,bayes_fit = bayes_fit, years = driors$years)
+plot_sraplus(sir_fit = sir_fit,ml_fit = ml_fit,bayes_fit = bayes_fit, years = driors$years)
 
 ```
 

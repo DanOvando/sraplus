@@ -31,7 +31,9 @@ fit_sraplus <- function(driors,
                         chains = 1,
                         cleanup = FALSE,
                         max_treedepth = 10,
-                        adapt_delta = 0.8) {
+                        adapt_delta = 0.8,
+                        estimate_m = FALSE
+                        ) {
   knockout <-
     list() #parameters to knockout from TMB estimation using TMB::map
   
@@ -264,7 +266,9 @@ fit_sraplus <- function(driors,
       
     }
     
-    knockout$log_m <- NA
+    if (estimate_m == FALSE) {
+      knockout$log_m <- NA
+    }
     
     knockout <- purrr::map(knockout, as.factor)
     
@@ -432,7 +436,9 @@ fit_sraplus <- function(driors,
       
     }
     
-    knockout$log_m <- NA
+    if (estimate_m == FALSE) {
+      knockout$log_m <- NA
+    }
     
     knockout <- purrr::map(knockout, as.factor)
     sraplus::get_tmb_model(model_name = model)
