@@ -79,34 +79,32 @@ fit_sraplus <- function(driors,
     log_final_u_cv = driors$log_final_u_cv,
     use_init =  !is.na(driors$initial_b),
     sigma_u = driors$u_cv,
-    # log_k_guess = log(10 * max(driors$catch)),
+    log_k_guess = log(10 * max(driors$catch)),
     f_cv = driors$f_cv,
-    q_slope = driors$q_slope
+    q_slope = driors$q_slope,
+    eps = 1e-3
   )
   
   k_guess <- log(10 * max(driors$catch))
   
   
-  if (sra_data$fit_index == 1 & sra_data$calc_cpue == 0){
+  if (sra_data$fit_index == 1 & sra_data$calc_cpue == 0) {
+    q_guess = pmin(1e-2, median((sra_data$index_t / sra_data$catch_t[sra_data$index_years])))
     
-    q_guess = pmin(1e-2,median((sra_data$index_t / sra_data$catch_t[sra_data$index_years])))
     
-    
-  } else if (sra_data$calc_cpue == 1){
-    
-    q_guess =pmin(1e-2, median(0.2 / sra_data$effort_t))
+  } else if (sra_data$calc_cpue == 1) {
+    q_guess = pmin(1e-2, median(0.2 / sra_data$effort_t))
     
   } else {
-    
     q_guess <- 1e-2
     
     
   }
-
+  
   sra_data$log_q_guess = log(q_guess)
   
   inits <- list(
-    # log_k = log(10 * max(driors$catch)),
+    log_k = log(10 * max(driors$catch)),
     log_r = log(driors$growth_rate),
     # q = q_guess,
     log_q = log(q_guess),
@@ -180,7 +178,7 @@ fit_sraplus <- function(driors,
     tidy_fits <-
       purrr::map_df(
         purrr::keep(sra_fit, outs),
-        ~ as.data.frame(.x[, keepers]) %>% dplyr::mutate(year = 1:nrow(.)) %>% tidyr::gather(draw, value,-year),
+        ~ as.data.frame(.x[, keepers]) %>% dplyr::mutate(year = 1:nrow(.)) %>% tidyr::gather(draw, value, -year),
         keepers = keepers,
         .id = "variable"
       ) %>%
@@ -232,7 +230,7 @@ fit_sraplus <- function(driors,
     if (fit_catches == TRUE) {
       # inits$inv_f_t = rep(-2, time - 1)
       
-      inits$log_f_t = rep(-2, time - 1)
+      # inits$log_f_t = rep(-2, time - 1)
       
       
     }
@@ -261,7 +259,7 @@ fit_sraplus <- function(driors,
       
       # randos <- "inv_f_t"
       
-      randos <- "log_f_t"
+      # randos <- "log_f_t"
       
       
     }
@@ -288,12 +286,12 @@ fit_sraplus <- function(driors,
       purrr::set_names(names(sra_model$par))
     
     # lower['q'] <- 1e-10
-    # lower['log_k'] <- lower_k
+    lower['log_k'] <- lower_k
     
     upper = rep(Inf, length(sra_model$par)) %>%
       purrr::set_names(names(sra_model$par))
     
-    # upper['log_k'] <- upper_k
+    upper['log_k'] <- upper_k
     
     upper["log_init_dep"] <- log(1.5)
     
@@ -307,13 +305,13 @@ fit_sraplus <- function(driors,
         cores = cores,
         chains = chains,
         iter = n_keep,
-        init = purrr::map(chains,~purrr::map(inits, jitter), inits = inits),
+        init = purrr::map(chains,  ~ purrr::map(inits, jitter), inits = inits),
         control = list(max_treedepth = max_treedepth,
-        adapt_delta = adapt_delta)
+                       adapt_delta = adapt_delta)
       )
     
     draws = tidybayes::tidy_draws(fit) %>%
-      tidyr::nest(-.chain, .iteration, -.draw, -.iteration)
+      tidyr::nest(-.chain, .iteration,-.draw,-.iteration)
     
     draws <- draws %>%
       dplyr::mutate(
@@ -401,7 +399,7 @@ fit_sraplus <- function(driors,
     
     if (fit_catches == TRUE) {
       # inits$inv_f_t = rep(-2, time - 1)
-      inits$log_f_t = rep(-2, time - 1)
+      # inits$log_f_t = rep(-2, time - 1)
       
     }
     
@@ -429,7 +427,7 @@ fit_sraplus <- function(driors,
       
       # randos <- "inv_f_t"
       
-      randos <- "log_f_t"
+      # randos <- "log_f_t"
       
       
     }
@@ -439,7 +437,7 @@ fit_sraplus <- function(driors,
     knockout <- purrr::map(knockout, as.factor)
     sraplus::get_tmb_model(model_name = model)
     
-
+    
     sra_model <-
       TMB::MakeADFun(
         data = sra_data,
@@ -448,7 +446,7 @@ fit_sraplus <- function(driors,
         random = randos,
         silent = TRUE,
         inner.control = list(maxit = 1e3),
-        hessian = FALSE,
+        hessian = TRUE,
         map = knockout
       )
     
@@ -457,12 +455,12 @@ fit_sraplus <- function(driors,
     
     # lower['q'] <- 1e-8
     
-    # lower['log_k'] <- lower_k
+    lower['log_k'] <- lower_k
     
     upper = rep(Inf, length(sra_model$par)) %>%
       purrr::set_names(names(sra_model$par))
     
-    # upper['log_k'] <- upper_k
+    upper['log_k'] <- upper_k
     
     upper['log_q'] <- 0
     

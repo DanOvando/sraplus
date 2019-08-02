@@ -77,8 +77,8 @@ driors <- format_driors(
 plot_driors(driors)
 
 sir_fit <- fit_sraplus(driors = driors,
-                       engine = 'stan',
-                       draws = 1e4)
+                       engine = 'sir',
+                       draws = 5e4)
 plot_sraplus(sir_fit = sir_fit, fontsize = 22)
 
 ```
@@ -123,7 +123,7 @@ And we can now compare the two results
 
 ```{r}
 
-plot_sraplus(sir_fit = sir_fit, ml_fit = ml_fit,bayes_fit = bayes_fit, years = driors$years)
+plot_sraplus(sir_fit = sir_fit,bayes_fit = bayes_fit, years = driors$years)
 
 ```
 

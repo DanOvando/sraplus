@@ -1,7 +1,7 @@
 #include <TMB.hpp>
 
 template<class Type>
-Type growfoo(Type r, Type m, Type b, Type plim,Type &pen)
+Type growfoo(Type r, Type m, Type b, Type plim)
 {
   // if ( b > plim ){
   
@@ -25,12 +25,8 @@ Type growfoo(Type r, Type m, Type b, Type plim,Type &pen)
 template<class Type>
 Type posfun(Type x, Type eps, Type &pen)
 {
-  if ( x >= eps ){
-    return x;
-  } else {
     pen += CppAD::CondExpLt(x, eps, Type(0.01) * pow(x-eps,2), Type(0));
     return CppAD::CondExpGe(x, eps, x, eps/(Type(2)-x/eps));
-  }
 }
 
 
@@ -75,7 +71,7 @@ Type objective_function<Type>::operator() ()
   
   DATA_IVECTOR(index_years);
   
-  // DATA_SCALAR(log_k_guess);
+  DATA_SCALAR(log_k_guess);
   
   DATA_SCALAR(plim);
   
@@ -86,6 +82,8 @@ Type objective_function<Type>::operator() ()
   // DATA_SCALAR(sigma_proc_prior);
   
   // DATA_SCALAR(sigma_proc_prior_cv);
+  
+  DATA_SCALAR(eps);
   
   DATA_SCALAR(log_r_cv);
   
@@ -109,7 +107,7 @@ Type objective_function<Type>::operator() ()
   
   PARAMETER(log_r);
   
-  // PARAMETER(log_k);
+  PARAMETER(log_k);
   
   // PARAMETER(q);
   
@@ -127,7 +125,7 @@ Type objective_function<Type>::operator() ()
   
   // PARAMETER_VECTOR(inv_f_t);
   
-  PARAMETER_VECTOR(log_f_t);
+  // PARAMETER_VECTOR(log_f_t);
   
   //// model ////
   
@@ -138,7 +136,7 @@ Type objective_function<Type>::operator() ()
   
   Type nll = 0.0;
   
-  Type penalty = 0.0;
+  Type pen = 0.0;
   
   vector<Type> b_t(time);
   
@@ -167,16 +165,15 @@ Type objective_function<Type>::operator() ()
   // Type sigma_u = exp(log_sigma_u);
   
   
-  vector<Type> catch_hat_t(time - 1);
+  // vector<Type> catch_hat_t(time - 1);
   
   vector<Type> proc_errors(time - 1);
   
   proc_errors = exp(sigma_proc * uc_proc_errors - pow(sigma_proc,2)/2);
   
-  // Type k = exp(log_k);
+  Type k = exp(log_k);
   
   catch_t = catch_t + Type(1e-3);
-  
   
   Type r = exp(log_r);
   
@@ -196,15 +193,15 @@ Type objective_function<Type>::operator() ()
   
   // Type k = exp(log_k);
   
-  f_t = exp(log_f_t);
+  // f_t = exp(log_f_t);
   
-  short_u_t = (f_t / (f_t + Type(0.2))) * (1 - exp(-(f_t + Type(0.2))));
+  // short_u_t = (f_t / (f_t + Type(0.2))) * (1 - exp(-(f_t + Type(0.2))));
   
   // Type init_u = 1 / (1 + exp(-inv_f_t(0)));
   
-  Type init_b = catch_t(0) / short_u_t[0];
+  // Type init_b = catch_t(0) / short_u_t[0];
   
-  Type k = init_b / init_dep;
+  // Type k = init_b / init_dep;
   
   Type bmsy = k*pow(m, -1/(m - 1));
   
@@ -224,15 +221,17 @@ Type objective_function<Type>::operator() ()
     
     // u_t(t - 1) = 1 / (1 + exp(-inv_f_t(t - 1)));
     
-    u_t(t - 1) = short_u_t[t - 1];
+    // u_t(t - 1) = short_u_t[t - 1];
     
-    catch_hat_t(t - 1) = u_t(t - 1) * b_t(t - 1) * k;
+    u_t(t - 1) = catch_t(t - 1) / (b_t(t - 1) * k);
     
-    growth_t(t - 1) = growfoo(r,m,b_t(t - 1),plim, penalty);
+    // catch_hat_t(t - 1) = u_t(t - 1) * b_t(t - 1) * k;
     
-    b_t(t) = (b_t(t - 1) +  growth_t(t - 1) - catch_hat_t(t - 1) / k) * proc_errors(t - 1);
+    growth_t(t - 1) = growfoo(r,m,b_t(t - 1),plim);
     
-    b_t(t) = posfun(b_t(t) ,Type(.001),penalty);
+    b_t(t) = (b_t(t - 1) +  growth_t(t - 1) - catch_t(t - 1) / k) * proc_errors(t - 1);
+    
+    b_t(t) = posfun(b_t(t),eps,pen);
     
     
   } // close population model
@@ -256,7 +255,8 @@ Type objective_function<Type>::operator() ()
     
     index_hat_t = b_t;
   }
-  nll += penalty;
+  
+  nll += pen;
   
   // umsy penalty
   
@@ -301,18 +301,18 @@ Type objective_function<Type>::operator() ()
   
   for (int t = 0; t < (time - 1); t++){
     
-    nll -= dnorm(log(catch_t(t)), log(catch_hat_t(t) + 1e-3), Type(.01), true);
+    // nll -= dnorm(log(catch_t(t)), log(catch_hat_t(t) + 1e-3), Type(.01), true);
     
     nll -= dnorm(uc_proc_errors(t), Type(0), Type(1), true);
     
   }
   
-  for (int t = 1; t < (time - 1); t++){
-
-
-    nll -= dnorm(log_f_t(t), log_f_t(t - 1), f_cv, true);
-
-  }
+  // for (int t = 1; t < (time - 1); t++){
+  // 
+  // 
+  //   nll -= dnorm(log_f_t(t), log_f_t(t - 1), f_cv, true);
+  // 
+  // }
   
   // nll -= dbinom(crashed, Type(time), Type(0.01), true);
   
@@ -378,7 +378,7 @@ Type objective_function<Type>::operator() ()
   
   nll -= dnorm(log_sigma_proc,Type(-3), Type(0.25), true);
   
-  // nll -= dnorm(log_k,log_k_guess,Type(10), true);
+  nll -= dnorm(log_k,log_k_guess,Type(10), true);
   
   // nll -= dnorm(log_m,Type(0.1),Type(0.5), true);
   
@@ -393,13 +393,13 @@ Type objective_function<Type>::operator() ()
   
   vector<Type> log_c_div_msy = log(catch_t / msy);
   
-  vector<Type> log_chat = log(catch_hat_t);
+  // vector<Type> log_chat = log(catch_hat_t);
   
   vector<Type> log_ihat = log(index_hat_t);
   
   vector<Type> ck = catch_t / k;
   
-  REPORT(log_chat)
+  // REPORT(log_chat)
     
     REPORT(umsy);
   
@@ -419,7 +419,7 @@ Type objective_function<Type>::operator() ()
   
   ADREPORT(log_c_div_msy);
   
-  ADREPORT(log_chat);
+  // ADREPORT(log_chat);
   
   // one more time for true report
   
@@ -433,7 +433,7 @@ Type objective_function<Type>::operator() ()
   
   REPORT(log_c_div_msy);
   
-  REPORT(log_chat);
+  // REPORT(log_chat);
   
   REPORT(final_ref);
   
@@ -481,7 +481,7 @@ Type objective_function<Type>::operator() ()
   
   REPORT(m);
   
-  REPORT(penalty);
+  REPORT(pen);
   
   ADREPORT(q_slope);
   

@@ -70,14 +70,14 @@ bayes_fit <- fit_sraplus(driors = ml_driors,
 plot_sraplus(ml_fit = ml_fit, bayes_fit = bayes_fit,years = ml_driors$years)
 
 
-
-a = tidybayes::gather_draws(bayes_fit$fit,log_f_t[year]) %>% 
-  mutate(u = 1 / (1 + exp(-.value)))
-
-a %>% 
-  ggplot(aes(year, u)) + 
-  geom_smooth() + 
-  geom_point(data = pop,aes(year,effort * q))
+# 
+# a = tidybayes::gather_draws(bayes_fit$fit,log_f_t[year]) %>% 
+#   mutate(u = 1 / (1 + exp(-.value)))
+# 
+# a %>% 
+#   ggplot(aes(year, u)) + 
+#   geom_smooth() + 
+#   geom_point(data = pop,aes(year,effort * q))
 
 r_hat <- bayesplot::mcmc_hist(as.matrix(bayes_fit$fit), "log_r",transformations = "exp") + 
   geom_vline(aes(xintercept = sim$params$r), color = "red")
@@ -92,8 +92,8 @@ q_hat <- bayesplot::mcmc_hist(as.matrix(bayes_fit$fit), "log_q",transformations 
 sigma_proc_hat <- bayesplot::mcmc_hist(as.matrix(bayes_fit$fit), "log_sigma_proc",transformations = "exp") + 
   geom_vline(aes(xintercept = sim$params$sigma_proc), color = "red")
 
-plot(ml_fit$results$mean[ml_fit$results$variable == "r"], sim$params$r)
-  abline(a = 0, b = 1)
+# plot(ml_fit$results$mean[ml_fit$results$variable == "r"], sim$params$r)
+#   abline(a = 0, b = 1)
   
 # ml_m_hat <- bayesplot::mcmc_hist(as.matrix(bayes_fit$fit), "log_m",transformations = "exp") + 
 #   geom_vline(aes(xintercept = sim$params$m), color = "red")
@@ -150,14 +150,14 @@ log_q_hat <- bayesplot::mcmc_hist(as.matrix(bayes_fit$fit), "log_q", freq = FALS
 
 sim <-
   sraplus_simulator(
-    sigma_proc = 0.1,
+    sigma_proc = 0.2,
     sigma_u = 0.2,
     q_slope = 0.025,
     r = 0.4,
     years = 25,
     q = 1e-3,
     m = 2,
-    init_u_umsy = .5
+    init_u_umsy = 1
   )
 
 pop <- sim$pop  
@@ -189,7 +189,7 @@ effort_ml_driors <- format_driors(taxa = example_taxa,
                            terminal_b = NA,
                            growth_rate = 0.4,
                            growth_rate_cv = 0.1,
-                           q_slope = 0.025,
+                           q_slope = 0,
                            u_sd = 0.05)
 
 index_ml_driors <- format_driors(taxa = example_taxa,
@@ -237,15 +237,13 @@ effort_bayes_fit <- fit_sraplus(driors = effort_ml_driors,
                              cores = 4)
 
 
-
-
-a = tidybayes::gather_draws(effort_bayes_fit$fit,log_f_t[year]) %>% 
-  mutate(u = 1 / (1 + exp(-.value)))
-
-a %>% 
-  ggplot(aes(year, u)) + 
-  geom_smooth() + 
-  geom_point(data = pop,aes(year,effort * q))
+# a = tidybayes::gather_draws(effort_bayes_fit$fit,log_f_t[year]) %>% 
+#   mutate(u = 1 / (1 + exp(-.value)))
+# 
+# a %>% 
+#   ggplot(aes(year, u)) + 
+#   geom_smooth() + 
+#   geom_point(data = pop,aes(year,effort * q))
 
 
 plot_sraplus(
@@ -263,18 +261,18 @@ effort_ml_fit$results %>%
   geom_line() + 
   geom_point(data = pop, aes(year, depletion))
 
-effort_u = tidybayes::gather_draws(effort_bayes_fit$fit,log_f_t[year]) %>% 
-  mutate(u = 1 / (1 + exp(-.value)))
+# effort_u = tidybayes::gather_draws(effort_bayes_fit$fit,log_f_t[year]) %>% 
+#   mutate(u = 1 / (1 + exp(-.value)))
 
-index_u = tidybayes::gather_draws(index_bayes_fit$fit,log_f_t[year]) %>% 
-  mutate(u = 1 / (1 + exp(-.value)))
+# index_u = tidybayes::gather_draws(index_bayes_fit$fit,log_f_t[year]) %>% 
+#   mutate(u = 1 / (1 + exp(-.value)))
 
 # index_catch = tidybayes::gather_draws(index_bayes_fit$fit,catch_hat_t[year])
 
-ggplot() +
-  geom_violin(data = effort_u, aes(year, u, group = year, fill = "cpue")) +
-  geom_violin(data = index_u, aes(year, u, group = year, fill = "index")) +
-  geom_point(data = pop, aes(year, ((effort * q) / (effort * q + 0.2)) * (1 - exp(-(effort * q + 0.2)))))
+# ggplot() +
+#   geom_violin(data = effort_u, aes(year, u, group = year, fill = "cpue")) +
+#   geom_violin(data = index_u, aes(year, u, group = year, fill = "index")) +
+#   geom_point(data = pop, aes(year, ((effort * q) / (effort * q + 0.2)) * (1 - exp(-(effort * q + 0.2)))))
 
 index_ml_fit$results %>% 
   filter(variable == "depletion") %>% 
