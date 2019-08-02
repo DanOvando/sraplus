@@ -1,6 +1,6 @@
 language: r
 r: devel
-sudo: TRUE
+sudo: FALSE
 dist: trusty
 
 cache:
