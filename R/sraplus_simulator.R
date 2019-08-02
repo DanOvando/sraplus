@@ -7,6 +7,7 @@ sraplus_simulator <-
            sigma_proc = 0.05,
            sigma_u = 0.1,
            init_dep = 1,
+           init_u_umsy = 0.5,
            years = 50) {
    
     
@@ -40,11 +41,9 @@ sraplus_simulator <-
     
     msy = bmsy * umsy
     
-    pop$u[1] = (2 - pop$biomass[1] / bmsy) * umsy
+    pop$u[1] = init_u_umsy * umsy
     
     pop$q[1] = q
-    
-    pop$u[1] = 1 * umsy
     
     pop$effort[1] = pop$u[1] / pop$q[1]
     

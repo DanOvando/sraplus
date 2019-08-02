@@ -5,7 +5,7 @@ library(sraplus)
 library(tmbstan)
 
 set.seed(42)
-sim <- sraplus_simulator(sigma_proc = 0.2, sigma_u = 0.1, q_slope = 0, r = 0.4, years = 25,q = 1e-3, m = 2)
+sim <- sraplus_simulator(sigma_proc = 0, sigma_u = 0, q_slope = 0, r = 0.4, years = 25,q = 1e-3, m = 2,init_u_umsy = 0.5)
 
 sim$pop %>% 
   ggplot(aes(year, depletion)) + 
@@ -67,8 +67,17 @@ bayes_fit <- fit_sraplus(driors = ml_driors,
                       model = "sraplus_tmb", cleanup = FALSE,
                       n_keep = 4000)
 
-plot_sraplus(ml_fit = ml_fit, bayes_fit = bayes_fit, sir_fit = sir_fit,years = ml_driors$years)
+plot_sraplus(ml_fit = ml_fit, bayes_fit = bayes_fit,years = ml_driors$years)
 
+
+
+a = tidybayes::gather_draws(bayes_fit$fit,log_f_t[year]) %>% 
+  mutate(u = 1 / (1 + exp(-.value)))
+
+a %>% 
+  ggplot(aes(year, u)) + 
+  geom_smooth() + 
+  geom_point(data = pop,aes(year,effort * q))
 
 r_hat <- bayesplot::mcmc_hist(as.matrix(bayes_fit$fit), "log_r",transformations = "exp") + 
   geom_vline(aes(xintercept = sim$params$r), color = "red")
@@ -139,9 +148,32 @@ log_m_hat <- bayesplot::mcmc_hist(as.matrix(bayes_fit$fit), "log_m", freq = FALS
 
 # test effort -------------------------------------------------------------
 
-sim <- sraplus_simulator(sigma_proc = 0.2, sigma_u = 0.1, q_slope = 0.025, r = 0.4, years = 25,q = 1e-3, m = 2)
+sim <-
+  sraplus_simulator(
+    sigma_proc = 0.2,
+    sigma_u = 0.2,
+    q_slope = 0.025,
+    r = 0.4,
+    years = 25,
+    q = 1e-3,
+    m = 2,
+    init_u_umsy = .1
+  )
 
 pop <- sim$pop  
+
+sim$pop %>% 
+  ggplot(aes(year, depletion)) + 
+  geom_point()
+
+pop %>% 
+  ggplot() + 
+  geom_point(aes(year, scale(biomass))) + 
+  geom_line(aes(year, scale(biomass * q), color = "index")) + 
+  geom_line(aes(year, scale(catch / effort), color = "cpue")) + 
+  geom_line(aes(year, scale(u), color = "u"))
+
+
 
 effort_ml_driors <- format_driors(taxa = example_taxa,
                            catch = pop$catch,
@@ -153,8 +185,20 @@ effort_ml_driors <- format_driors(taxa = example_taxa,
                            terminal_b = NA,
                            growth_rate = 0.4,
                            growth_rate_cv = 0.1,
-                           q_slope = 0.025)
+                           q_slope = 0,
+                           u_sd = 0.05)
 
+index_ml_driors <- format_driors(taxa = example_taxa,
+                                  catch = pop$catch,
+                                  years = pop$year,
+                                  index = pop$biomass * 1e-3,
+                                  index_years = pop$year,
+                                  initial_b = 1,
+                                  initial_b_sd = 0.05,
+                                  terminal_b = NA,
+                                  growth_rate = 0.4,
+                                  growth_rate_cv = 0.1,
+                                 u_sd = 0.05)
 
 effort_ml_fit <- fit_sraplus(driors = effort_ml_driors,
                       engine = "tmb",
@@ -165,7 +209,24 @@ effort_bayes_fit <- fit_sraplus(driors = effort_ml_driors,
                              engine = "stan",
                              model = "sraplus_tmb", cleanup = FALSE)
 
-plot_sraplus(index_fit = ml_fit, effort_fit = effort_ml_fit, bayes_effort_fit =  effort_bayes_fit, years = ml_driors$years)
+
+index_bayes_fit <- fit_sraplus(driors = index_ml_driors,
+                                engine = "stan",
+                                model = "sraplus_tmb", cleanup = FALSE)
+
+
+index_ml_fit <- fit_sraplus(driors = index_ml_driors,
+                               engine = "tmb",
+                               model = "sraplus_tmb", cleanup = FALSE)
+
+
+plot_sraplus(
+  index_bayes = index_bayes_fit,
+  effort_bayes =  effort_bayes_fit,
+  effort_ml = effort_ml_fit,
+  index_ml = index_ml_fit,
+  years = ml_driors$years
+)
 
 
 effort_ml_fit$results %>% 
@@ -174,6 +235,18 @@ effort_ml_fit$results %>%
   geom_line() + 
   geom_point(data = pop, aes(year, depletion))
 
+effort_u = tidybayes::gather_draws(effort_bayes_fit$fit,log_f_t[year]) %>% 
+  mutate(u = 1 / (1 + exp(-.value)))
+
+index_u = tidybayes::gather_draws(index_bayes_fit$fit,log_f_t[year]) %>% 
+  mutate(u = 1 / (1 + exp(-.value)))
+
+# index_catch = tidybayes::gather_draws(index_bayes_fit$fit,catch_hat_t[year])
+
+ggplot() +
+  geom_violin(data = effort_u, aes(year, u, group = year, fill = "cpue")) +
+  geom_violin(data = index_u, aes(year, u, group = year, fill = "index")) +
+  geom_point(data = pop, aes(year, ((effort * q) / (effort * q + 0.2)) * (1 - exp(-(effort * q + 0.2)))))
 
 ml_fit$results %>% 
   filter(variable == "depletion") %>% 

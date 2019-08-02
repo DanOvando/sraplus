@@ -228,7 +228,9 @@ fit_sraplus <- function(driors,
     upper_k <- log(50 * max(driors$catch))
     
     if (fit_catches == TRUE) {
-      inits$inv_f_t = rep(-2, time - 1)
+      # inits$inv_f_t = rep(-2, time - 1)
+      
+      inits$log_f_t = rep(-2, time - 1)
       
       
     }
@@ -255,9 +257,14 @@ fit_sraplus <- function(driors,
       
       randos <- NULL
       
-      randos <- "inv_f_t"
+      # randos <- "inv_f_t"
+      
+      randos <- "log_f_t"
+      
       
     }
+    
+    knockout$log_m <- NA
     
     knockout <- purrr::map(knockout, as.factor)
     
@@ -289,7 +296,6 @@ fit_sraplus <- function(driors,
     upper["log_init_dep"] <- log(1.5)
     
     upper['log_q'] <- log(1)
-    
     set.seed(seed)
     fit <-
       tmbstan::tmbstan(
@@ -390,8 +396,8 @@ fit_sraplus <- function(driors,
     upper_k <- log(50 * max(driors$catch))
     
     if (fit_catches == TRUE) {
-      inits$inv_f_t = rep(-2, time - 1)
-      
+      # inits$inv_f_t = rep(-2, time - 1)
+      inits$log_f_t = rep(-2, time - 1)
       
     }
     
@@ -417,12 +423,19 @@ fit_sraplus <- function(driors,
       
       randos <- NULL
       
-      randos <- "inv_f_t"
+      # randos <- "inv_f_t"
+      
+      randos <- "log_f_t"
+      
       
     }
     
+    knockout$log_m <- NA
+    
     knockout <- purrr::map(knockout, as.factor)
     sraplus::get_tmb_model(model_name = model)
+    
+
     sra_model <-
       TMB::MakeADFun(
         data = sra_data,
@@ -452,6 +465,7 @@ fit_sraplus <- function(driors,
     upper["log_init_dep"] <- log(1.5)
     
     set.seed(seed)
+  
     fit <- TMBhelper::fit_tmb(
       sra_model,
       fn = sra_model$fn,

@@ -28,8 +28,8 @@ Type posfun(Type x, Type eps, Type &pen)
   if ( x >= eps ){
     return x;
   } else {
-    pen += Type(0.01) * pow(x-eps,2);
-    return eps/(Type(2.0)-x/eps);
+    pen += CppAD::CondExpLt(x, eps, Type(0.01) * pow(x-eps,2), Type(0));
+    return CppAD::CondExpGe(x, eps, x, eps/(Type(2)-x/eps));
   }
 }
 
@@ -125,7 +125,9 @@ Type objective_function<Type>::operator() ()
   
   PARAMETER(log_m);
   
-  PARAMETER_VECTOR(inv_f_t);
+  // PARAMETER_VECTOR(inv_f_t);
+  
+  PARAMETER_VECTOR(log_f_t);
   
   //// model ////
   
@@ -153,6 +155,10 @@ Type objective_function<Type>::operator() ()
   vector<Type> u_v_umsy(time);
   
   vector<Type> u_t(time);
+  
+  vector<Type> f_t(time - 1);
+  
+  vector<Type> short_u_t(time - 1);
   
   Type sigma_obs = exp(log_sigma_obs);
   
@@ -188,9 +194,13 @@ Type objective_function<Type>::operator() ()
   
   // Type k = exp(log_k);
   
-  Type init_u = 1 / (1 + exp(-inv_f_t(0)));
+  f_t = exp(log_f_t);
   
-  Type init_b = catch_t(0) / init_u;
+  short_u_t = (f_t / (f_t + Type(0.2))) * (1 - exp(-(f_t + Type(0.2))));
+  
+  // Type init_u = 1 / (1 + exp(-inv_f_t(0)));
+  
+  Type init_b = catch_t(0) / short_u_t[0];
   
   Type k = init_b / init_dep;
   
@@ -210,7 +220,9 @@ Type objective_function<Type>::operator() ()
     
     q_t[t] = q_t[t - 1] * (1 + q_slope);
     
-    u_t(t - 1) = 1 / (1 + exp(-inv_f_t(t - 1)));
+    // u_t(t - 1) = 1 / (1 + exp(-inv_f_t(t - 1)));
+    
+    u_t(t - 1) = short_u_t[t - 1];
     
     catch_hat_t(t - 1) = u_t(t - 1) * b_t(t - 1) * k;
     
@@ -294,10 +306,10 @@ Type objective_function<Type>::operator() ()
   }
   
   for (int t = 1; t < (time - 1); t++){
-    
-    
-    nll -= dnorm(inv_f_t(t), inv_f_t(t - 1), f_cv, true);
-    
+
+
+    nll -= dnorm(log_f_t(t), log_f_t(t - 1), f_cv, true);
+
   }
   
   // nll -= dbinom(crashed, Type(time), Type(0.01), true);
