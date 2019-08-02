@@ -10,9 +10,9 @@ format_driors(taxa = "gadus morhua", initial_b = 1,
   u_sd = 0.1, final_u = NA, final_u_sd = NA, catch = NA,
   years = NA, index = NA, effort = NA, ref_type = "k",
   index_years = 1, effort_years = 1, use_heuristics = FALSE,
-  fmi = c(research = NA, management = NA, enforcement = NA,
-  socioeconomics = NA), fmi_sd = NA, sar = NA, sar_sd = NA,
-  f_sd = 0.1)
+  growth_rate = NA, growth_rate_cv = NA, fmi = c(research = NA,
+  management = NA, enforcement = NA, socioeconomics = NA), fmi_sd = NA,
+  sar = NA, sar_sd = NA, f_sd = 0.1, q_slope = 0)
 }
 \arguments{
 \item{taxa}{the genus and species of the species (case insensitive)}

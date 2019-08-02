@@ -111,11 +111,9 @@ ml_fit <- fit_sraplus(driors = driors,
 bayes_fit <- fit_sraplus(driors = driors,
                        engine = "stan",
                        model = "sraplus_tmb", cleanup = FALSE,
-                       chains = 4, 
-                       cores = 4,
+                       chains = 1, 
+                       cores = 1,
                        n_keep = 2000)
-
-rstanarm::launch_shinystan(bayes_fit$fit)
 
 ```
 
