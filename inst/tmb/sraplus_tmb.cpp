@@ -175,6 +175,8 @@ Type objective_function<Type>::operator() ()
   
   // Type k = exp(log_k);
   
+  catch_t = catch_t + Type(1e-3);
+  
   
   Type r = exp(log_r);
   
@@ -279,7 +281,7 @@ Type objective_function<Type>::operator() ()
         
       }
       
-      nll -= dnorm(log(index_t(t)), log(index_hat_t(index_years(t) - 1)), Type(0.00001) + sigma_obs, true);
+      nll -= dnorm(log(index_t(t) + 1e-3), log(index_hat_t(index_years(t) - 1) + 1e-3), Type(0.00001) + sigma_obs, true);
       
     }
     
@@ -299,7 +301,7 @@ Type objective_function<Type>::operator() ()
   
   for (int t = 0; t < (time - 1); t++){
     
-    nll -= dnorm(log(catch_t(t) + 1e-3), log(catch_hat_t(t) + 1e-3), Type(.05), true);
+    nll -= dnorm(log(catch_t(t)), log(catch_hat_t(t) + 1e-3), Type(.01), true);
     
     nll -= dnorm(uc_proc_errors(t), Type(0), Type(1), true);
     
@@ -378,7 +380,7 @@ Type objective_function<Type>::operator() ()
   
   // nll -= dnorm(log_k,log_k_guess,Type(10), true);
   
-  nll -= dnorm(log_m,Type(0.1),Type(0.5), true);
+  // nll -= dnorm(log_m,Type(0.1),Type(0.5), true);
   
   
   vector<Type> log_bt = log(b_t);

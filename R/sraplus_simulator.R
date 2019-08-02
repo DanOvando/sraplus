@@ -54,7 +54,7 @@ sraplus_simulator <-
                                                                                        (m - 1)) -   pop$catch[t - 1]) * exp(rnorm(1,0,sigma_proc) - sigma_proc^2/2)
       pop$q[t] =  pmin(1,pop$q[t - 1] * (1 + q_slope))
       
-      pop$effort[t] = pmax(0,pop$effort[t - 1] + (rnorm(1,0, sigma_u * pop$effort[1])))
+      pop$effort[t] = pmax(1e-2,pop$effort[t - 1] + (rnorm(1,0, sigma_u * pop$effort[1])))
       
       pop$u[t] =   pmin(0.99,pop$q[t] *  pop$effort[t])
       

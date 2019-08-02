@@ -29,7 +29,9 @@ fit_sraplus <- function(driors,
                         engine = "sir",
                         cores = 4,
                         chains = 1,
-                        cleanup = FALSE) {
+                        cleanup = FALSE,
+                        max_treedepth = 10,
+                        adapt_delta = 0.8) {
   knockout <-
     list() #parameters to knockout from TMB estimation using TMB::map
   
@@ -87,12 +89,12 @@ fit_sraplus <- function(driors,
   
   if (sra_data$fit_index == 1 & sra_data$calc_cpue == 0){
     
-    q_guess = mean(sra_data$index_t / sra_data$catch_t[sra_data$index_years])
+    q_guess = pmin(1e-2,median((sra_data$index_t / sra_data$catch_t[sra_data$index_years])))
     
     
   } else if (sra_data$calc_cpue == 1){
     
-    q_guess = mean(0.2 / sra_data$effort_t)
+    q_guess =pmin(1e-2, median(0.2 / sra_data$effort_t))
     
   } else {
     
@@ -100,7 +102,7 @@ fit_sraplus <- function(driors,
     
     
   }
-  
+
   sra_data$log_q_guess = log(q_guess)
   
   inits <- list(
@@ -305,7 +307,9 @@ fit_sraplus <- function(driors,
         cores = cores,
         chains = chains,
         iter = n_keep,
-        init = map(chains,~map(inits, jitter), inits = inits)
+        init = map(chains,~map(inits, jitter), inits = inits),
+        control = list(max_treedepth = max_treedepth,
+        adapt_delta = adapt_delta)
       )
     
     draws = tidybayes::tidy_draws(fit) %>%
@@ -465,7 +469,7 @@ fit_sraplus <- function(driors,
     upper["log_init_dep"] <- log(1.5)
     
     set.seed(seed)
-  
+    
     fit <- TMBhelper::fit_tmb(
       sra_model,
       fn = sra_model$fn,

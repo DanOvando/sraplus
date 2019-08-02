@@ -83,8 +83,8 @@ r_hat <- bayesplot::mcmc_hist(as.matrix(bayes_fit$fit), "log_r",transformations 
   geom_vline(aes(xintercept = sim$params$r), color = "red")
 
 
-m_hat <- bayesplot::mcmc_hist(as.matrix(bayes_fit$fit), "log_m",transformations = "exp") + 
-  geom_vline(aes(xintercept = sim$params$m), color = "red")
+# m_hat <- bayesplot::mcmc_hist(as.matrix(bayes_fit$fit), "log_m",transformations = "exp") + 
+#   geom_vline(aes(xintercept = sim$params$m), color = "red")
 
 q_hat <- bayesplot::mcmc_hist(as.matrix(bayes_fit$fit), "log_q",transformations = "exp") + 
   geom_vline(aes(xintercept = sim$pop$q[1]), color = "red")
@@ -95,8 +95,8 @@ sigma_proc_hat <- bayesplot::mcmc_hist(as.matrix(bayes_fit$fit), "log_sigma_proc
 plot(ml_fit$results$mean[ml_fit$results$variable == "r"], sim$params$r)
   abline(a = 0, b = 1)
   
-ml_m_hat <- bayesplot::mcmc_hist(as.matrix(bayes_fit$fit), "log_m",transformations = "exp") + 
-  geom_vline(aes(xintercept = sim$params$m), color = "red")
+# ml_m_hat <- bayesplot::mcmc_hist(as.matrix(bayes_fit$fit), "log_m",transformations = "exp") + 
+#   geom_vline(aes(xintercept = sim$params$m), color = "red")
 
 
 bayes_fit$results %>% 
@@ -140,9 +140,9 @@ log_q_hat <- bayesplot::mcmc_hist(as.matrix(bayes_fit$fit), "log_q", freq = FALS
                alpha = 0.5)
 
 
-log_m_hat <- bayesplot::mcmc_hist(as.matrix(bayes_fit$fit), "log_m", freq = FALSE) + 
-  geom_density(data = data_frame(log_m = rnorm(1000,.1,.5)), aes(log_m), fill = "lightgrey",
-               alpha = 0.5)
+# log_m_hat <- bayesplot::mcmc_hist(as.matrix(bayes_fit$fit), "log_m", freq = FALSE) + 
+#   geom_density(data = data_frame(log_m = rnorm(1000,.1,.5)), aes(log_m), fill = "lightgrey",
+#                alpha = 0.5)
 
 
 
@@ -150,20 +150,24 @@ log_m_hat <- bayesplot::mcmc_hist(as.matrix(bayes_fit$fit), "log_m", freq = FALS
 
 sim <-
   sraplus_simulator(
-    sigma_proc = 0.2,
+    sigma_proc = 0.1,
     sigma_u = 0.2,
     q_slope = 0.025,
     r = 0.4,
     years = 25,
     q = 1e-3,
     m = 2,
-    init_u_umsy = .1
+    init_u_umsy = .5
   )
 
 pop <- sim$pop  
 
 sim$pop %>% 
   ggplot(aes(year, depletion)) + 
+  geom_point()
+
+sim$pop %>% 
+  ggplot(aes(year, catch)) + 
   geom_point()
 
 pop %>% 
@@ -185,7 +189,7 @@ effort_ml_driors <- format_driors(taxa = example_taxa,
                            terminal_b = NA,
                            growth_rate = 0.4,
                            growth_rate_cv = 0.1,
-                           q_slope = 0,
+                           q_slope = 0.025,
                            u_sd = 0.05)
 
 index_ml_driors <- format_driors(taxa = example_taxa,
@@ -200,6 +204,24 @@ index_ml_driors <- format_driors(taxa = example_taxa,
                                   growth_rate_cv = 0.1,
                                  u_sd = 0.05)
 
+
+index_bayes_fit <- fit_sraplus(driors = index_ml_driors,
+                               engine = "stan",
+                               model = "sraplus_tmb", cleanup = FALSE,
+                               n_keep = 4000)
+
+
+index_ml_fit <- fit_sraplus(driors = index_ml_driors,
+                            engine = "tmb",
+                            model = "sraplus_tmb", cleanup = FALSE)
+
+plot_sraplus(
+  index_ml = index_ml_fit,
+  index_bayes = index_bayes_fit,
+  years = ml_driors$years
+)
+
+
 effort_ml_fit <- fit_sraplus(driors = effort_ml_driors,
                       engine = "tmb",
                       model = "sraplus_tmb", cleanup = FALSE)
@@ -207,17 +229,23 @@ effort_ml_fit <- fit_sraplus(driors = effort_ml_driors,
 
 effort_bayes_fit <- fit_sraplus(driors = effort_ml_driors,
                              engine = "stan",
-                             model = "sraplus_tmb", cleanup = FALSE)
+                             model = "sraplus_tmb", cleanup = FALSE,
+                             adapt_delta = 0.95,
+                             max_treedepth = 10,
+                             n_keep = 2000,
+                             chains = 4, 
+                             cores = 4)
 
 
-index_bayes_fit <- fit_sraplus(driors = index_ml_driors,
-                                engine = "stan",
-                                model = "sraplus_tmb", cleanup = FALSE)
 
 
-index_ml_fit <- fit_sraplus(driors = index_ml_driors,
-                               engine = "tmb",
-                               model = "sraplus_tmb", cleanup = FALSE)
+a = tidybayes::gather_draws(effort_bayes_fit$fit,log_f_t[year]) %>% 
+  mutate(u = 1 / (1 + exp(-.value)))
+
+a %>% 
+  ggplot(aes(year, u)) + 
+  geom_smooth() + 
+  geom_point(data = pop,aes(year,effort * q))
 
 
 plot_sraplus(
@@ -248,7 +276,7 @@ ggplot() +
   geom_violin(data = index_u, aes(year, u, group = year, fill = "index")) +
   geom_point(data = pop, aes(year, ((effort * q) / (effort * q + 0.2)) * (1 - exp(-(effort * q + 0.2)))))
 
-ml_fit$results %>% 
+index_ml_fit$results %>% 
   filter(variable == "depletion") %>% 
   ggplot(aes(1:length(mean), mean)) + 
   geom_line() + 
