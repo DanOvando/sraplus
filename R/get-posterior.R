@@ -36,10 +36,10 @@ get_posterior <-  function(draws,
       temp <- names(knockout)[i]
       
       temp_entry <-
-        dplyr::tibble(par = temp, data = list(tibble(vals = inits[temp][[1]])))
+        dplyr::tibble(par = temp, data = list(dplyr::tibble(vals = inits[temp][[1]])))
       
       par_list <- par_list %>%
-        bind_rows(temp_entry)
+        dplyr::bind_rows(temp_entry)
       
     }
     

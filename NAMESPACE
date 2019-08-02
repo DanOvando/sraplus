@@ -3,4 +3,4 @@ importFrom(Rcpp, evalCpp)
 exportPattern("^[[:alpha:]]+")
 importFrom(magrittr,"%>%")
 
-importFrom("stats", "median", "quantile", "rnorm", "runif", "sd")
+importFrom(stats, "median", "quantile", "rnorm", "runif", "sd")

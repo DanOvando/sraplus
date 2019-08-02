@@ -22,8 +22,7 @@ Imports:
     patchwork (>= 0.0.1),
     tidybayes,
     rstan,
-    rstanarm,
-    shiny
+    rstanarm
 LinkingTo: Rcpp
 Suggests: 
     testthat,

@@ -8,14 +8,24 @@ test_that(" stan works", {
   
   data(cod)
   
-  driors <- sraplus::format_driors(taxa = example_taxa,
-                                   catch = cod$catch,
-                                   years = cod$year,
-                                   index = cod$index,
-                                   index_years = cod$year,
-                                   initial_b = 1,
-                                   terminal_b = 0.5)
+  driors <- sraplus::format_driors(
+    taxa = example_taxa,
+    catch = cod$catch,
+    years = cod$year,
+    index = cod$index,
+    index_years = cod$year,
+    initial_b = 1,
+    terminal_b = 0.5
+  )
   
-  stan_fit <- try(sraplus::fit_sraplus(driors = driors, engine = "stan", chains = 1, cores = 1),TRUE)
-  expect_is(stan_fit,"list")
+  stan_fit <-
+    try(sraplus::fit_sraplus(
+      driors = driors,
+      engine = "stan",
+      chains = 1,
+      cores = 1,
+      n_keep = 500
+    ),
+    TRUE)
+  testthat::expect_type(stan_fit, "list")
 })

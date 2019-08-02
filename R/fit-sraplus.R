@@ -307,7 +307,7 @@ fit_sraplus <- function(driors,
         cores = cores,
         chains = chains,
         iter = n_keep,
-        init = map(chains,~map(inits, jitter), inits = inits),
+        init = purrr::map(chains,~purrr::map(inits, jitter), inits = inits),
         control = list(max_treedepth = max_treedepth,
         adapt_delta = adapt_delta)
       )

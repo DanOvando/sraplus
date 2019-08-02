@@ -16,5 +16,5 @@ test_that(" sir works", {
   sir_fit <- try(sraplus::fit_sraplus(driors = driors, engine = "sir",
                          draws = 100),TRUE)
   
-  expect_is(sir_fit,"list")
+  testthat::expect_type(sir_fit,"list")
 })
