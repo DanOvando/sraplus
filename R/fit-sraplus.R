@@ -72,7 +72,7 @@ fit_sraplus <- function(driors,
     u_priors = driors$u_v_umsy,
     u_cv = driors$u_cv,
     plim = plim,
-    sigma_proc_prior = driors$sigma_r / 2,
+    sigma_proc_prior = driors$sigma_r,
     sigma_proc_prior_cv = driors$sigma_r_cv,
     ref_type = ifelse(driors$ref_type == "k", 0, 1),
     use_final = !is.na(driors$terminal_b),
@@ -86,7 +86,8 @@ fit_sraplus <- function(driors,
     log_k_guess = log(10 * max(driors$catch)),
     # f_cv = driors$f_cv,
     # q_slope = driors$q_slope,
-    eps = 1e-3
+    eps = 1e-3,
+    nat_m = driors$m
   )
   
   k_guess <- log(10 * max(driors$catch))

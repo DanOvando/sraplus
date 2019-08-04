@@ -73,13 +73,15 @@ Type objective_function<Type>::operator() ()
   
   DATA_SCALAR(log_k_guess);
   
+  DATA_SCALAR(nat_m);
+  
   DATA_SCALAR(plim);
   
   DATA_SCALAR(log_r_prior);
   
-  // DATA_SCALAR(sigma_proc_prior);
+  DATA_SCALAR(sigma_proc_prior);
   
-  // DATA_SCALAR(sigma_proc_prior_cv);
+  DATA_SCALAR(sigma_proc_prior_cv);
   
   DATA_SCALAR(eps);
   
@@ -273,7 +275,7 @@ Type objective_function<Type>::operator() ()
         
         Type ftemp = q_t(index_years(t) - 1) * effort_t(index_years(t) - 1);
         
-        Type effective_f = (ftemp / (ftemp + Type(0.2))) * (1 - exp(-(ftemp + Type(0.2))));
+        Type effective_f = (ftemp / (ftemp + nat_m)) * (1 - exp(-(ftemp + nat_m)));
         
         index_t(index_years(t) - 1) = catch_t(index_years(t) - 1) / effective_f;
         
@@ -374,7 +376,7 @@ Type objective_function<Type>::operator() ()
   
   nll -= dnorm(log_q, log_q_guess, Type(0.2));
   
-  nll -= dnorm(log_sigma_proc,Type(-3), Type(0.25), true);
+  nll -= dnorm(log_sigma_proc,log(sigma_proc_prior), sigma_proc_prior_cv, true);
   
   nll -= dnorm(log_k,log_k_guess,Type(10), true);
   

@@ -60,7 +60,9 @@ ml_driors <- format_driors(taxa = example_taxa,
                         initial_b_sd = 0.05,
                         terminal_b = NA,
                         growth_rate = 0.4,
-                        growth_rate_cv = 0.1)
+                        growth_rate_cv = 0.1,
+                        sigma_r = 0.05,
+                        sigma_r_cv = 0.05)
 
 plot_driors(ml_driors)
 
@@ -68,7 +70,8 @@ plot_driors(ml_driors)
 ml_fit <- fit_sraplus(driors = ml_driors,
                       engine = "tmb",
                       model = "sraplus_tmb", cleanup = FALSE,
-                      estimate_m = FALSE)
+                      estimate_m = FALSE, 
+                      estimate_proc_error = FALSE)
 
 plot_sraplus(ml_fit = ml_fit, years = ml_driors$years)
 
@@ -82,9 +85,9 @@ bayes_fit <- fit_sraplus(driors = ml_driors,
 
 test <- names(bayes_fit$fit)
 
-pair_vars <- test[!str_detect(test,"uc_proc")]
-
-pairs(bayes_fit$fit, pars = pair_vars)
+# pair_vars <- test[!str_detect(test,"uc_proc")]
+# 
+# pairs(bayes_fit$fit, pars = pair_vars)
 
 
 plot_sraplus(ml_fit = ml_fit, bayes_fit = bayes_fit,years = ml_driors$years)
@@ -109,8 +112,8 @@ r_hat <- bayesplot::mcmc_hist(as.matrix(bayes_fit$fit), "log_r",transformations 
 q_hat <- bayesplot::mcmc_hist(as.matrix(bayes_fit$fit), "log_q",transformations = "exp") + 
   geom_vline(aes(xintercept = sim$pop$q[1]), color = "red")
 
-# sigma_proc_hat <- bayesplot::mcmc_hist(as.matrix(bayes_fit$fit), "log_sigma_proc",transformations = "exp") + 
-#   geom_vline(aes(xintercept = sim$params$sigma_proc), color = "red")
+sigma_proc_hat <- bayesplot::mcmc_hist(as.matrix(bayes_fit$fit), "log_sigma_proc",transformations = "exp") +
+  geom_vline(aes(xintercept = sim$params$sigma_proc), color = "red")
 
 # plot(ml_fit$results$mean[ml_fit$results$variable == "r"], sim$params$r)
 #   abline(a = 0, b = 1)
