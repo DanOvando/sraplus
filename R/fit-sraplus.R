@@ -32,8 +32,10 @@ fit_sraplus <- function(driors,
                         cleanup = FALSE,
                         max_treedepth = 10,
                         adapt_delta = 0.8,
-                        estimate_m = FALSE
-                        ) {
+                        estimate_m = FALSE,
+                        estimate_qslope = FALSE,
+                        estimate_proc_error = TRUE
+) {
   knockout <-
     list() #parameters to knockout from TMB estimation using TMB::map
   
@@ -82,8 +84,8 @@ fit_sraplus <- function(driors,
     use_init =  !is.na(driors$initial_b),
     sigma_u = driors$u_cv,
     log_k_guess = log(10 * max(driors$catch)),
-    f_cv = driors$f_cv,
-    q_slope = driors$q_slope,
+    # f_cv = driors$f_cv,
+    # q_slope = driors$q_slope,
     eps = 1e-3
   )
   
@@ -114,11 +116,64 @@ fit_sraplus <- function(driors,
     log_init_dep = log(1),
     log_sigma_proc = log(0.01),
     uc_proc_errors = rep(0, time - 1),
-    log_m = log(2)#,
-    # q_slope = 0.025
+    log_m = log(2),
+    q_slope = ifelse(estimate_qslope == TRUE && sra_data$calc_cpue == 1,0.025,0)
   )
   
-  # fit SIR model
+  
+  if (sra_data$fit_index == 0) {
+    knockout$log_q <- NA
+    # knockout$q <- NA
+    
+    knockout$log_sigma_obs <- NA
+    
+    
+  }
+  
+  # knockout$log_init_dep = NA
+  
+  if (sra_data$fit_index == 0 & sra_data$use_u_prior == 0) {
+    knockout$log_sigma_proc <- NA
+    
+    knockout$uc_proc_errors <- rep(NA, time - 1)
+    
+    inits$log_sigma_proc <- log(1e-6)
+    
+    inits$uc_proc_errors <- rep(0, time - 1)
+    
+    randos <- NULL
+    # randos <- "inv_f_t"
+    
+    # randos <- "log_f_t"
+  }
+  
+  if (estimate_m == FALSE) {
+    knockout$log_m <- NA
+  }
+  
+  if (!(estimate_qslope == TRUE && sra_data$calc_cpue == 1)){
+    
+    knockout$q_slope <- NA
+    
+  }
+  
+  if (estimate_proc_error == FALSE){
+    
+    knockout$uc_proc_errors <- rep(NA, time - 1)
+    
+    knockout$log_sigma_proc <- NA
+    
+    inits$log_sigma_proc <- log(1e-6)
+    
+    randos <- NULL
+    
+  }
+  
+  knockout <- purrr::map(knockout, as.factor)
+  
+  
+  # fit models
+  
   if ((sra_data$fit_index == 0 &
        sra_data$use_u_prior == 0) | engine == "sir") {
     sra_fit <- sraplus::sraplus(
@@ -237,40 +292,6 @@ fit_sraplus <- function(driors,
       
     }
     
-    
-    if (sra_data$fit_index == 0) {
-      knockout$log_q <- NA
-      # knockout$q <- NA
-      
-      knockout$log_sigma_obs <- NA
-      
-    }
-    
-    # knockout$log_init_dep = NA
-    
-    if (sra_data$fit_index == 0 & sra_data$use_u_prior == 0) {
-      knockout$log_sigma_proc <- NA
-      
-      knockout$uc_proc_errors <- rep(NA, time - 1)
-      
-      inits$log_sigma_proc <- -1e6
-      
-      inits$uc_proc_errors <- rep(0, time - 1)
-      
-      randos <- NULL
-      
-      # randos <- "inv_f_t"
-      
-      # randos <- "log_f_t"
-      
-      
-    }
-    
-    if (estimate_m == FALSE) {
-      knockout$log_m <- NA
-    }
-    
-    knockout <- purrr::map(knockout, as.factor)
     
     sraplus::get_tmb_model(model_name = model)
     
@@ -407,43 +428,7 @@ fit_sraplus <- function(driors,
       
     }
     
-    
-    if (sra_data$fit_index == 0) {
-      knockout$log_q <- NA
-      # knockout$q <- NA
-      
-      knockout$log_sigma_obs <- NA
-      
-    }
-    
-    # knockout$log_init_dep = NA
-    
-    if (sra_data$fit_index == 0 & sra_data$use_u_prior == 0) {
-      knockout$log_sigma_proc <- NA
-      
-      knockout$uc_proc_errors <- rep(NA, time - 1)
-      
-      inits$log_sigma_proc <- -1e6
-      
-      inits$uc_proc_errors <- rep(0, time - 1)
-      
-      randos <- NULL
-      
-      # randos <- "inv_f_t"
-      
-      # randos <- "log_f_t"
-      
-      
-    }
-    
-    if (estimate_m == FALSE) {
-      knockout$log_m <- NA
-    }
-    
-    knockout <- purrr::map(knockout, as.factor)
     sraplus::get_tmb_model(model_name = model)
-    
-    
     sra_model <-
       TMB::MakeADFun(
         data = sra_data,
@@ -451,7 +436,7 @@ fit_sraplus <- function(driors,
         DLL = model,
         random = randos,
         silent = TRUE,
-        inner.control = list(maxit = 1e3),
+        inner.control = list(maxit = 1e6),
         hessian = TRUE,
         map = knockout
       )
@@ -473,12 +458,11 @@ fit_sraplus <- function(driors,
     upper["log_init_dep"] <- log(1.5)
     
     set.seed(seed)
-    
     fit <- TMBhelper::fit_tmb(
       sra_model,
       fn = sra_model$fn,
       gr = sra_model$gr,
-      newtonsteps = 3,
+      newtonsteps = 6,
       lower = lower,
       upper = upper,
       getsd = FALSE,
@@ -512,7 +496,7 @@ fit_sraplus <- function(driors,
     
     fit_report <- fit_save$report()
     
-    fit <- TMB::sdreport(fit_save, bias.correct = TRUE)
+    fit <- TMB::sdreport(fit_save, bias.correct = ifelse(is.null(randos), FALSE,TRUE))
     
     out <-
       dplyr::tibble(

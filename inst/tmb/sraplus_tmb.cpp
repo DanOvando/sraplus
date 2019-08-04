@@ -75,8 +75,6 @@ Type objective_function<Type>::operator() ()
   
   DATA_SCALAR(plim);
   
-  DATA_SCALAR(f_cv);
-  
   DATA_SCALAR(log_r_prior);
   
   // DATA_SCALAR(sigma_proc_prior);
@@ -97,7 +95,7 @@ Type objective_function<Type>::operator() ()
   
   DATA_SCALAR(log_final_dep_cv);
   
-  DATA_SCALAR(q_slope);
+  // DATA_SCALAR(q_slope);
   
   DATA_SCALAR(log_q_guess);
   
@@ -113,7 +111,7 @@ Type objective_function<Type>::operator() ()
   
   PARAMETER(log_q);
   
-  // PARAMETER(q_slope);
+  PARAMETER(q_slope);
   
   PARAMETER(log_sigma_proc);
   
@@ -370,7 +368,7 @@ Type objective_function<Type>::operator() ()
   
   nll -= dnorm(log_sigma_obs,Type(-3),Type(0.25), true);
   
-  // nll -= dnorm(q_slope,Type(0.025),Type(0.05), true);
+  nll -= dnorm(q_slope,Type(0.025),Type(0.05), true);
   
   // nll -= dbeta(q, Type(0.5), Type(1), true);
   
