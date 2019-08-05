@@ -26,4 +26,3 @@ before_install:
   # optionally add our launchpad repo, but not needed here
   # - sudo add-apt-repository -y ppa:edd/r-3.5
   - ./run.sh bootstrap
-
