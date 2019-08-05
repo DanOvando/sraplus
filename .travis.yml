@@ -1,7 +1,6 @@
 language: r
 r: devel
-sudo: TRUE
-dist: trusty
+sudo: FALSE
 
 cache:
   - packages
@@ -28,4 +27,3 @@ before_install:
   # - sudo add-apt-repository -y ppa:edd/r-3.5
   - ./run.sh bootstrap
 
-  wget --quiet ...
