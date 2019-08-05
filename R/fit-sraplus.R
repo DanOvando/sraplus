@@ -31,7 +31,11 @@ fit_sraplus <- function(driors,
                         chains = 1,
                         cleanup = FALSE,
                         max_treedepth = 10,
-                        adapt_delta = 0.8) {
+                        adapt_delta = 0.8,
+                        estimate_m = FALSE,
+                        estimate_qslope = FALSE,
+                        estimate_proc_error = TRUE
+) {
   knockout <-
     list() #parameters to knockout from TMB estimation using TMB::map
   
@@ -68,7 +72,7 @@ fit_sraplus <- function(driors,
     u_priors = driors$u_v_umsy,
     u_cv = driors$u_cv,
     plim = plim,
-    sigma_proc_prior = driors$sigma_r / 2,
+    sigma_proc_prior = driors$sigma_r,
     sigma_proc_prior_cv = driors$sigma_r_cv,
     ref_type = ifelse(driors$ref_type == "k", 0, 1),
     use_final = !is.na(driors$terminal_b),
@@ -79,34 +83,33 @@ fit_sraplus <- function(driors,
     log_final_u_cv = driors$log_final_u_cv,
     use_init =  !is.na(driors$initial_b),
     sigma_u = driors$u_cv,
-    # log_k_guess = log(10 * max(driors$catch)),
-    f_cv = driors$f_cv,
-    q_slope = driors$q_slope
+    log_k_guess = log(10 * max(driors$catch)),
+    # f_cv = driors$f_cv,
+    # q_slope = driors$q_slope,
+    eps = 1e-3,
+    nat_m = driors$m
   )
   
   k_guess <- log(10 * max(driors$catch))
   
   
-  if (sra_data$fit_index == 1 & sra_data$calc_cpue == 0){
+  if (sra_data$fit_index == 1 & sra_data$calc_cpue == 0) {
+    q_guess = pmin(1e-2, median((sra_data$index_t / sra_data$catch_t[sra_data$index_years])))
     
-    q_guess = pmin(1e-2,median((sra_data$index_t / sra_data$catch_t[sra_data$index_years])))
     
-    
-  } else if (sra_data$calc_cpue == 1){
-    
-    q_guess =pmin(1e-2, median(0.2 / sra_data$effort_t))
+  } else if (sra_data$calc_cpue == 1) {
+    q_guess = pmin(1e-2, median(0.2 / sra_data$effort_t))
     
   } else {
-    
     q_guess <- 1e-2
     
     
   }
-
+  
   sra_data$log_q_guess = log(q_guess)
   
   inits <- list(
-    # log_k = log(10 * max(driors$catch)),
+    log_k = log(10 * max(driors$catch)),
     log_r = log(driors$growth_rate),
     # q = q_guess,
     log_q = log(q_guess),
@@ -114,11 +117,64 @@ fit_sraplus <- function(driors,
     log_init_dep = log(1),
     log_sigma_proc = log(0.01),
     uc_proc_errors = rep(0, time - 1),
-    log_m = log(2)#,
-    # q_slope = 0.025
+    log_m = log(2),
+    q_slope = ifelse(estimate_qslope == TRUE && sra_data$calc_cpue == 1,0.025,0)
   )
   
-  # fit SIR model
+  
+  if (sra_data$fit_index == 0) {
+    knockout$log_q <- NA
+    # knockout$q <- NA
+    
+    knockout$log_sigma_obs <- NA
+    
+    
+  }
+  
+  # knockout$log_init_dep = NA
+  
+  if (sra_data$fit_index == 0 & sra_data$use_u_prior == 0) {
+    knockout$log_sigma_proc <- NA
+    
+    knockout$uc_proc_errors <- rep(NA, time - 1)
+    
+    inits$log_sigma_proc <- log(1e-6)
+    
+    inits$uc_proc_errors <- rep(0, time - 1)
+    
+    randos <- NULL
+    # randos <- "inv_f_t"
+    
+    # randos <- "log_f_t"
+  }
+  
+  if (estimate_m == FALSE) {
+    knockout$log_m <- NA
+  }
+  
+  if (!(estimate_qslope == TRUE && sra_data$calc_cpue == 1)){
+    
+    knockout$q_slope <- NA
+    
+  }
+  
+  if (estimate_proc_error == FALSE){
+    
+    knockout$uc_proc_errors <- rep(NA, time - 1)
+    
+    knockout$log_sigma_proc <- NA
+    
+    inits$log_sigma_proc <- log(1e-6)
+    
+    randos <- NULL
+    
+  }
+  
+  knockout <- purrr::map(knockout, as.factor)
+  
+  
+  # fit models
+  
   if ((sra_data$fit_index == 0 &
        sra_data$use_u_prior == 0) | engine == "sir") {
     sra_fit <- sraplus::sraplus(
@@ -180,7 +236,7 @@ fit_sraplus <- function(driors,
     tidy_fits <-
       purrr::map_df(
         purrr::keep(sra_fit, outs),
-        ~ as.data.frame(.x[, keepers]) %>% dplyr::mutate(year = 1:nrow(.)) %>% tidyr::gather(draw, value,-year),
+        ~ as.data.frame(.x[, keepers]) %>% dplyr::mutate(year = 1:nrow(.)) %>% tidyr::gather(draw, value, -year),
         keepers = keepers,
         .id = "variable"
       ) %>%
@@ -232,43 +288,11 @@ fit_sraplus <- function(driors,
     if (fit_catches == TRUE) {
       # inits$inv_f_t = rep(-2, time - 1)
       
-      inits$log_f_t = rep(-2, time - 1)
+      # inits$log_f_t = rep(-2, time - 1)
       
       
     }
     
-    
-    if (sra_data$fit_index == 0) {
-      knockout$log_q <- NA
-      # knockout$q <- NA
-      
-      knockout$log_sigma_obs <- NA
-      
-    }
-    
-    # knockout$log_init_dep = NA
-    
-    if (sra_data$fit_index == 0 & sra_data$use_u_prior == 0) {
-      knockout$log_sigma_proc <- NA
-      
-      knockout$uc_proc_errors <- rep(NA, time - 1)
-      
-      inits$log_sigma_proc <- -1e6
-      
-      inits$uc_proc_errors <- rep(0, time - 1)
-      
-      randos <- NULL
-      
-      # randos <- "inv_f_t"
-      
-      randos <- "log_f_t"
-      
-      
-    }
-    
-    knockout$log_m <- NA
-    
-    knockout <- purrr::map(knockout, as.factor)
     
     sraplus::get_tmb_model(model_name = model)
     
@@ -288,12 +312,12 @@ fit_sraplus <- function(driors,
       purrr::set_names(names(sra_model$par))
     
     # lower['q'] <- 1e-10
-    # lower['log_k'] <- lower_k
+    lower['log_k'] <- lower_k
     
     upper = rep(Inf, length(sra_model$par)) %>%
       purrr::set_names(names(sra_model$par))
     
-    # upper['log_k'] <- upper_k
+    upper['log_k'] <- upper_k
     
     upper["log_init_dep"] <- log(1.5)
     
@@ -307,13 +331,13 @@ fit_sraplus <- function(driors,
         cores = cores,
         chains = chains,
         iter = n_keep,
-        init = purrr::map(chains,~purrr::map(inits, jitter), inits = inits),
+        init = purrr::map(chains,  ~ purrr::map(inits, jitter), inits = inits),
         control = list(max_treedepth = max_treedepth,
-        adapt_delta = adapt_delta)
+                       adapt_delta = adapt_delta)
       )
     
     draws = tidybayes::tidy_draws(fit) %>%
-      tidyr::nest(-.chain, .iteration, -.draw, -.iteration)
+      tidyr::nest(-.chain, .iteration,-.draw,-.iteration)
     
     draws <- draws %>%
       dplyr::mutate(
@@ -401,45 +425,11 @@ fit_sraplus <- function(driors,
     
     if (fit_catches == TRUE) {
       # inits$inv_f_t = rep(-2, time - 1)
-      inits$log_f_t = rep(-2, time - 1)
+      # inits$log_f_t = rep(-2, time - 1)
       
     }
     
-    
-    if (sra_data$fit_index == 0) {
-      knockout$log_q <- NA
-      # knockout$q <- NA
-      
-      knockout$log_sigma_obs <- NA
-      
-    }
-    
-    # knockout$log_init_dep = NA
-    
-    if (sra_data$fit_index == 0 & sra_data$use_u_prior == 0) {
-      knockout$log_sigma_proc <- NA
-      
-      knockout$uc_proc_errors <- rep(NA, time - 1)
-      
-      inits$log_sigma_proc <- -1e6
-      
-      inits$uc_proc_errors <- rep(0, time - 1)
-      
-      randos <- NULL
-      
-      # randos <- "inv_f_t"
-      
-      randos <- "log_f_t"
-      
-      
-    }
-    
-    knockout$log_m <- NA
-    
-    knockout <- purrr::map(knockout, as.factor)
     sraplus::get_tmb_model(model_name = model)
-    
-
     sra_model <-
       TMB::MakeADFun(
         data = sra_data,
@@ -447,8 +437,8 @@ fit_sraplus <- function(driors,
         DLL = model,
         random = randos,
         silent = TRUE,
-        inner.control = list(maxit = 1e3),
-        hessian = FALSE,
+        inner.control = list(maxit = 1e6),
+        hessian = TRUE,
         map = knockout
       )
     
@@ -457,24 +447,23 @@ fit_sraplus <- function(driors,
     
     # lower['q'] <- 1e-8
     
-    # lower['log_k'] <- lower_k
+    lower['log_k'] <- lower_k
     
     upper = rep(Inf, length(sra_model$par)) %>%
       purrr::set_names(names(sra_model$par))
     
-    # upper['log_k'] <- upper_k
+    upper['log_k'] <- upper_k
     
     upper['log_q'] <- 0
     
     upper["log_init_dep"] <- log(1.5)
     
     set.seed(seed)
-    
     fit <- TMBhelper::fit_tmb(
       sra_model,
       fn = sra_model$fn,
       gr = sra_model$gr,
-      newtonsteps = 3,
+      newtonsteps = 6,
       lower = lower,
       upper = upper,
       getsd = FALSE,
@@ -508,7 +497,7 @@ fit_sraplus <- function(driors,
     
     fit_report <- fit_save$report()
     
-    fit <- TMB::sdreport(fit_save, bias.correct = TRUE)
+    fit <- TMB::sdreport(fit_save, bias.correct = ifelse(is.null(randos), FALSE,TRUE))
     
     out <-
       dplyr::tibble(

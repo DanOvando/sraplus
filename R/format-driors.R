@@ -62,7 +62,10 @@ format_driors <-
            sar = NA,
            sar_sd = NA,
            f_sd = 0.1,
-           q_slope = 0) {
+           q_slope = 0,
+           m = NA,
+           sigma_r = 0.05,
+           sigma_r_cv = 0.05) {
     
     if (use_heuristics == TRUE){
       
@@ -138,7 +141,7 @@ format_driors <-
     }
     
     params_mvn <-
-      c("r", "ln_var")
+      c("r", "ln_var","M")
     if (is.null(fish_search$error)) {
       taxon <-
         dplyr::tibble(
@@ -172,12 +175,12 @@ format_driors <-
       
     } else {
       mean_lh <-
-        c("r" = median(FishLifeData$beta_gv[, "r"]),
-          "ln_var" = log(0.05))
+        c("r" = mean(FishLifeData$beta_gv[, "r"]),
+          m = exp(mean(FishLifeData$beta_gv[, "M"])))
       
       cov_lh <-
         c("r" = sd(FishLifeData$beta_gv[, "r"]),
-          "ln_var" = 0.05)
+          m = sd(FishLifeData$beta_gv[, "M"]))
       
       
     }
@@ -245,6 +248,7 @@ format_driors <-
       terminal_b_sd <- 0.2
       
     }
+    
     driors <-
       list(
         catch = catch,
@@ -264,8 +268,9 @@ format_driors <-
         effort_years = index_years,
         growth_rate = ifelse(is.na(growth_rate), mean_lh["r"],growth_rate),
         growth_rate_cv = ifelse(is.na(growth_rate_cv),sqrt(cov_lh["r"]),growth_rate_cv),
-        sigma_r = exp(mean_lh["ln_var"]) / 2,
-        sigma_r_cv = exp(cov_lh["ln_var"]),
+        sigma_r = ifelse(is.na(sigma_r),exp(mean_lh["ln_var"]) / 2, sigma_r),
+        sigma_r_cv = ifelse(is.na(sigma_r_cv), exp(cov_lh["ln_var"]), sigma_r_cv),
+        m =  ifelse(is.na(m), exp(mean_lh["M"]),m),
         f_cv = f_sd,
         log_final_u = log_final_u,
         log_final_u_cv = log_final_u_sd,
