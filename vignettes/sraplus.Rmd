@@ -360,3 +360,31 @@ plot_sraplus(`CPUE fit no qslope` = cpue_fit, `CPUE fit with qslope` =  cpue_qsl
 
 ```
 
+As a final step, we can try adding in some fictional SAR data to our fake fishery, just to see how it works. 
+
+
+```{r, results = "hide"}
+cpue_sar_driors <- format_driors(taxa = example_taxa,
+                           catch = sim$pop$catch,
+                           years = sim$pop$year,
+                           effort = sim$pop$effort,
+                           effort_years = sim$pop$year,
+                           growth_rate = 0.4,
+                           growth_rate_cv = 0.1,
+                           shape_prior = 1.01,
+                           q_slope = 0.025,
+                           q_slope_cv = 0.25,
+                           sar = 2)
+
+cpue_sar_fit <- fit_sraplus(driors = cpue_sar_driors,
+                             engine = "stan",
+                             model = "sraplus_tmb",
+                             adapt_delta = 0.9,
+                             max_treedepth = 10,
+                             n_keep = 4000,
+                             chains = 1, 
+                             cores = 1,
+                             estimate_qslope = TRUE,
+                             estimate_proc_error = FALSE)
+```
+

@@ -129,7 +129,19 @@ sraplus::plot_driors(catch_only_driors)
 
 From there, we pass the `driors` object to `sraplus::fit_sraplus`, and plot the results using `sraplus::plot_sraplus`. The `engine` argument specifies how the model will be fit. When not actually "fitting" to anything (rather simply sampling from priors that don't crash the population), we recommend setting engine to "sir". The `draws` argument tells `sraplus` how many draws from the SIR algorithm to generate, and `n_keep` how many draws to sample from the total `draws` iterations. So in this case the SIR algorithm will run 1 million iterations, and sample 2000 entries from those million in proportion to their likelihood. 
 
+
+
+
+```{r}
+
+ catch_only_fit <- sraplus::fit_sraplus(driors = catch_only_driors,
+                       engine = "sir",
+                       draws = 1e6,
+                       n_keep = 2000)
+```
+
 Running `fit_sraplus` always produces a list with two objects: `results` and `fit`. `results` is (mostly) standardized across engines set of summary outputs from the fitted model. This allows us to easily plot and compare outputs from models fit using `sir`, TMB, or stan. The `fit` object contains the actual fitted model, which will of course vary dramatically depending on what engine was used. 
+
 
 Let's take a quick look at the `results` object. 
 
@@ -149,16 +161,10 @@ head(catch_only_fit$fit)
 ```
 
 
-
 From there, we can generate some standard plots of B/Bmsy (b_div_bmsy), Catch/MSY, U/Umsy, and depletion over time using `plot_sraplus`.
 
 
 ```{r}
-
- catch_only_fit <- sraplus::fit_sraplus(driors = catch_only_driors,
-                       engine = "sir",
-                       draws = 1e6,
-                       n_keep = 2000)
 
 sraplus::plot_sraplus(catch_only = catch_only_fit, years = catch_only_driors$years)
 
@@ -299,6 +305,8 @@ sim$pop %>%
 
 Now suppose we no longer have a perfect index of abundance, but instead data on the catch and effort (CPUE!). But, there are a few problems with these CPUE data. First, we know from the simulation that q is increasing over time, so simply treating Catch/Effort as an index of abundance will be biased (since a unit of effort in the past is not the same as a unit of effort in the present). Second, we need to account for diminishing returns from increasing amounts of effort, and in-season losses to natural mortality. `sraplus` provides some support to these problems. `sraplus` will estimate a q. If desired it allows the user to either specify an assumed slope in catchability (where $q_t = q_{t-1} \times qslope$), or to attempt to estimate `qslope` directly. Second, given values of q and qslope (and estimates of natural mortality either supplied by the user or drawn from `FishLife`), `sraplus` uses the Baranov equation to translate effort into an effective fishing mortality rate. 
 
+**One important note**. By default, `sraplus` includes estimation of process error. When running a simplified CPUE like this, the model can't really handle estimating both process error and a q_slope (since the persistent trend in the CPUE values caused by the qslope can be soaked into the process error or the qslope). So, you need to provide a VERY imformative prior on the q_slope parameter if you're going to try and estimate (i.e. fix the q_slope parameter), or turn off process error (inside `fit_sraplus` set `estimate_proc_error = FALSE`) (the recommended option in this case).
+
 By now the order of operations should be pretty familiar: pass things to driors, then driors to fit_sraplus. In this case, instead of passing an index, we pass effort data, and effort years. 
 
 Just to explore functionality of `sraplus`, we'll fit the model using Bayesian estimation through stan (`engine = "stan"`). We'll compare two versions, one trying to estimate qslope, and one not. Note that we can pass standard `rstan` options to `fit_sraplus`. 
@@ -349,4 +357,72 @@ cpue_qslope_fit <- fit_sraplus(driors = cpue_driors,
 plot_sraplus(`CPUE fit no qslope` = cpue_fit, `CPUE fit with qslope` =  cpue_qslope_fit, years = cpue_driors$years)
 
 ```
+
+As a final step, we can try adding in some fictional SAR data to our fake fishery, just to see how it works. We can weight the SAR data using the `sar_sd` input. Leaving `sar_sd = NA` uses the srandard deviation from the posterior predictive of the fitted relationahip between SAR and U/Umsy contained in the model. In other words, setting sar_sd = NA lets the data tell you how much weight to assign to the SAR data. You can however overwrite this if desired and pass a stronger weight to the SAR data if desired. 
+
+```{r, results = "hide"}
+cpue_sar_qslope_driors <- format_driors(taxa = example_taxa,
+                           catch = sim$pop$catch,
+                           years = sim$pop$year,
+                           effort = sim$pop$effort,
+                           effort_years = sim$pop$year,
+                           growth_rate = 0.4,
+                           growth_rate_cv = 0.1,
+                           shape_prior = 1.01,
+                           q_slope = 0.025,
+                           q_slope_cv = 0.25,
+                           sar = 2,
+                           sar_sd = NA)
+
+cpue_sar_qslope_fit <- fit_sraplus(driors = cpue_sar_qslope_driors,
+                             engine = "stan",
+                             model = "sraplus_tmb",
+                             adapt_delta = 0.9,
+                             max_treedepth = 10,
+                             n_keep = 4000,
+                             chains = 1, 
+                             cores = 1,
+                             estimate_qslope = TRUE,
+                             estimate_proc_error = FALSE)
+```
+
+And for good measure one more with SAR data and process error instead of qslope
+
+```{r, results = "hide"}
+
+cpue_sar_proc_driors <- format_driors(taxa = example_taxa,
+                           catch = sim$pop$catch,
+                           years = sim$pop$year,
+                           effort = sim$pop$effort,
+                           effort_years = sim$pop$year,
+                           growth_rate = 0.4,
+                           growth_rate_cv = 0.1,
+                           shape_prior = 1.01,
+                           q_slope = 0,
+                           q_slope_cv = 0.25,
+                           sar = 4,
+                           sar_sd = .05)
+
+cpue_sar_proc_fit <- fit_sraplus(driors = cpue_sar_proc_driors,
+                             engine = "stan",
+                             model = "sraplus_tmb",
+                             adapt_delta = 0.9,
+                             max_treedepth = 10,
+                             n_keep = 4000,
+                             chains = 1, 
+                             cores = 1,
+                             estimate_qslope = FALSE,
+                             estimate_proc_error = TRUE)
+```
+
+```{r}
+
+plot_sraplus(`no rocess error and no qslope ` = cpue_fit, 
+             `no process error with qslope` =  cpue_qslope_fit, 
+             `no process error with qslope and sar` = cpue_sar_qslope_fit,
+             `process error and sar` = cpue_sar_proc_fit,
+             years = cpue_driors$years)
+
+```
+
 

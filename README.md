@@ -91,9 +91,16 @@ remotes::install_github("danovando/sraplus", ref = 'v2.0')
 
 # Example Use
 
+First, load libraries. These are the core libraries needed to run
+`sraplus`, all of which should have been installed for you if you didn’t
+already have them when you installed `sraplus`.
+
 ``` r
-library(tidyverse)
+library(ggplot2)
+library(tidyr)
+library(dplyr)
 library(sraplus)
+library(tmbstan)
 ```
 
 Once you’ve successfully installed `sraplus` you can take for a test
@@ -110,7 +117,7 @@ than 70% of the maximum reported catch, we set an expectation of
 depletion in the initial year of 70% of carrying capacity. Otherwise,
 the expectation is 40% of carrying capacity. For final depletion, the
 heuristic prior is if catch in the final year is greater than 50% of
-maximum catch final depletion is assumed ot be 60% of carrying capacity,
+maximum catch final depletion is assumed to be 60% of carrying capacity,
 otherwise 40% of carrying capacity.
 
 The first step in running `sraplus` is the `sraplus::format_driors`
@@ -180,11 +187,19 @@ From there, we pass the `driors` object to `sraplus::fit_sraplus`, and
 plot the results using `sraplus::plot_sraplus`. The `engine` argument
 specifies how the model will be fit. When not actually “fitting” to
 anything (rather simply sampling from priors that don’t crash the
-popuulation), we recommend setting engine to “sir”. The `draws` argument
+population), we recommend setting engine to “sir”. The `draws` argument
 tells `sraplus` how many draws from the SIR algorithm to generate, and
 `n_keep` how many draws to sample from the total `draws` iterations. So
 in this case the SIR algorithm will run 1 million iterations, and sample
 2000 entries from those million in proportion to their likelihood.
+
+``` r
+
+ catch_only_fit <- sraplus::fit_sraplus(driors = catch_only_driors,
+                       engine = "sir",
+                       draws = 1e6,
+                       n_keep = 2000)
+```
 
 Running `fit_sraplus` always produces a list with two objects: `results`
 and `fit`. `results` is (mostly) standardized across engines set of
@@ -193,21 +208,53 @@ compare outputs from models fit using `sir`, TMB, or stan. The `fit`
 object contains the actual fitted model, which will of course vary
 dramatically depending on what engine was used.
 
+Let’s take a quick look at the `results` object.
+
+``` r
+
+head(catch_only_fit$results)
+#> # A tibble: 6 x 6
+#>    year variable           mean           sd       lower       upper
+#>   <dbl> <chr>             <dbl>        <dbl>       <dbl>       <dbl>
+#> 1  1963 b_div_bmsy        0.576       0.123        0.424       0.735
+#> 2  1963 b           3395972.    1143302.     2306777.    4850974.   
+#> 3  1963 c_div_msy         0.308       0.0947       0.186       0.430
+#> 4  1963 depletion         0.389       0.0802       0.290       0.492
+#> 5  1963 index_hat_t  163923.     115433.       32414.     311194.   
+#> 6  1963 u_div_umsy        0.538       0.130        0.363       0.689
+```
+
+`results` is organized as a dataframe tracking different variables over
+years. `mean` is the mean value for a given variable, `sd` the estimated
+standard deviation around the mean, and `lower` and `upper` being the
+10th and 90th percentiles of the estimates.
+
+You can access other variables from the raw `fit` object, though this is
+not standardized by engine and so requires knowing how to for example
+get outputs out of `stanfit` objects. In the `catch_only_fit`, the `fit`
+object is the output of the SIR algorithm.
+
+``` r
+head(catch_only_fit$fit)
+#>   variable year draw   value
+#> 1      b_t 1963    1 3572752
+#> 2      b_t 1964    1 3957488
+#> 3      b_t 1965    1 4361816
+#> 4      b_t 1966    1 3995146
+#> 5      b_t 1967    1 3948414
+#> 6      b_t 1968    1 4208618
+```
+
 From there, we can generate some standard plots of B/Bmsy
 (b\_div\_bmsy), Catch/MSY, U/Umsy, and depletion over time using
 `plot_sraplus`.
 
 ``` r
 
- catch_only_fit <- sraplus::fit_sraplus(driors = catch_only_driors,
-                       engine = "sir",
-                       draws = 1e6,
-                       n_keep = 2000)
-
 sraplus::plot_sraplus(catch_only = catch_only_fit, years = catch_only_driors$years)
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-6-1.svg)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-9-1.svg)<!-- -->
 
 ## Fisheries Management Index and Swept Area Ratio
 
@@ -215,7 +262,7 @@ Now suppose that we obtain some FMI and SAR data for this fishery. We
 can use these values to provide updated priors on current fishing
 mortality rates and stock status (see full report for details on how
 this is accomplished). Note that the FMI and SAR values year are
-entirely fictional and any resembalance to any real fishery is purely
+entirely fictional and any resemblance to any real fishery is purely
 coincidental\!
 
 You’ll notice that we now add a few more options to format\_driors.
@@ -324,7 +371,7 @@ index_driors <- format_driors(
 plot_driors(index_driors)
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-7-1.svg)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-10-1.svg)<!-- -->
 
 ``` r
 
@@ -335,13 +382,13 @@ index_fit <- fit_sraplus(driors = index_driors,
 plot_sraplus(index = index_fit,years = index_driors$years)
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-7-2.svg)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-10-2.svg)<!-- -->
 
 Looks good, now let’s try something a bit trickier.
 
 ## Fit Bayesian CPUE model with `stan`
 
-We’ll now simulate a fishery with random-walk effort dynamice,
+We’ll now simulate a fishery with random-walk effort dynamics,
 increasing catchability, and process error.
 
 ``` r
@@ -388,24 +435,181 @@ mortality either supplied by the user or drawn from `FishLife`),
 `sraplus` uses the Baranov equation to translate effort into an
 effective fishing mortality rate.
 
+**One important note**. By default, `sraplus` includes estimation of
+process error. When running a simplified CPUE like this, the model can’t
+really handle estimating both process error and a q\_slope (since the
+persistent trend in the CPUE values caused by the qslope can be soaked
+into the process error or the qslope). So, you need to provide a VERY
+imformative prior on the q\_slope parameter if you’re going to try and
+estimate (i.e. fix the q\_slope parameter), or turn off process error
+(inside `fit_sraplus` set `estimate_proc_error = FALSE`) (the
+recommended option in this case).
+
 By now the order of operations should be pretty familiar: pass things to
 driors, then driors to fit\_sraplus. In this case, instead of passing an
 index, we pass effort data, and effort years.
 
-Just to explore functionalities of `sraplus`, we’ll fit the model using
+Just to explore functionality of `sraplus`, we’ll fit the model using
 Bayesian estimation through stan (`engine = "stan"`). We’ll compare two
 versions, one trying to estimate qslope, and one not. Note that we can
 pass standard `rstan` options to `fit_sraplus`.
 
 ``` r
 
-plot_sraplus(cpue_no_qslope = cpue_fit, cpue_with_qslope =  cpue_qslope_fit, years = cpue_driors$years)
-```
+library(tmbstan)
 
-![](README_files/figure-gfm/unnamed-chunk-9-1.svg)<!-- -->
+cpue_driors <- format_driors(taxa = example_taxa,
+                           catch = sim$pop$catch,
+                           years = sim$pop$year,
+                           effort = sim$pop$effort,
+                           effort_years = sim$pop$year,
+                           growth_rate = 0.4,
+                           growth_rate_cv = 0.1,
+                           shape_prior = 1.01,
+                           q_slope = 0.025,
+                           q_slope_cv = 0.25)
+
+
+cpue_fit <- fit_sraplus(driors = cpue_driors,
+                             engine = "stan",
+                             model = "sraplus_tmb",
+                             adapt_delta = 0.9,
+                             max_treedepth = 10,
+                             n_keep = 4000,
+                             chains = 1, 
+                             cores = 1,
+                             estimate_qslope = FALSE)
+#> Warning: There were 3 divergent transitions after warmup. Increasing adapt_delta above 0.9 may help. See
+#> http://mc-stan.org/misc/warnings.html#divergent-transitions-after-warmup
+#> Warning: Examine the pairs() plot to diagnose sampling problems
+
+cpue_qslope_fit <- fit_sraplus(driors = cpue_driors,
+                             engine = "stan",
+                             model = "sraplus_tmb",
+                             adapt_delta = 0.9,
+                             max_treedepth = 10,
+                             n_keep = 4000,
+                             chains = 1, 
+                             cores = 1,
+                             estimate_qslope = TRUE,
+                             estimate_proc_error = FALSE)
+#> Warning: There were 205 divergent transitions after warmup. Increasing adapt_delta above 0.9 may help. See
+#> http://mc-stan.org/misc/warnings.html#divergent-transitions-after-warmup
+#> Warning: There were 849 transitions after warmup that exceeded the maximum treedepth. Increase max_treedepth above 10. See
+#> http://mc-stan.org/misc/warnings.html#maximum-treedepth-exceeded
+#> Warning: Examine the pairs() plot to diagnose sampling problems
+#> Warning: Bulk Effective Samples Size (ESS) is too low, indicating posterior means and medians may be unreliable.
+#> Running the chains for more iterations may help. See
+#> http://mc-stan.org/misc/warnings.html#bulk-ess
+#> Warning: Tail Effective Samples Size (ESS) is too low, indicating posterior variances and tail quantiles may be unreliable.
+#> Running the chains for more iterations may help. See
+#> http://mc-stan.org/misc/warnings.html#tail-ess
+```
 
 ``` r
 
-
-# rstanarm::launch_shinystan(cpue_qslope_fit$fit)
+plot_sraplus(`CPUE fit no qslope` = cpue_fit, `CPUE fit with qslope` =  cpue_qslope_fit, years = cpue_driors$years)
 ```
+
+![](README_files/figure-gfm/unnamed-chunk-12-1.svg)<!-- -->
+
+As a final step, we can try adding in some fictional SAR data to our
+fake fishery, just to see how it works. We can weight the SAR data using
+the `sar_sd` input. Leaving `sar_sd = NA` uses the srandard deviation
+from the posterior predictive of the fitted relationahip between SAR and
+U/Umsy contained in the model. In other words, setting sar\_sd = NA lets
+the data tell you how much weight to assign to the SAR data. You can
+however overwrite this if desired and pass a stronger weight to the SAR
+data if desired.
+
+``` r
+cpue_sar_qslope_driors <- format_driors(taxa = example_taxa,
+                           catch = sim$pop$catch,
+                           years = sim$pop$year,
+                           effort = sim$pop$effort,
+                           effort_years = sim$pop$year,
+                           growth_rate = 0.4,
+                           growth_rate_cv = 0.1,
+                           shape_prior = 1.01,
+                           q_slope = 0.025,
+                           q_slope_cv = 0.25,
+                           sar = 2,
+                           sar_sd = NA)
+
+cpue_sar_qslope_fit <- fit_sraplus(driors = cpue_sar_qslope_driors,
+                             engine = "stan",
+                             model = "sraplus_tmb",
+                             adapt_delta = 0.9,
+                             max_treedepth = 10,
+                             n_keep = 4000,
+                             chains = 1, 
+                             cores = 1,
+                             estimate_qslope = TRUE,
+                             estimate_proc_error = FALSE)
+#> Warning: There were 416 divergent transitions after warmup. Increasing adapt_delta above 0.9 may help. See
+#> http://mc-stan.org/misc/warnings.html#divergent-transitions-after-warmup
+#> Warning: There were 57 transitions after warmup that exceeded the maximum treedepth. Increase max_treedepth above 10. See
+#> http://mc-stan.org/misc/warnings.html#maximum-treedepth-exceeded
+#> Warning: Examine the pairs() plot to diagnose sampling problems
+#> Warning: Bulk Effective Samples Size (ESS) is too low, indicating posterior means and medians may be unreliable.
+#> Running the chains for more iterations may help. See
+#> http://mc-stan.org/misc/warnings.html#bulk-ess
+#> Warning: Tail Effective Samples Size (ESS) is too low, indicating posterior variances and tail quantiles may be unreliable.
+#> Running the chains for more iterations may help. See
+#> http://mc-stan.org/misc/warnings.html#tail-ess
+```
+
+And for good measure one more with SAR data and process error instead of
+qslope
+
+``` r
+
+cpue_sar_proc_driors <- format_driors(taxa = example_taxa,
+                           catch = sim$pop$catch,
+                           years = sim$pop$year,
+                           effort = sim$pop$effort,
+                           effort_years = sim$pop$year,
+                           growth_rate = 0.4,
+                           growth_rate_cv = 0.1,
+                           shape_prior = 1.01,
+                           q_slope = 0,
+                           q_slope_cv = 0.25,
+                           sar = 4,
+                           sar_sd = .05)
+
+cpue_sar_proc_fit <- fit_sraplus(driors = cpue_sar_proc_driors,
+                             engine = "stan",
+                             model = "sraplus_tmb",
+                             adapt_delta = 0.9,
+                             max_treedepth = 10,
+                             n_keep = 4000,
+                             chains = 1, 
+                             cores = 1,
+                             estimate_qslope = FALSE,
+                             estimate_proc_error = TRUE)
+#> Warning: There were 353 divergent transitions after warmup. Increasing adapt_delta above 0.9 may help. See
+#> http://mc-stan.org/misc/warnings.html#divergent-transitions-after-warmup
+#> Warning: There were 1489 transitions after warmup that exceeded the maximum treedepth. Increase max_treedepth above 10. See
+#> http://mc-stan.org/misc/warnings.html#maximum-treedepth-exceeded
+#> Warning: Examine the pairs() plot to diagnose sampling problems
+#> Warning: The largest R-hat is 2.12, indicating chains have not mixed.
+#> Running the chains for more iterations may help. See
+#> http://mc-stan.org/misc/warnings.html#r-hat
+#> Warning: Bulk Effective Samples Size (ESS) is too low, indicating posterior means and medians may be unreliable.
+#> Running the chains for more iterations may help. See
+#> http://mc-stan.org/misc/warnings.html#bulk-ess
+#> Warning: Tail Effective Samples Size (ESS) is too low, indicating posterior variances and tail quantiles may be unreliable.
+#> Running the chains for more iterations may help. See
+#> http://mc-stan.org/misc/warnings.html#tail-ess
+```
+
+``` r
+
+plot_sraplus(`no rocess error and no qslope ` = cpue_fit, 
+             `no process error with qslope` =  cpue_qslope_fit, 
+             `no process error with qslope and sar` = cpue_sar_qslope_fit,
+             `process error and sar` = cpue_sar_proc_fit,
+             years = cpue_driors$years)
+```
+
+![](README_files/figure-gfm/unnamed-chunk-15-1.svg)<!-- -->
