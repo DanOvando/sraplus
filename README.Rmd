@@ -15,7 +15,7 @@ knitr::opts_chunk$set(
 
 # sraplus
 
-[![Build Status](https://travis-ci.org/DanOvando/sraplus.svg?branch=master)](https://travis-ci.org/DanOvando/sraplus)
+[![Build Status](https://travis-ci.org/DanOvando/sraplus.svg?branch=v2.0)](https://travis-ci.org/DanOvando/sraplus)
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
 
