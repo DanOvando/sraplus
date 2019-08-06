@@ -71,9 +71,15 @@ Type objective_function<Type>::operator() ()
   
   DATA_IVECTOR(index_years);
   
-  DATA_SCALAR(log_k_guess);
+  DATA_SCALAR(k_prior);
+  
+  DATA_SCALAR(k_prior_cv);
   
   DATA_SCALAR(nat_m);
+  
+  DATA_SCALAR(shape_prior);
+  
+  DATA_SCALAR(shape_cv);
   
   DATA_SCALAR(plim);
   
@@ -99,7 +105,17 @@ Type objective_function<Type>::operator() ()
   
   // DATA_SCALAR(q_slope);
   
-  DATA_SCALAR(log_q_guess);
+  DATA_SCALAR(q_prior);
+  
+  DATA_SCALAR(q_prior_cv);
+  
+  DATA_SCALAR(q_slope_prior);
+  
+  DATA_SCALAR(q_slope_cv);
+  
+  DATA_SCALAR(sigma_obs_prior);
+  
+  DATA_SCALAR(sigma_obs_prior_cv);
   
   //// parameters ////
   
@@ -121,7 +137,7 @@ Type objective_function<Type>::operator() ()
   
   PARAMETER(log_sigma_obs);
   
-  PARAMETER(log_m);
+  PARAMETER(log_shape);
   
   // PARAMETER_VECTOR(inv_f_t);
   
@@ -179,7 +195,7 @@ Type objective_function<Type>::operator() ()
   
   Type q = exp(log_q);
   
-  Type m = exp(log_m);
+  Type m = exp(log_shape);
   
   Type b_to_k = pow(m, (-1 / (m - 1)));
   
@@ -368,19 +384,19 @@ Type objective_function<Type>::operator() ()
   
   nll -= dnorm(log(init_ref), log_init_dep_prior, log_init_dep_cv, true);
   
-  nll -= dnorm(log_sigma_obs,Type(-3),Type(0.25), true);
+  nll -= dnorm(log_sigma_obs,log(sigma_obs_prior),sigma_obs_prior_cv, true);
   
-  nll -= dnorm(q_slope,Type(0.025),Type(0.05), true);
+  nll -= dnorm(q_slope,q_slope_prior,q_slope_cv, true);
   
   // nll -= dbeta(q, Type(0.5), Type(1), true);
   
-  nll -= dnorm(log_q, log_q_guess, Type(0.2));
+  nll -= dnorm(log_q, log(q_prior), q_prior_cv);
   
   nll -= dnorm(log_sigma_proc,log(sigma_proc_prior), sigma_proc_prior_cv, true);
   
-  nll -= dnorm(log_k,log_k_guess,Type(10), true);
+  nll -= dnorm(log_k,log(k_prior),Type(k_prior_cv), true);
   
-  nll -= dnorm(log_m,Type(0.1),Type(0.5), true);
+  nll -= dnorm(log_shape,log(shape_prior),shape_cv, true);
   
   vector<Type> log_bt = log(b_t);
   

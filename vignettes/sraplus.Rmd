@@ -96,8 +96,11 @@ driors <- format_driors(taxa = example_taxa,
                         index = cod$index,
                         index_years = cod$year,
                         initial_b = 1,
-                        initial_b_sd = 0.05,
-                        sar = 2)
+                        initial_b_sd = 0.2,
+                        sar = 4,
+                        sar_sd = .1,
+                        shape_prior = 0.6
+                        )
 
 plot_driors(driors)
 
@@ -105,15 +108,17 @@ plot_driors(driors)
 ml_fit <- fit_sraplus(driors = driors,
                        engine = "tmb",
                        model = "sraplus_tmb", cleanup = FALSE,
-                      estimate_proc_error = TRUE)
+                      estimate_proc_error = TRUE,
+                      estimate_shape = TRUE)
 
 bayes_fit <- fit_sraplus(driors = driors,
                        engine = "stan",
                        model = "sraplus_tmb", cleanup = FALSE,
                        chains = 4, 
                        cores = 4,
-                       n_keep = 2000,
-                       adapt_delta = 0.95)
+                       n_keep = 10000,
+                       adapt_delta = 0.9,
+                       estimate_shape = FALSE)
 
 ```
 
@@ -123,8 +128,9 @@ And we can now compare the two results
 
 ```{r}
 
+plot_sraplus(sir_fit = sir_fit,bayes_fit = bayes_fit, years = driors$years)
 
-plot_sraplus(sir_fit = sir_fit,ml_fit = ml_fit,bayes_fit = bayes_fit, years = driors$years)
+# plot_sraplus(sir_fit = sir_fit,ml_fit = ml_fit,bayes_fit = bayes_fit, years = driors$years)
 
 ```
 

@@ -32,7 +32,7 @@ fit_sraplus <- function(driors,
                         cleanup = FALSE,
                         max_treedepth = 10,
                         adapt_delta = 0.8,
-                        estimate_m = FALSE,
+                        estimate_shape = FALSE,
                         estimate_qslope = FALSE,
                         estimate_proc_error = TRUE
 ) {
@@ -83,42 +83,51 @@ fit_sraplus <- function(driors,
     log_final_u_cv = driors$log_final_u_cv,
     use_init =  !is.na(driors$initial_b),
     sigma_u = driors$u_cv,
-    log_k_guess = log(10 * max(driors$catch)),
+    k_prior = (10 * max(driors$catch)),
+    k_prior_cv = 1,
     # f_cv = driors$f_cv,
-    # q_slope = driors$q_slope,
+    q_slope_prior = driors$q_slope,
+    q_slope_cv = driors$q_slope_cv,
     eps = 1e-3,
-    nat_m = driors$m
+    nat_m = driors$m,
+    shape_prior = driors$shape_prior,
+    shape_cv = driors$shape_cv,
+    sigma_obs_prior = driors$sigma_obs_prior,
+    sigma_obs_prior_cv = driors$sigma_obs_prior_cv
   )
   
   k_guess <- log(10 * max(driors$catch))
   
   
   if (sra_data$fit_index == 1 & sra_data$calc_cpue == 0) {
-    q_guess = pmin(1e-2, median((sra_data$index_t / sra_data$catch_t[sra_data$index_years])))
+    q_prior = pmin(1e-2, median((sra_data$index_t / sra_data$catch_t[sra_data$index_years])))
     
     
   } else if (sra_data$calc_cpue == 1) {
-    q_guess = pmin(1e-2, median(0.2 / sra_data$effort_t))
+    q_prior = pmin(1e-2, median(0.2 / sra_data$effort_t))
     
   } else {
-    q_guess <- 1e-2
+    q_prior <- 1e-2
     
     
   }
   
-  sra_data$log_q_guess = log(q_guess)
+  sra_data$q_prior = q_prior
+  
+  sra_data$q_prior_cv = driors$q_prior_cv
+  
   
   inits <- list(
     log_k = log(10 * max(driors$catch)),
     log_r = log(driors$growth_rate),
     # q = q_guess,
-    log_q = log(q_guess),
+    log_q = log(q_prior),
     log_sigma_obs = log(0.2),
     log_init_dep = log(1),
     log_sigma_proc = log(0.01),
     uc_proc_errors = rep(0, time - 1),
-    log_m = log(2),
-    q_slope = ifelse(estimate_qslope == TRUE && sra_data$calc_cpue == 1,0.025,0)
+    log_shape = log(driors$shape_prior),
+    q_slope = ifelse(estimate_qslope == TRUE && sra_data$calc_cpue == 1,0.025,driors$q_slope)
   )
   
   
@@ -148,8 +157,8 @@ fit_sraplus <- function(driors,
     # randos <- "log_f_t"
   }
   
-  if (estimate_m == FALSE) {
-    knockout$log_m <- NA
+  if (estimate_shape == FALSE) {
+    knockout$log_shape <- NA
   }
   
   if (!(estimate_qslope == TRUE && sra_data$calc_cpue == 1)){
@@ -171,6 +180,8 @@ fit_sraplus <- function(driors,
   }
   
   knockout <- purrr::map(knockout, as.factor)
+  
+  
   
   
   # fit models
@@ -272,7 +283,8 @@ fit_sraplus <- function(driors,
     
     
   }
-  else if (engine == "stan") {
+  else {
+    
     if (sra_data$use_u_prior == 0) {
       udist <- NULL
       
@@ -285,15 +297,6 @@ fit_sraplus <- function(driors,
     
     upper_k <- log(50 * max(driors$catch))
     
-    if (fit_catches == TRUE) {
-      # inits$inv_f_t = rep(-2, time - 1)
-      
-      # inits$log_f_t = rep(-2, time - 1)
-      
-      
-    }
-    
-    
     sraplus::get_tmb_model(model_name = model)
     
     sra_model <-
@@ -303,10 +306,11 @@ fit_sraplus <- function(driors,
         DLL = model,
         random = randos,
         silent = TRUE,
-        inner.control = list(maxit = 1e3),
+        inner.control = list(maxit = 1e6),
         hessian = FALSE,
         map = knockout
       )
+    
     
     lower = rep(-Inf, length(sra_model$par)) %>%
       purrr::set_names(names(sra_model$par))
@@ -322,165 +326,113 @@ fit_sraplus <- function(driors,
     upper["log_init_dep"] <- log(1.5)
     
     upper['log_q'] <- log(1)
-    set.seed(seed)
-    fit <-
-      tmbstan::tmbstan(
-        sra_model,
-        lower = lower,
-        upper = upper,
-        cores = cores,
-        chains = chains,
-        iter = n_keep,
-        init = purrr::map(chains,  ~ purrr::map(inits, jitter), inits = inits),
-        control = list(max_treedepth = max_treedepth,
-                       adapt_delta = adapt_delta)
-      )
     
-    draws = tidybayes::tidy_draws(fit) %>%
-      tidyr::nest(-.chain, .iteration,-.draw,-.iteration)
+    if (estimate_qslope == TRUE){
+      
+      lower['q_slope'] <- -.1
+      
+      upper['q_slope'] <- .1
+    }
     
-    draws <- draws %>%
-      dplyr::mutate(
-        pars = purrr::map(
-          data,
-          get_posterior,
-          inits = inits,
-          sra_data = sra_data,
-          model = model,
-          randos = randos,
-          knockout = knockout
+    if (estimate_shape == TRUE) {
+      upper['log_shape'] <- log(4)
+    }
+    
+    if (engine == "stan") {
+      
+      set.seed(seed)
+      fit <-
+        tmbstan::tmbstan(
+          sra_model,
+          lower = lower,
+          upper = upper,
+          cores = cores,
+          chains = chains,
+          iter = n_keep,
+          init = purrr::map(chains,  ~ purrr::map(inits, jitter), inits = inits),
+          control = list(max_treedepth = max_treedepth,
+                         adapt_delta = adapt_delta)
         )
-      ) %>%
-      dplyr::select(-data)
-    
-    draws <- draws %>%
-      dplyr::mutate(stack = purrr::map(pars, stack_stan)) %>%
-      dplyr::select(-pars) %>%
-      tidyr::unnest()
-    
-    draws <- draws %>%
-      dplyr::group_by(variable, .draw) %>%
-      dplyr::mutate(year = seq_along(value))
-    
-    
-    draws$variable <-
-      dplyr::case_when(
-        draws$variable == "log_b" ~ "log_b_div_bmsy",
-        draws$variable == "log_bt" ~ "log_b",
-        draws$variable == "log_dep" ~ "log_depletion",
-        draws$variable == "log_u" ~ "log_u_div_umsy",
-        TRUE ~ draws$variable
-      )
-    
-    
-    logs <- draws %>%
-      dplyr::ungroup() %>%
-      dplyr::filter(stringr::str_detect(variable, "log_")) %>%
-      dplyr::mutate(value = exp(value)) %>%
-      dplyr::mutate(variable = stringr::str_remove_all(variable, "log_"))
-    
-    draws <- draws %>%
-      dplyr::filter(!stringr::str_detect(variable, "log_")) %>%
-      dplyr::bind_rows(logs)
-    
-    out <- logs %>%
-      dplyr::group_by(variable, year) %>%
-      dplyr::summarise(
-        mean = mean(value),
-        sd = sd(value),
-        lower = quantile(value, 0.1),
-        upper = quantile(value, 0.9)
-      ) %>%
-      dplyr::ungroup()
-    
-    if (include_fit == FALSE) {
-      fit = NA
-    }
-    
-    out <- list(results = out,
-                fit = fit)
-    
-    rm(sra_model)
-    
-    rm(fit)
-    
-    # dyn.unload(TMB::dynlib(file.path("tmb", model)))
-    
-    
-  }
-  else {
-    # fit TMB model
-    
-    if (sra_data$use_u_prior == 0) {
-      udist <- NULL
       
-    } else {
-      udist <- 2
+      draws = tidybayes::tidy_draws(fit) %>%
+        tidyr::nest(-.chain, .iteration,-.draw,-.iteration)
       
-    }
-    
-    lower_k <- log(1.25 * max(driors$catch))
-    
-    upper_k <- log(50 * max(driors$catch))
-    
-    if (fit_catches == TRUE) {
-      # inits$inv_f_t = rep(-2, time - 1)
-      # inits$log_f_t = rep(-2, time - 1)
+      draws <- draws %>%
+        dplyr::mutate(
+          pars = purrr::map(
+            data,
+            get_posterior,
+            inits = inits,
+            sra_data = sra_data,
+            model = model,
+            randos = randos,
+            knockout = knockout
+          )
+        ) %>%
+        dplyr::select(-data)
       
-    }
-    
-    sraplus::get_tmb_model(model_name = model)
-    sra_model <-
-      TMB::MakeADFun(
-        data = sra_data,
-        parameters = inits,
-        DLL = model,
-        random = randos,
-        silent = TRUE,
-        inner.control = list(maxit = 1e6),
-        hessian = TRUE,
-        map = knockout
-      )
-    
-    lower = rep(-Inf, length(sra_model$par)) %>%
-      purrr::set_names(names(sra_model$par))
-    
-    # lower['q'] <- 1e-8
-    
-    lower['log_k'] <- lower_k
-    
-    upper = rep(Inf, length(sra_model$par)) %>%
-      purrr::set_names(names(sra_model$par))
-    
-    upper['log_k'] <- upper_k
-    
-    upper['log_q'] <- 0
-    
-    upper["log_init_dep"] <- log(1.5)
-    
-    set.seed(seed)
-    fit <- TMBhelper::fit_tmb(
-      sra_model,
-      fn = sra_model$fn,
-      gr = sra_model$gr,
-      newtonsteps = 6,
-      lower = lower,
-      upper = upper,
-      getsd = FALSE,
-      control = list(
-        eval.max = 1e3,
-        iter.max = 1e3,
-        rel.tol = 1e-10
-      )
-    )
-    
-    
-    if (fit$max_gradient > 1e-3) {
+      draws <- draws %>%
+        dplyr::mutate(stack = purrr::map(pars, stack_stan)) %>%
+        dplyr::select(-pars) %>%
+        tidyr::unnest()
+      
+      draws <- draws %>%
+        dplyr::group_by(variable, .draw) %>%
+        dplyr::mutate(year = seq_along(value))
+      
+      
+      draws$variable <-
+        dplyr::case_when(
+          draws$variable == "log_b" ~ "log_b_div_bmsy",
+          draws$variable == "log_bt" ~ "log_b",
+          draws$variable == "log_dep" ~ "log_depletion",
+          draws$variable == "log_u" ~ "log_u_div_umsy",
+          TRUE ~ draws$variable
+        )
+      
+      
+      logs <- draws %>%
+        dplyr::ungroup() %>%
+        dplyr::filter(stringr::str_detect(variable, "log_")) %>%
+        dplyr::mutate(value = exp(value)) %>%
+        dplyr::mutate(variable = stringr::str_remove_all(variable, "log_"))
+      
+      draws <- draws %>%
+        dplyr::filter(!stringr::str_detect(variable, "log_")) %>%
+        dplyr::bind_rows(logs)
+      
+      out <- logs %>%
+        dplyr::group_by(variable, year) %>%
+        dplyr::summarise(
+          mean = mean(value),
+          sd = sd(value),
+          lower = quantile(value, 0.1),
+          upper = quantile(value, 0.9)
+        ) %>%
+        dplyr::ungroup()
+      
+      if (include_fit == FALSE) {
+        fit = NA
+      }
+      
+      out <- list(results = out,
+                  fit = fit)
+      
+      rm(sra_model)
+      
+      rm(fit)
+      
+      # dyn.unload(TMB::dynlib(file.path("tmb", model)))
+      
+      
+    } else if (engine == "tmb") {
+      
+      set.seed(seed)
       fit <- TMBhelper::fit_tmb(
         sra_model,
         fn = sra_model$fn,
         gr = sra_model$gr,
-        newtonsteps = 10,
+        newtonsteps = 6,
         lower = lower,
         upper = upper,
         getsd = FALSE,
@@ -491,79 +443,84 @@ fit_sraplus <- function(driors,
         )
       )
       
+      
+      if (fit$max_gradient > 1e-3) {
+        fit <- TMBhelper::fit_tmb(
+          sra_model,
+          fn = sra_model$fn,
+          gr = sra_model$gr,
+          newtonsteps = 10,
+          lower = lower,
+          upper = upper,
+          getsd = FALSE,
+          control = list(
+            eval.max = 1e3,
+            iter.max = 1e3,
+            rel.tol = 1e-10
+          )
+        )
+        
+      }
+      
+      fit_save <- sra_model
+      
+      fit_report <- fit_save$report()
+      
+      fit <- TMB::sdreport(fit_save, bias.correct = ifelse(is.null(randos), FALSE,TRUE))
+      
+      out <-
+        dplyr::tibble(
+          variable = names(fit$value),
+          mean = fit$value,
+          sd = fit$sd
+        )
+      
+      out$variable <-
+        dplyr::case_when(
+          out$variable == "log_b" ~ "log_b_div_bmsy",
+          out$variable == "log_bt" ~ "log_b",
+          out$variable == "log_dep" ~ "log_depletion",
+          out$variable == "log_u" ~ "log_u_div_umsy",
+          TRUE ~ out$variable
+        )
+      
+      
+      out <- out %>%
+        dplyr::mutate(lower = mean - 1.96 * sd,
+                      upper = mean + 1.96 * sd)
+      
+      logs <- out %>%
+        dplyr::filter(stringr::str_detect(variable, "log_")) %>%
+        dplyr::mutate(
+          mean = exp(mean),
+          lower = exp(lower),
+          upper = exp(upper),
+          variable = stringr::str_remove_all(variable, "log_")
+        )
+      
+      out <- out %>%
+        dplyr::bind_rows(logs)
+      
+      if (include_fit == FALSE) {
+        fit = NA
+      }
+      
+      out <- list(results = out,
+                  fit = fit)
+      
+      rm(sra_model)
+      
+      rm(fit)
+      
     }
     
-    fit_save <- sra_model
     
-    fit_report <- fit_save$report()
+  } # close tmb or stan else
     
-    fit <- TMB::sdreport(fit_save, bias.correct = ifelse(is.null(randos), FALSE,TRUE))
-    
-    out <-
-      dplyr::tibble(
-        variable = names(fit$value),
-        mean = fit$value,
-        sd = fit$sd
-      )
-    
-    out$variable <-
-      dplyr::case_when(
-        out$variable == "log_b" ~ "log_b_div_bmsy",
-        out$variable == "log_bt" ~ "log_b",
-        out$variable == "log_dep" ~ "log_depletion",
-        out$variable == "log_u" ~ "log_u_div_umsy",
-        TRUE ~ out$variable
-      )
-    
-    
-    out <- out %>%
-      dplyr::mutate(lower = mean - 1.96 * sd,
-                    upper = mean + 1.96 * sd)
-    
-    logs <- out %>%
-      dplyr::filter(stringr::str_detect(variable, "log_")) %>%
-      dplyr::mutate(
-        mean = exp(mean),
-        lower = exp(lower),
-        upper = exp(upper),
-        variable = stringr::str_remove_all(variable, "log_")
-      )
-    
-    out <- out %>%
-      dplyr::bind_rows(logs)
-    
-    if (include_fit == FALSE) {
-      fit = NA
-    }
-    
-    out <- list(results = out,
-                fit = fit)
-    
-    rm(sra_model)
-    
-    rm(fit)
-    
-    # dyn.unload(TMB::dynlib(file.path("tmb", model)))
-    
-    
-  } # close else
-  
+
   if (cleanup == TRUE) {
     unlink(file.path(getwd(), "tmb"), recursive = TRUE)
   }
-  
-  # ldll <- getLoadedDLLs()
-  #
-  # if (any(names(ldll) == model)){
-  #
-  # temp <- ldll[names(ldll) == model][[1]]
-  #
-  # dyn.unload(temp[['path']])
-  #
-  # }
-  #
-  # put years back
-  
   
   return(out)
   

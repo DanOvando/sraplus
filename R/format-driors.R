@@ -63,9 +63,15 @@ format_driors <-
            sar_sd = NA,
            f_sd = 0.1,
            q_slope = 0,
+           q_slope_cv = 0.05,
            m = NA,
            sigma_r = 0.05,
-           sigma_r_cv = 0.05) {
+           sigma_r_cv = 0.05,
+           shape_prior = 1.01,
+           shape_cv = 0.05,
+           q_prior_cv = 0.1,
+           sigma_obs_prior = 0.05,
+           sigma_obs_prior_cv = .25) {
     
     if (use_heuristics == TRUE){
       
@@ -274,7 +280,13 @@ format_driors <-
         f_cv = f_sd,
         log_final_u = log_final_u,
         log_final_u_cv = log_final_u_sd,
-        q_slope = q_slope
+        q_slope = q_slope,
+        q_slope_cv = q_slope_cv,
+        shape_prior = shape_prior,
+        shape_cv = shape_cv,
+        q_prior_cv = q_prior_cv,
+        sigma_obs_prior = sigma_obs_prior,
+        sigma_obs_prior_cv = sigma_obs_prior_cv
       )
     
     driors$ref_type <- ref_type

@@ -4,6 +4,8 @@ library(sraplus)
 
 library(tmbstan)
 
+rstan_options(auto_write = TRUE)
+
 set.seed(42)
 sim <-
   sraplus_simulator(
@@ -13,12 +15,12 @@ sim <-
     r = 0.4,
     years = 25,
     q = 1e-3,
-    m = 2,
+    m = 1.01,
     init_u_umsy = 1
   )
 
 sim$pop %>% 
-  ggplot(aes(year, depletion)) + 
+  ggplot(aes(year, u)) + 
   geom_point()
 
 pop <- sim$pop
@@ -69,8 +71,8 @@ plot_driors(ml_driors)
 
 ml_fit <- fit_sraplus(driors = ml_driors,
                       engine = "tmb",
-                      model = "sraplus_tmb", cleanup = FALSE,
-                      estimate_m = FALSE, 
+                      model = "sraplus_tmb",
+                      estimate_shape = FALSE, 
                       estimate_proc_error = FALSE)
 
 plot_sraplus(ml_fit = ml_fit, years = ml_driors$years)
@@ -78,9 +80,9 @@ plot_sraplus(ml_fit = ml_fit, years = ml_driors$years)
 
 bayes_fit <- fit_sraplus(driors = ml_driors,
                       engine = "stan",
-                      model = "sraplus_tmb", cleanup = FALSE,
+                      model = "sraplus_tmb",
                       n_keep = 2000,
-                      estimate_m = FALSE,
+                      estimate_shape = TRUE,
                       estimate_proc_error = TRUE)
 
 test <- names(bayes_fit$fit)
@@ -171,15 +173,17 @@ log_q_hat <- bayesplot::mcmc_hist(as.matrix(bayes_fit$fit), "log_q", freq = FALS
 
 # test effort -------------------------------------------------------------
 
+set.seed(42)
+
 sim <-
   sraplus_simulator(
-    sigma_proc = 0.2,
-    sigma_u = 0.2,
-    q_slope = 0.025,
+    sigma_proc = 0.05,
+    sigma_u = 0.1,
+    q_slope = 0.05,
     r = 0.4,
     years = 25,
     q = 1e-3,
-    m = 2,
+    m = 1.01,
     init_u_umsy = 1
   )
 
@@ -196,7 +200,7 @@ sim$pop %>%
 pop %>% 
   ggplot() + 
   geom_point(aes(year, scale(biomass))) + 
-  geom_line(aes(year, scale(biomass * q), color = "index")) + 
+  geom_line(aes(year, scale(biomass * 1e-3), color = "index")) + 
   geom_line(aes(year, scale(catch / effort), color = "cpue")) + 
   geom_line(aes(year, scale(u), color = "u"))
 
@@ -212,8 +216,8 @@ effort_ml_driors <- format_driors(taxa = example_taxa,
                            terminal_b = NA,
                            growth_rate = 0.4,
                            growth_rate_cv = 0.1,
-                           q_slope = 0,
-                           u_sd = 0.05)
+                           q_slope = 0.025,
+                           q_slope_cv = 0.01)
 
 index_ml_driors <- format_driors(taxa = example_taxa,
                                   catch = pop$catch,
@@ -225,18 +229,20 @@ index_ml_driors <- format_driors(taxa = example_taxa,
                                   terminal_b = NA,
                                   growth_rate = 0.4,
                                   growth_rate_cv = 0.1,
-                                 u_sd = 0.05)
+                                 u_sd = 0.05,
+                                 sigma_r = 0.05,
+                                 sigma_r_cv = 0.05)
 
 
 index_bayes_fit <- fit_sraplus(driors = index_ml_driors,
                                engine = "stan",
-                               model = "sraplus_tmb", cleanup = FALSE,
+                               model = "sraplus_tmb",
                                n_keep = 4000)
 
 
 index_ml_fit <- fit_sraplus(driors = index_ml_driors,
                             engine = "tmb",
-                            model = "sraplus_tmb", cleanup = FALSE)
+                            model = "sraplus_tmb")
 
 plot_sraplus(
   index_ml = index_ml_fit,
@@ -247,17 +253,19 @@ plot_sraplus(
 
 effort_ml_fit <- fit_sraplus(driors = effort_ml_driors,
                       engine = "tmb",
-                      model = "sraplus_tmb", cleanup = FALSE)
+                      model = "sraplus_tmb",
+                      estimate_qslope = TRUE)
 
 
 effort_bayes_fit <- fit_sraplus(driors = effort_ml_driors,
                              engine = "stan",
-                             model = "sraplus_tmb", cleanup = FALSE,
+                             model = "sraplus_tmb",
                              adapt_delta = 0.9,
                              max_treedepth = 10,
-                             n_keep = 2000,
-                             chains = 1, 
-                             cores = 1)
+                             n_keep = 6000,
+                             chains = 2, 
+                             cores = 2,
+                             estimate_qslope = FALSE)
 
 
 effort_q_hat <- bayesplot::mcmc_hist(as.matrix(effort_bayes_fit$fit), "log_q",transformations = "exp") + 
