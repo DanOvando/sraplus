@@ -229,7 +229,6 @@ index_ml_driors <- format_driors(taxa = example_taxa,
                                   terminal_b = NA,
                                   growth_rate = 0.4,
                                   growth_rate_cv = 0.1,
-                                 u_sd = 0.05,
                                  sigma_r = 0.05,
                                  sigma_r_cv = 0.05)
 
@@ -279,6 +278,12 @@ effort_q_hat <- bayesplot::mcmc_hist(as.matrix(effort_bayes_fit$fit), "log_q",tr
 #   ggplot(aes(year, u)) + 
 #   geom_smooth() + 
 #   geom_point(data = pop,aes(year,effort * q))
+
+
+plot_sraplus(
+  effort_bayes =  effort_bayes_fit,
+  years = effort_ml_driors$years
+)
 
 
 plot_sraplus(

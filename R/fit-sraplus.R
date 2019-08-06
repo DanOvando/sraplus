@@ -329,7 +329,7 @@ fit_sraplus <- function(driors,
     
     if (estimate_qslope == TRUE){
       
-      lower['q_slope'] <- -.1
+      lower['q_slope'] <- 0
       
       upper['q_slope'] <- .1
     }
@@ -442,8 +442,7 @@ fit_sraplus <- function(driors,
           rel.tol = 1e-10
         )
       )
-      
-      
+
       if (fit$max_gradient > 1e-3) {
         fit <- TMBhelper::fit_tmb(
           sra_model,

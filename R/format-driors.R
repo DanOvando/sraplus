@@ -48,7 +48,7 @@ format_driors <-
            effort = NA,
            ref_type = "k",
            index_years = 1,
-           effort_years = 1,
+           effort_years = NA,
            use_heuristics = FALSE,
            growth_rate = NA,
            growth_rate_cv = NA,
@@ -252,6 +252,12 @@ format_driors <-
                          TRUE ~ temp_terminal * 2.5)
       
       terminal_b_sd <- 0.2
+      
+    }
+    
+    if (!all(is.na(effort_years))){
+      
+      index_years = effort_years
       
     }
     
