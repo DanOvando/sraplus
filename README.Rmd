@@ -74,9 +74,14 @@ remotes::install_github("danovando/sraplus", ref = 'v2.0')
 
 # Example Use
 
+First, load libraries. These are the core libraries needed to run `sraplus`, all of which should have been installed for you if you didn't already have them when you installed `sraplus`. 
+
 ```{r}
-library(tidyverse)
+library(ggplot2)
+library(tidyr)
+library(dplyr)
 library(sraplus)
+library(tmbstan)
 ```
 
 Once you've successfully installed `sraplus` you can take for a test drive with these examples. We'll now work through a couple examples, from simple to complex, of using `sraplus`
@@ -84,7 +89,7 @@ Once you've successfully installed `sraplus` you can take for a test drive with 
 ## "Catch-only" SIR model
 
 
-For the first example we'll use a sampling-importance-resampling (SIR) algorithm with a "catch-only" version of the model. In this mode, we use catch heuristics (in the manner of the @anderson2014 adaptation of Catch-MSY). The catch-heuristics are if catch in the first year is less than 70% of the maximum reported catch, we set an expectation of depletion in the initial year of 70% of carrying capacity. Otherwise, the expectation is 40% of carrying capacity. For final depletion, the heuristic prior is if catch in the final year is greater than 50% of maximum catch final depletion is assumed ot be 60% of carrying capacity, otherwise 40% of carrying capacity. 
+For the first example we'll use a sampling-importance-resampling (SIR) algorithm with a "catch-only" version of the model. In this mode, we use catch heuristics (in the manner of the @anderson2014 adaptation of Catch-MSY). The catch-heuristics are if catch in the first year is less than 70% of the maximum reported catch, we set an expectation of depletion in the initial year of 70% of carrying capacity. Otherwise, the expectation is 40% of carrying capacity. For final depletion, the heuristic prior is if catch in the final year is greater than 50% of maximum catch final depletion is assumed to be 60% of carrying capacity, otherwise 40% of carrying capacity. 
 
 The first step in running `sraplus` is the `sraplus::format_driors` (data and priors) function. In this case, we will use example data for Atlantic cod (*Gadus morhua*) that is included in the `sraplus` package. 
 
@@ -122,9 +127,28 @@ sraplus::plot_driors(catch_only_driors)
 
 ```
 
-From there, we pass the `driors` object to `sraplus::fit_sraplus`, and plot the results using `sraplus::plot_sraplus`. The `engine` argument specifies how the model will be fit. When not actually "fitting" to anything (rather simply sampling from priors that don't crash the popuulation), we recommend setting engine to "sir". The `draws` argument tells `sraplus` how many draws from the SIR algorithm to generate, and `n_keep` how many draws to sample from the total `draws` iterations. So in this case the SIR algorithm will run 1 million iterations, and sample 2000 entries from those million in proportion to their likelihood. 
+From there, we pass the `driors` object to `sraplus::fit_sraplus`, and plot the results using `sraplus::plot_sraplus`. The `engine` argument specifies how the model will be fit. When not actually "fitting" to anything (rather simply sampling from priors that don't crash the population), we recommend setting engine to "sir". The `draws` argument tells `sraplus` how many draws from the SIR algorithm to generate, and `n_keep` how many draws to sample from the total `draws` iterations. So in this case the SIR algorithm will run 1 million iterations, and sample 2000 entries from those million in proportion to their likelihood. 
 
 Running `fit_sraplus` always produces a list with two objects: `results` and `fit`. `results` is (mostly) standardized across engines set of summary outputs from the fitted model. This allows us to easily plot and compare outputs from models fit using `sir`, TMB, or stan. The `fit` object contains the actual fitted model, which will of course vary dramatically depending on what engine was used. 
+
+Let's take a quick look at the `results` object. 
+
+
+```{r}
+
+head(catch_only_fit$results)
+
+```
+
+`results` is organized as a dataframe tracking different variables over years. `mean` is the mean value for a given variable, `sd` the estimated standard deviation around the mean, and `lower` and `upper` being the 10th and 90th percentiles of the estimates. 
+
+You can access other variables from the raw `fit` object, though this is not standardized by engine and so requires knowing how to for example get outputs out of `stanfit` objects. In the `catch_only_fit`, the `fit` object is the output of the SIR algorithm.
+
+```{r}
+head(catch_only_fit$fit)
+```
+
+
 
 From there, we can generate some standard plots of B/Bmsy (b_div_bmsy), Catch/MSY, U/Umsy, and depletion over time using `plot_sraplus`.
 
@@ -143,7 +167,7 @@ sraplus::plot_sraplus(catch_only = catch_only_fit, years = catch_only_driors$yea
 
 ## Fisheries Management Index and Swept Area Ratio
 
-Now suppose that we obtain some FMI and SAR data for this fishery. We can use these values to provide updated priors on current fishing mortality rates and stock status (see full report for details on how this is accomplished). Note that the FMI and SAR values year are entirely fictional and any resembalance to any real fishery is purely coincidental! 
+Now suppose that we obtain some FMI and SAR data for this fishery. We can use these values to provide updated priors on current fishing mortality rates and stock status (see full report for details on how this is accomplished). Note that the FMI and SAR values year are entirely fictional and any resemblance to any real fishery is purely coincidental! 
 
 You'll notice that we now add a few more options to format_driors. We'll manually set priors on initial depletion, with a prior of initial biomass equal to carrying capacity (`initial_b = 1`), with a standard deviation of 0.2. We'll explicitly tell the model not to use catch heuristics (though you don't always need to specify this, FALSE is the default). We'll then pass the `driors` a swept area ratio of 2 (`sar = 2`), and a named vector of FMI scores (where FMI scores range from 0 to 1). Note that FMI scores should be obtained through the formal FMI survey process and not made up on the spot. W
 
@@ -243,7 +267,7 @@ Looks good, now let's try something a bit trickier.
 
 ## Fit Bayesian CPUE model with `stan`
 
-We'll now simulate a fishery with random-walk effort dynamice, increasing catchability, and process error. 
+We'll now simulate a fishery with random-walk effort dynamics, increasing catchability, and process error. 
 
 
 ```{r cpue-fit-1}
@@ -277,11 +301,11 @@ Now suppose we no longer have a perfect index of abundance, but instead data on 
 
 By now the order of operations should be pretty familiar: pass things to driors, then driors to fit_sraplus. In this case, instead of passing an index, we pass effort data, and effort years. 
 
-Just to explore functionalities of `sraplus`, we'll fit the model using Bayesian estimation through stan (`engine = "stan"`). We'll compare two versions, one trying to estimate qslope, and one not. Note that we can pass standard `rstan` options to `fit_sraplus`. 
+Just to explore functionality of `sraplus`, we'll fit the model using Bayesian estimation through stan (`engine = "stan"`). We'll compare two versions, one trying to estimate qslope, and one not. Note that we can pass standard `rstan` options to `fit_sraplus`. 
 
 
 
-```{r, include=FALSE}
+```{r, results="hide"}
 
 library(tmbstan)
 
@@ -322,10 +346,7 @@ cpue_qslope_fit <- fit_sraplus(driors = cpue_driors,
 
 ```{r}
 
-plot_sraplus(cpue_no_qslope = cpue_fit, cpue_with_qslope =  cpue_qslope_fit, years = cpue_driors$years)
-
-
-# rstanarm::launch_shinystan(cpue_qslope_fit$fit)
+plot_sraplus(`CPUE fit no qslope` = cpue_fit, `CPUE fit with qslope` =  cpue_qslope_fit, years = cpue_driors$years)
 
 ```
 
