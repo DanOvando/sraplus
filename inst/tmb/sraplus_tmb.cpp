@@ -129,7 +129,7 @@ Type objective_function<Type>::operator() ()
   
   PARAMETER(log_q);
   
-  PARAMETER(q_slope);
+  PARAMETER(log_q_slope);
   
   PARAMETER(log_sigma_proc);
   
@@ -173,6 +173,8 @@ Type objective_function<Type>::operator() ()
   vector<Type> f_t(time - 1);
   
   vector<Type> short_u_t(time - 1);
+  
+  Type q_slope = exp(log_q_slope);
   
   Type sigma_obs = exp(log_sigma_obs);
   
@@ -386,7 +388,7 @@ Type objective_function<Type>::operator() ()
   
   nll -= dnorm(log_sigma_obs,log(sigma_obs_prior),sigma_obs_prior_cv, true);
   
-  nll -= dnorm(q_slope,q_slope_prior,q_slope_cv, true);
+  nll -= dnorm(log_q_slope,log(q_slope_prior),q_slope_cv, true);
   
   // nll -= dbeta(q, Type(0.5), Type(1), true);
   

@@ -127,7 +127,7 @@ fit_sraplus <- function(driors,
     log_sigma_proc = log(0.01),
     uc_proc_errors = rep(0, time - 1),
     log_shape = log(driors$shape_prior),
-    q_slope = ifelse(estimate_qslope == TRUE && sra_data$calc_cpue == 1,0.025,driors$q_slope)
+    log_q_slope = log(ifelse(estimate_qslope == TRUE && sra_data$calc_cpue == 1,0.025,driors$q_slope))
   )
   
   
@@ -163,7 +163,7 @@ fit_sraplus <- function(driors,
   
   if (!(estimate_qslope == TRUE && sra_data$calc_cpue == 1)){
     
-    knockout$q_slope <- NA
+    knockout$log_q_slope <- NA
     
   }
   
@@ -329,9 +329,9 @@ fit_sraplus <- function(driors,
     
     if (estimate_qslope == TRUE){
       
-      lower['q_slope'] <- 0
+      lower['log_q_slope'] <- -Inf
       
-      upper['q_slope'] <- .1
+      upper['log_q_slope'] <- log(.1)
     }
     
     if (estimate_shape == TRUE) {

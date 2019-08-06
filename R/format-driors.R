@@ -286,7 +286,7 @@ format_driors <-
         f_cv = f_sd,
         log_final_u = log_final_u,
         log_final_u_cv = log_final_u_sd,
-        q_slope = q_slope,
+        q_slope = q_slope + 1e-6,
         q_slope_cv = q_slope_cv,
         shape_prior = shape_prior,
         shape_cv = shape_cv,

@@ -252,8 +252,8 @@ set.seed(42)
 
 sim <-
   sraplus_simulator(
-    sigma_proc = 0,
-    sigma_u = 0,
+    sigma_proc = 0.05,
+    sigma_u = 0.05,
     q_slope = 0.025,
     r = 0.2,
     years = 25,
@@ -293,7 +293,7 @@ cpue_driors <- format_driors(taxa = example_taxa,
                            growth_rate_cv = 0.1,
                            shape_prior = 1.01,
                            q_slope = 0.025,
-                           q_slope_cv = 0.05)
+                           q_slope_cv = .01)
 
 
 cpue_fit <- fit_sraplus(driors = cpue_driors,
