@@ -254,7 +254,7 @@ sim <-
   sraplus_simulator(
     sigma_proc = 0.05,
     sigma_u = 0.05,
-    q_slope = 0.025,
+    q_slope = 0.05,
     r = 0.2,
     years = 25,
     q = 1e-3,
@@ -280,7 +280,8 @@ By now the order of operations should be pretty familiar: pass things to driors,
 Just to explore functionalities of `sraplus`, we'll fit the model using Bayesian estimation through stan (`engine = "stan"`). We'll compare two versions, one trying to estimate qslope, and one not. Note that we can pass standard `rstan` options to `fit_sraplus`. 
 
 
-```{r}
+
+```{r, include=FALSE}
 
 library(tmbstan)
 
@@ -293,7 +294,7 @@ cpue_driors <- format_driors(taxa = example_taxa,
                            growth_rate_cv = 0.1,
                            shape_prior = 1.01,
                            q_slope = 0.025,
-                           q_slope_cv = .01)
+                           q_slope_cv = 0.25)
 
 
 cpue_fit <- fit_sraplus(driors = cpue_driors,
@@ -314,13 +315,17 @@ cpue_qslope_fit <- fit_sraplus(driors = cpue_driors,
                              n_keep = 4000,
                              chains = 1, 
                              cores = 1,
-                             estimate_qslope = TRUE)
+                             estimate_qslope = TRUE,
+                             estimate_proc_error = FALSE)
 
+```
+
+```{r}
 
 plot_sraplus(cpue_no_qslope = cpue_fit, cpue_with_qslope =  cpue_qslope_fit, years = cpue_driors$years)
 
 
-rstanarm::launch_shinystan(cpue_qslope_fit$fit)
+# rstanarm::launch_shinystan(cpue_qslope_fit$fit)
 
 ```
 
