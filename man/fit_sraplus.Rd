@@ -5,10 +5,11 @@
 \title{Run sraplus}
 \usage{
 fit_sraplus(driors, include_fit = TRUE, seed = 42, plim = 0.2,
-  model = "sraplus_tmb", fit_catches = TRUE,
-  randos = "uc_proc_errors", draws = 1e+06, n_keep = 2000,
-  engine = "sir", cores = 4, chains = 1, cleanup = FALSE,
-  max_treedepth = 10, adapt_delta = 0.8)
+  model = "sraplus_tmb", randos = "uc_proc_errors", draws = 1e+06,
+  n_keep = 2000, engine = "sir", cores = 4, chains = 1,
+  cleanup = FALSE, max_treedepth = 10, adapt_delta = 0.8,
+  estimate_shape = FALSE, estimate_qslope = FALSE,
+  estimate_proc_error = TRUE, ci = 0.89)
 }
 \arguments{
 \item{driors}{a list of driors passed from sraplus::format_driors}
@@ -19,9 +20,7 @@ fit_sraplus(driors, include_fit = TRUE, seed = 42, plim = 0.2,
 
 \item{plim}{cutoff (in units of B/K) for hockey stick PT function}
 
-\item{model}{the name of the sraplus TMB version to be run}
-
-\item{fit_catches}{logical indicating whether catches should be fit or passed}
+\item{model}{the name of the sraplus TMB version to be run, defaults to "sraplus_tmb"}
 
 \item{randos}{random effects when passing to TMB}
 
@@ -34,10 +33,45 @@ fit_sraplus(driors, include_fit = TRUE, seed = 42, plim = 0.2,
 \item{cores}{number of cores for stan fits}
 
 \item{chains}{number of chains for stan fits}
+
+\item{cleanup}{logical indicating whether to remove the compiled TMB model after running}
+
+\item{max_treedepth}{max_treedepth for models fit using stan}
+
+\item{adapt_delta}{adap_delta for models fit using stan}
+
+\item{estimate_shape}{logical indicating whether to estimate the shape parameter of the Pella-Tomlinson model.
+If FALSE shape parameter is held at the initial value, either default or supplied}
+
+\item{estimate_qslope}{logical indicating whether to estimate a slope parameter for q in CPUE fitting.
+If FALSE q_slope is held at the initial value, either default or supplied. if TRUE, \code{estimate_proc_error} should be set to FALSE}
+
+\item{estimate_proc_error}{logical indicating whether to estimate process errors.
+If FALSE process errors are not included in the model}
+
+\item{ci}{confidence/credible interval range for summaries}
 }
 \value{
 a fitted sraplus object
 }
 \description{
-Run sraplus
+The main function for taking an object created by \code{format_driors} and fitting a
+model using \code{sraplus}
+}
+\examples{
+\dontrun{
+
+catch_only_driors <- sraplus::format_driors(
+taxa = example_taxa,
+catch = cod$catch,
+years = cod$year,
+use_heuristics = TRUE
+)
+
+ catch_only_fit <- sraplus::fit_sraplus(driors = catch_only_driors,
+engine = "sir",
+draws = 1e6,
+n_keep = 2000)
+
+}
 }

@@ -14,8 +14,8 @@ test_that(" stan works", {
     years = cod$year,
     index = cod$index,
     index_years = cod$year,
-    initial_b = 1,
-    terminal_b = 0.5
+    initial_state = 1,
+    terminal_state = 0.5
   )
   
   stan_fit <-

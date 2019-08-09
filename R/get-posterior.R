@@ -1,11 +1,11 @@
 #' get posterior draws from tmbstan fit object
 #'
 #' @param draws parameter draws
-#' @param inits initi values for default model
+#' @param inits initial values for default model
 #' @param sra_data data
 #' @param model model name
 #' @param randos random effects
-#' @param knockout parameter to knock out
+#' @param knockout parameters to knock out
 #'
 #' @return tibble of posterior draws
 #' @export

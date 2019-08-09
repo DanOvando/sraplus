@@ -36,13 +36,12 @@ install.packages("devtools")
 You’ll need to be connected to the internet.
 
 3.  Once `devtools` has been installed, you can then install `sraplus`
-    by
-running
+    by running
 
 <!-- end list -->
 
 ``` r
-remotes::install_github("danovando/sraplus", ref = 'v2.0', build_vignettes = TRUE)
+remotes::install_github("danovando/sraplus", build_vignettes = TRUE)
 ```
 
 That’s probably going to ask you to install many other packages, agree
@@ -216,12 +215,12 @@ head(catch_only_fit$results)
 #> # A tibble: 6 x 6
 #>    year variable           mean           sd       lower       upper
 #>   <dbl> <chr>             <dbl>        <dbl>       <dbl>       <dbl>
-#> 1  1963 b_div_bmsy        0.595       0.124        0.438       0.773
-#> 2  1963 b           3475435.    1242977.     2309028.    4891944.   
-#> 3  1963 c_div_msy         0.315       0.0952       0.187       0.442
-#> 4  1963 depletion         0.403       0.0820       0.302       0.521
-#> 5  1963 index_hat_t  170806.     125179.       27582.     327182.   
-#> 6  1963 u_div_umsy        0.533       0.134        0.352       0.698
+#> 1  1963 b_div_bmsy        0.592       0.125        0.425       0.810
+#> 2  1963 b           3437225.    1175516.     2129357.    5792974.   
+#> 3  1963 c_div_msy         0.315       0.0958       0.167       0.482
+#> 4  1963 depletion         0.401       0.0831       0.288       0.547
+#> 5  1963 index_hat_t  175621.     121753.       16395.     381771.   
+#> 6  1963 u_div_umsy        0.537       0.134        0.300       0.749
 ```
 
 `results` is organized as a dataframe tracking different variables over
@@ -237,12 +236,12 @@ object is the output of the SIR algorithm.
 ``` r
 head(catch_only_fit$fit)
 #>   variable year draw   value
-#> 1      b_t 1963    1 2862390
-#> 2      b_t 1964    1 3087118
-#> 3      b_t 1965    1 3263988
-#> 4      b_t 1966    1 3335252
-#> 5      b_t 1967    1 3285696
-#> 6      b_t 1968    1 3303589
+#> 1      b_t 1963    1 3462561
+#> 2      b_t 1964    1 3554141
+#> 3      b_t 1965    1 3968343
+#> 4      b_t 1966    1 4039073
+#> 5      b_t 1967    1 4039164
+#> 6      b_t 1968    1 3772382
 ```
 
 From there, we can generate some standard plots of B/Bmsy
@@ -267,7 +266,7 @@ coincidental\!
 
 You’ll notice that we now add a few more options to format\_driors.
 We’ll manually set priors on initial depletion, with a prior of
-initial biomass equal to carrying capacity (`initial_b = 1`), with a
+initial biomass equal to carrying capacity (`initial_state = 1`), with a
 standard deviation of 0.2. We’ll explicitly tell the model not to use
 catch heuristics (though you don’t always need to specify this, FALSE is
 the default). We’ll then pass the `driors` a swept area ratio of 2 (`sar
@@ -281,14 +280,13 @@ fmi_sar_driors <- format_driors(
   taxa = example_taxa,
   catch = cod$catch,
   years = cod$year,
-  initial_b = 1,
-  initial_b_sd = 0.2,
+  initial_state = 1,
+  initial_state_cv = 0.2,
   use_heuristics = FALSE,
   sar = 3,
-  fmi = c("research" = 0.85,"management" = 0.75, "enforcement" = 0.75, "socioeconomics" = 0.75),
-)
+  fmi = c("research" = 0.85,"management" = 0.75, "enforcement" = 0.75, "socioeconomics" = 0.75))
 
-plot_driors(fmi_sar_driors)
+sraplus::plot_driors(fmi_sar_driors)
 ```
 
 ![](README_files/figure-gfm/fmi-sar-1-1.svg)<!-- -->
@@ -363,10 +361,10 @@ index_driors <- format_driors(
   years = sim$pop$year,
   index = sim$pop$biomass * 1e-3,
   index_years = sim$pop$year,
-  growth_rate = 0.4,
-  growth_rate_cv = 0.1,
+  growth_rate_prior = 0.4,
+  growth_rate_prior_cv = 0.1,
   shape_prior = 1.01,
-  shape_cv = 0.1)
+  shape_prior_cv = 0.1)
 
 plot_driors(index_driors)
 ```
@@ -437,13 +435,13 @@ effective fishing mortality rate.
 
 **One important note**. By default, `sraplus` includes estimation of
 process error. When running a simplified CPUE like this, the model can’t
-really handle estimating both process error and a q\_slope (since the
-persistent trend in the CPUE values caused by the qslope can be soaked
-into the process error or the qslope). So, you need to provide a VERY
-imformative prior on the q\_slope parameter if you’re going to try and
-estimate (i.e. fix the q\_slope parameter), or turn off process error
-(inside `fit_sraplus` set `estimate_proc_error = FALSE`) (the
-recommended option in this case).
+really handle estimating both process error and a q\_slope\_prior (since
+the persistent trend in the CPUE values caused by the qslope can be
+soaked into the process error or the qslope). So, you need to provide a
+VERY imformative prior on the q\_slope\_prior parameter if you’re going
+to try and estimate (i.e. fix the q\_slope\_prior parameter), or turn
+off process error (inside `fit_sraplus` set `estimate_proc_error =
+FALSE`) (the recommended option in this case).
 
 By now the order of operations should be pretty familiar: pass things to
 driors, then driors to fit\_sraplus. In this case, instead of passing an
@@ -463,11 +461,11 @@ cpue_driors <- format_driors(taxa = example_taxa,
                            years = sim$pop$year,
                            effort = sim$pop$effort,
                            effort_years = sim$pop$year,
-                           growth_rate = 0.4,
-                           growth_rate_cv = 0.1,
+                           growth_rate_prior = 0.4,
+                           growth_rate_prior_cv = 0.1,
                            shape_prior = 1.01,
-                           q_slope = 0.025,
-                           q_slope_cv = 0.25)
+                           q_slope_prior = 0.025,
+                           q_slope_prior_cv = 0.25)
 
 
 cpue_fit <- fit_sraplus(driors = cpue_driors,
@@ -479,7 +477,7 @@ cpue_fit <- fit_sraplus(driors = cpue_driors,
                              chains = 1, 
                              cores = 1,
                              estimate_qslope = FALSE)
-#> Warning: There were 3 divergent transitions after warmup. Increasing adapt_delta above 0.9 may help. See
+#> Warning: There were 2 divergent transitions after warmup. Increasing adapt_delta above 0.9 may help. See
 #> http://mc-stan.org/misc/warnings.html#divergent-transitions-after-warmup
 #> Warning: Examine the pairs() plot to diagnose sampling problems
 
@@ -493,17 +491,11 @@ cpue_qslope_fit <- fit_sraplus(driors = cpue_driors,
                              cores = 1,
                              estimate_qslope = TRUE,
                              estimate_proc_error = FALSE)
-#> Warning: There were 205 divergent transitions after warmup. Increasing adapt_delta above 0.9 may help. See
+#> Warning: There were 90 divergent transitions after warmup. Increasing adapt_delta above 0.9 may help. See
 #> http://mc-stan.org/misc/warnings.html#divergent-transitions-after-warmup
-#> Warning: There were 849 transitions after warmup that exceeded the maximum treedepth. Increase max_treedepth above 10. See
+#> Warning: There were 1190 transitions after warmup that exceeded the maximum treedepth. Increase max_treedepth above 10. See
 #> http://mc-stan.org/misc/warnings.html#maximum-treedepth-exceeded
 #> Warning: Examine the pairs() plot to diagnose sampling problems
-#> Warning: Bulk Effective Samples Size (ESS) is too low, indicating posterior means and medians may be unreliable.
-#> Running the chains for more iterations may help. See
-#> http://mc-stan.org/misc/warnings.html#bulk-ess
-#> Warning: Tail Effective Samples Size (ESS) is too low, indicating posterior variances and tail quantiles may be unreliable.
-#> Running the chains for more iterations may help. See
-#> http://mc-stan.org/misc/warnings.html#tail-ess
 ```
 
 ``` r
@@ -515,12 +507,12 @@ plot_sraplus(`CPUE fit no qslope` = cpue_fit, `CPUE fit with qslope` =  cpue_qsl
 
 As a final step, we can try adding in some fictional SAR data to our
 fake fishery, just to see how it works. We can weight the SAR data using
-the `sar_sd` input. Leaving `sar_sd = NA` uses the srandard deviation
+the `sar_cv` input. Leaving `sar_cv = NA` uses the srandard deviation
 from the posterior predictive of the fitted relationahip between SAR and
-U/Umsy contained in the model. In other words, setting sar\_sd = NA lets
-the data tell you how much weight to assign to the SAR data. You can
-however overwrite this if desired and pass a stronger weight to the SAR
-data if desired.
+U/Umsy contained in the model. In other words, setting `sar_cv = NA`
+lets the data tell you how much weight to assign to the SAR data. You
+can however overwrite this if desired and pass a stronger weight to the
+SAR data if desired.
 
 ``` r
 cpue_sar_qslope_driors <- format_driors(taxa = example_taxa,
@@ -528,13 +520,13 @@ cpue_sar_qslope_driors <- format_driors(taxa = example_taxa,
                            years = sim$pop$year,
                            effort = sim$pop$effort,
                            effort_years = sim$pop$year,
-                           growth_rate = 0.4,
-                           growth_rate_cv = 0.1,
+                           growth_rate_prior = 0.4,
+                           growth_rate_prior_cv = 0.1,
                            shape_prior = 1.01,
-                           q_slope = 0.025,
-                           q_slope_cv = 0.25,
+                           q_slope_prior = 0.025,
+                           q_slope_prior_cv = 0.25,
                            sar = 2,
-                           sar_sd = NA)
+                           sar_cv = NA)
 
 cpue_sar_qslope_fit <- fit_sraplus(driors = cpue_sar_qslope_driors,
                              engine = "stan",
@@ -546,14 +538,11 @@ cpue_sar_qslope_fit <- fit_sraplus(driors = cpue_sar_qslope_driors,
                              cores = 1,
                              estimate_qslope = TRUE,
                              estimate_proc_error = FALSE)
-#> Warning: There were 416 divergent transitions after warmup. Increasing adapt_delta above 0.9 may help. See
+#> Warning: There were 344 divergent transitions after warmup. Increasing adapt_delta above 0.9 may help. See
 #> http://mc-stan.org/misc/warnings.html#divergent-transitions-after-warmup
-#> Warning: There were 57 transitions after warmup that exceeded the maximum treedepth. Increase max_treedepth above 10. See
+#> Warning: There were 2 transitions after warmup that exceeded the maximum treedepth. Increase max_treedepth above 10. See
 #> http://mc-stan.org/misc/warnings.html#maximum-treedepth-exceeded
 #> Warning: Examine the pairs() plot to diagnose sampling problems
-#> Warning: Bulk Effective Samples Size (ESS) is too low, indicating posterior means and medians may be unreliable.
-#> Running the chains for more iterations may help. See
-#> http://mc-stan.org/misc/warnings.html#bulk-ess
 #> Warning: Tail Effective Samples Size (ESS) is too low, indicating posterior variances and tail quantiles may be unreliable.
 #> Running the chains for more iterations may help. See
 #> http://mc-stan.org/misc/warnings.html#tail-ess
@@ -569,13 +558,13 @@ cpue_sar_proc_driors <- format_driors(taxa = example_taxa,
                            years = sim$pop$year,
                            effort = sim$pop$effort,
                            effort_years = sim$pop$year,
-                           growth_rate = 0.4,
-                           growth_rate_cv = 0.1,
+                           growth_rate_prior = 0.4,
+                           growth_rate_prior_cv = 0.1,
                            shape_prior = 1.01,
-                           q_slope = 0,
-                           q_slope_cv = 0.25,
+                           q_slope_prior = 0,
+                           q_slope_prior_cv = 0.25,
                            sar = 4,
-                           sar_sd = .05)
+                           sar_cv = .05)
 
 cpue_sar_proc_fit <- fit_sraplus(driors = cpue_sar_proc_driors,
                              engine = "stan",
@@ -587,12 +576,12 @@ cpue_sar_proc_fit <- fit_sraplus(driors = cpue_sar_proc_driors,
                              cores = 1,
                              estimate_qslope = FALSE,
                              estimate_proc_error = TRUE)
-#> Warning: There were 353 divergent transitions after warmup. Increasing adapt_delta above 0.9 may help. See
+#> Warning: There were 105 divergent transitions after warmup. Increasing adapt_delta above 0.9 may help. See
 #> http://mc-stan.org/misc/warnings.html#divergent-transitions-after-warmup
-#> Warning: There were 1489 transitions after warmup that exceeded the maximum treedepth. Increase max_treedepth above 10. See
+#> Warning: There were 1845 transitions after warmup that exceeded the maximum treedepth. Increase max_treedepth above 10. See
 #> http://mc-stan.org/misc/warnings.html#maximum-treedepth-exceeded
 #> Warning: Examine the pairs() plot to diagnose sampling problems
-#> Warning: The largest R-hat is 2.12, indicating chains have not mixed.
+#> Warning: The largest R-hat is 2.06, indicating chains have not mixed.
 #> Running the chains for more iterations may help. See
 #> http://mc-stan.org/misc/warnings.html#r-hat
 #> Warning: Bulk Effective Samples Size (ESS) is too low, indicating posterior means and medians may be unreliable.

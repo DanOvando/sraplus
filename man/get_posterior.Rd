@@ -9,7 +9,7 @@ get_posterior(draws, inits, sra_data, model, randos, knockout)
 \arguments{
 \item{draws}{parameter draws}
 
-\item{inits}{initi values for default model}
+\item{inits}{initial values for default model}
 
 \item{sra_data}{data}
 
@@ -17,7 +17,7 @@ get_posterior(draws, inits, sra_data, model, randos, knockout)
 
 \item{randos}{random effects}
 
-\item{knockout}{parameter to knock out}
+\item{knockout}{parameters to knock out}
 }
 \value{
 tibble of posterior draws
