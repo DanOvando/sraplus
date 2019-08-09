@@ -4,40 +4,42 @@
 \alias{format_driors}
 \title{Format data and priors for sraplus}
 \usage{
-format_driors(taxa = "gadus morhua", initial_b = 1,
-  initial_b_sd = 0.1, terminal_b = NA, terminal_b_sd = 0.1,
-  carry = NA, carry_sd = 0.1, u_v_umsy = NA, u_years = NA,
-  u_sd = 0.1, final_u = NA, final_u_sd = NA, catch = NA,
-  years = NA, index = NA, effort = NA, ref_type = "k",
-  index_years = 1, effort_years = 1, use_heuristics = FALSE,
-  fmi = c(research = NA, management = NA, enforcement = NA,
-  socioeconomics = NA), fmi_sd = NA, sar = NA, sar_sd = NA,
-  f_sd = 0.1)
+format_driors(taxa = "gadus morhua", initial_state = 1,
+  initial_state_cv = 0.1, terminal_state = NA,
+  terminal_state_cv = 0.1, u_v_umsy = NA, u_years = NA, u_cv = 0.1,
+  final_u = NA, final_u_cv = NA, catch = NA, years = NA,
+  index = NA, effort = NA, ref_type = "k", index_years = 1,
+  effort_years = NA, use_heuristics = FALSE, growth_rate_prior = NA,
+  growth_rate_prior_cv = NA, fmi = c(research = NA, management = NA,
+  enforcement = NA, socioeconomics = NA), fmi_cv = NA, sar = NA,
+  sar_cv = NA, q_slope_prior = 0, q_slope_prior_cv = 0.05, m = NA,
+  k_prior = NA, k_prior_cv = 0.2, sigma_r_prior = 0.05,
+  sigma_r_prior_cv = 0.05, shape_prior = 1.01, shape_prior_cv = 0.05,
+  q_prior_cv = 0.1, sigma_obs_prior = 0.05,
+  sigma_obs_prior_cv = 0.25)
 }
 \arguments{
 \item{taxa}{the genus and species of the species (case insensitive)}
 
-\item{initial_b}{b reference point in the initial year, units of depletion of B/Bmsy (set ref_type accordingly)}
+\item{initial_state}{reference point in the initial year, units of depletion or B/Bmsy (set ref_type accordingly).
+when \code{initial_state} is 1, implies either B/K = 1 or B/Bmsy = 1}
 
-\item{initial_b_sd}{sigma associated with initial b reference point}
+\item{initial_state_cv}{CV associated with initial state reference point}
 
-\item{terminal_b}{b reference point in the terminal year, units of depletion of B/Bmsy (set ref_type accordingly)}
+\item{terminal_state}{reference point in the terminal year, units of depletion or B/Bmsy (set ref_type accordingly).
+when \code{initial_state} is 1, implies either B/K = 1 or B/Bmsy = 1}
 
-\item{terminal_b_sd}{sigma associated with terminal b reference point}
-
-\item{carry}{prior on carrying capacity, deprecated}
-
-\item{carry_sd}{cv associated with prior on carrying capacity, deprecated}
+\item{terminal_state_cv}{CV associated with terminal state reference point}
 
 \item{u_v_umsy}{u/umsy data over time}
 
 \item{u_years}{years in which u/umsy data are available}
 
-\item{u_sd}{cv associated with u/umsy data}
+\item{u_cv}{cv associated with u/umsy data}
 
 \item{final_u}{vector of priors on u/umsy in the terminal years}
 
-\item{final_u_sd}{vector of cvs on u/umsy in the terminal years}
+\item{final_u_cv}{vector of cvs on u/umsy in the terminal years}
 
 \item{catch}{vector of catches over lifetime of fishery}
 
@@ -55,15 +57,41 @@ format_driors(taxa = "gadus morhua", initial_b = 1,
 
 \item{use_heuristics}{logical,TRUE uses catch-msy hueristics for priors, FALSE requires user to pass them}
 
+\item{growth_rate_prior}{manually pass prior on the growth rate r in the Pella-Tomlinson model}
+
+\item{growth_rate_prior_cv}{manually pass cv  for prior on the growth rate r in the Pella-Tomlinson model}
+
 \item{fmi}{named vector of fisheries management index scrores}
 
-\item{fmi_sd}{overwrite fmi prediction sd}
+\item{fmi_cv}{overwrite posterior predictive cv of FMI derived U/Umsy (NA to use empirical CV)}
 
 \item{sar}{swept area ratio}
 
-\item{sar_sd}{overwrite sar prediction sd}
+\item{sar_cv}{overwrite posterior predictive cv of SAR derived U/Umsy (NA to use empirical CV)}
 
-\item{f_sd}{deprecated}
+\item{q_slope_prior}{prior on the slope of catchability q}
+
+\item{m}{natural mortality}
+
+\item{k_prior}{prior on carrying capacity}
+
+\item{k_prior_cv}{CV of prior on carrying capacity}
+
+\item{sigma_r_prior}{prior on process error}
+
+\item{sigma_r_prior_cv}{CV of prior on process error}
+
+\item{shape_prior}{prior on shape parameter of Pella-Tomlinson model}
+
+\item{shape_prior_cv}{CV of prior on shape parameter of Pella-Tomlinson model}
+
+\item{q_prior_cv}{CV of prior on q itself (prior on q set in \code{fit_sraplus})}
+
+\item{sigma_obs_prior}{prior on observation effort}
+
+\item{sigma_obs_prior_cv}{cv of prior on observation error}
+
+\item{q_slope_cv}{cv of the prior on the slope of catchability q}
 }
 \value{
 a list of data and priors

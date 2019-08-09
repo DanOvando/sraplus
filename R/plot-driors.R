@@ -73,29 +73,38 @@ plot_driors <- function(driors,fontsize = 10) {
   
   
   foo <- function(var, driors, n = 1000) {
-    sims <- rnorm(n, driors[[var]], driors[[paste0(var, "_cv")]])
     
+    if (stringr::str_detect(var,"log")){
+      
+      sims <- rnorm(n, driors[[var]], driors[[paste0(var, "_cv")]])
+      
+    } else {
+    
+    sims <- exp(rnorm(n, log(driors[[var]] + 1e-6), driors[[paste0(var, "_cv")]]))
+    
+    }
   }
-  
   sims <- dplyr::tibble(variable = plot_vars) %>%
     dplyr::mutate(draws = purrr::map(variable, foo, driors = driors)) %>%
     tidyr::unnest()
   
   var_plots <- sims %>%
-    ggplot2::ggplot(aes(variable, draws)) +
-    ggplot2::geom_boxplot() +
+    ggplot2::ggplot(aes(draws)) +
+    ggplot2::geom_density(aes(y = ..scaled..), fill = "lightgrey") +
+    ggplot2::coord_flip() +
+    # ggplot2::geom_boxplot() +
     ggplot2::facet_wrap( ~ variable, scales = "free") +
-    ggplot2::labs(y = "", x = "") +
+    ggplot2::labs(y = "Prior Density", x = "Value") +
     theme_sraplus(base_size = fontsize) +
     ggplot2::theme(
-      strip.text = ggplot2::element_blank(),
+      strip.text = ggplot2::element_text(size = 6),
       strip.background = ggplot2::element_blank(),
-      axis.text.y = ggplot2::element_text(size = 8)
+      axis.text.x = ggplot2::element_blank()
     )
   
   
   
   patchwork::wrap_plots(timeseries_plot,
-                        var_plots)
+                        var_plots, widths = c(1,2))
   
 }
