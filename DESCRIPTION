@@ -1,7 +1,7 @@
 Package: sraplus
 Type: Package
 Title: Run sraplus Assessments
-Version: 1.2.3.9003
+Version: 2.0.0.9000
 Date: 2019-01-09
 Author: Dan Ovando
 Maintainer: Dan Ovando <danovan@uw.edu>
@@ -9,7 +9,7 @@ Description: Runs assessments in the manner of Ovando et al 2019. Allows for SIR
 License: MIT + file LICENSE
 Imports: 
     Rcpp,
-    TMB,
+    TMB (>= 1.7.15),
     dplyr,
     purrr,
     stringr,

@@ -8,6 +8,6 @@ test_that("fishlife works", {
     try(FishLife::Search_species(Genus = genus_species[1], Species = genus_species[2]),
         TRUE)
   
-  expect_is(fish_search, "list")
+  testthat::expect_type(fish_search, "list")
   
 })

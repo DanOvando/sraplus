@@ -30,6 +30,14 @@ plot_sraplus <- function(..., fontsize = 14,
     dplyr::select(-temp) %>% 
     tidyr::unnest()
   
+  facet_labeller <- c(
+    b_div_bmsy = "B/Bmsy",
+    c_div_msy = "Catch/MSY",
+    depletion = "Depletion",
+    u_div_umsy = "U/Umsy"
+  )
+  
+  
  fitframe %>% 
    dplyr::filter(variable %in% plotvars) %>% 
    dplyr::group_by(variable,fit) %>% {
@@ -46,7 +54,8 @@ plot_sraplus <- function(..., fontsize = 14,
                 size = 0.5, alpha = 0.5) +
    ggplot2::geom_line(aes(year, mean, color = fit),
               size = 1) +
-   ggplot2::facet_wrap(~variable, scales = "free_y") + 
+   ggplot2::facet_wrap(~variable, scales = "free_y",
+                       labeller = labeller(variable = facet_labeller)) + 
     sraplus::theme_sraplus(base_size = fontsize) + 
    ggplot2::scale_y_continuous( name = "", limits = c(0,NA)) +
     labs(x = "Year") +
