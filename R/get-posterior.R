@@ -13,7 +13,7 @@
 get_posterior <-  function(draws,
                            inits,
                            sra_data,
-                           model,
+                           model_name,
                            randos,
                            knockout) {
   # draws <- a$data[[1]]
@@ -52,7 +52,7 @@ get_posterior <-  function(draws,
     TMB::MakeADFun(
       data = sra_data,
       parameters = pars,
-      DLL = model,
+      DLL = model_name,
       random = randos,
       silent = TRUE,
       inner.control = list(maxit = 1e3),

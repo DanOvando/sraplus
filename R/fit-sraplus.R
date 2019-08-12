@@ -7,7 +7,7 @@
 #' @param include_fit logical indicating whether to return the fitted object
 #' @param seed seed for model runs
 #' @param plim cutoff (in units of B/K) for hockey stick PT function
-#' @param model the name of the sraplus TMB version to be run, defaults to "sraplus_tmb"
+#' @param model_name the name of the sraplus TMB version to be run, defaults to "sraplus_tmb"
 #' @param randos random effects when passing to TMB
 #' @param draws the number of SIR samples to run
 #' @param engine one of 'sir','stan', or 'tmb'
@@ -47,7 +47,7 @@ fit_sraplus <- function(driors,
                         include_fit = TRUE,
                         seed = 42,
                         plim = 0.2,
-                        model = "sraplus_tmb",
+                        model_name = "sraplus_tmb",
                         randos = "uc_proc_errors",
                         draws = 1e6,
                         n_keep = 2000,
@@ -327,13 +327,13 @@ fit_sraplus <- function(driors,
     
     upper_k <- log(50 * max(driors$catch))
     
-    sraplus::get_tmb_model(model_name = model)
+    sraplus::get_tmb_model(model_name = model_name)
     
     sra_model <-
       TMB::MakeADFun(
         data = sra_data,
         parameters = inits,
-        DLL = model,
+        DLL = model_name,
         random = randos,
         silent = TRUE,
         inner.control = list(maxit = 1e6),
@@ -394,7 +394,7 @@ fit_sraplus <- function(driors,
             get_posterior,
             inits = inits,
             sra_data = sra_data,
-            model = model,
+            model_name = model_name,
             randos = randos,
             knockout = knockout
           )
@@ -549,7 +549,14 @@ fit_sraplus <- function(driors,
     
 
   if (cleanup == TRUE) {
-    unlink(file.path(getwd(), "tmb"), recursive = TRUE)
+    
+    model_path <-
+      file.path(getwd(),
+                paste(model_name, utils::packageVersion("sraplus"), sep = '_v'))
+    
+    # dyn.unload(TMB::dynlib(file.path(model_path, model_name)))
+    
+    unlink(model_path, recursive = TRUE)
   }
   
   return(out)

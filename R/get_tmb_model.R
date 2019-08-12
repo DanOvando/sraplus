@@ -5,23 +5,35 @@
 #' @export
 #'
 get_tmb_model <- function(model_name = "sraplus_tmb") {
+  model_path <-
+    file.path(getwd(),
+              paste(model_name, utils::packageVersion("sraplus"), sep = '_v'))
   
-  
-  if (!model_name %in% names(getLoadedDLLs()) ) { # check whether DLL is already loaded, if not compile and load
-  
-  if (!dir.exists(file.path(getwd(), "tmb"))) {
-    dir.create("tmb")
+  # if (model_name %in% names(getLoadedDLLs())) {
+  #   #if DLL is already loaded unload
+  #   
+  #   dyn.unload(TMB::dynlib(file.path(model_path, model_name)))
+  #   
+  # }
+  # 
+  if (!dir.exists(model_path)) {
+    dir.create(model_path)
+    
+    file.copy(
+      from = system.file("tmb", paste0(model_name, ".cpp"), package = "sraplus"),
+      to =  model_path,
+      overwrite = FALSE
+    )
+    
+    TMB::compile(file.path(model_path, paste0(model_name, ".cpp")))
     
   }
   
-  file.copy(
-    from = system.file("tmb", paste0(model_name, ".cpp"), package = "sraplus"),
-    to =   file.path(getwd(), "tmb"),
-    overwrite = FALSE
-  )
-  
-  TMB::compile(file.path("tmb", paste0(model_name, ".cpp")))
-  
-  dyn.load(TMB::dynlib(file.path("tmb", model_name)))
+  if (!model_name %in% names(getLoadedDLLs())) {
+    # if DLL is already loaded unload
+    # dyn.unload(TMB::dynlib(file.path(model_path, model_name)))
+    dyn.load(TMB::dynlib(file.path(model_path, model_name)))
+    
   }
+  
 }
