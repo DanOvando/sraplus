@@ -4,7 +4,7 @@
 \alias{get_posterior}
 \title{get posterior draws from tmbstan fit object}
 \usage{
-get_posterior(draws, inits, sra_data, model, randos, knockout)
+get_posterior(draws, inits, sra_data, model_name, randos, knockout)
 }
 \arguments{
 \item{draws}{parameter draws}
@@ -13,11 +13,11 @@ get_posterior(draws, inits, sra_data, model, randos, knockout)
 
 \item{sra_data}{data}
 
-\item{model}{model name}
-
 \item{randos}{random effects}
 
 \item{knockout}{parameters to knock out}
+
+\item{model}{model name}
 }
 \value{
 tibble of posterior draws

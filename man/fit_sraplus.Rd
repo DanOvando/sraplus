@@ -5,10 +5,10 @@
 \title{Run sraplus}
 \usage{
 fit_sraplus(driors, include_fit = TRUE, seed = 42, plim = 0.2,
-  model = "sraplus_tmb", randos = "uc_proc_errors", draws = 1e+06,
-  n_keep = 2000, engine = "sir", cores = 4, chains = 1,
-  cleanup = FALSE, max_treedepth = 10, adapt_delta = 0.8,
-  estimate_shape = FALSE, estimate_qslope = FALSE,
+  model_name = "sraplus_tmb", randos = "uc_proc_errors",
+  draws = 1e+06, n_keep = 2000, engine = "sir", cores = 4,
+  chains = 1, cleanup = FALSE, max_treedepth = 10,
+  adapt_delta = 0.8, estimate_shape = FALSE, estimate_qslope = FALSE,
   estimate_proc_error = TRUE, ci = 0.89)
 }
 \arguments{
@@ -20,7 +20,7 @@ fit_sraplus(driors, include_fit = TRUE, seed = 42, plim = 0.2,
 
 \item{plim}{cutoff (in units of B/K) for hockey stick PT function}
 
-\item{model}{the name of the sraplus TMB version to be run, defaults to "sraplus_tmb"}
+\item{model_name}{the name of the sraplus TMB version to be run, defaults to "sraplus_tmb"}
 
 \item{randos}{random effects when passing to TMB}
 
