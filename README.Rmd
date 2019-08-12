@@ -40,7 +40,7 @@ You'll need to be connected to the internet.
 3. Once `devtools` has been installed, you can then install `sraplus` by running
 
 ```{r, eval = FALSE}
-remotes::install_github("danovando/sraplus", build_vignettes = TRUE)
+remotes::install_github("danovando/sraplus")
 ```
 
 That's probably going to ask you to install many other packages, agree to the prompts.

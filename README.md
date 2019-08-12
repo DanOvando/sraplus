@@ -41,7 +41,7 @@ You’ll need to be connected to the internet.
 <!-- end list -->
 
 ``` r
-remotes::install_github("danovando/sraplus", build_vignettes = TRUE)
+remotes::install_github("danovando/sraplus")
 ```
 
 That’s probably going to ask you to install many other packages, agree
@@ -215,12 +215,12 @@ head(catch_only_fit$results)
 #> # A tibble: 6 x 6
 #>    year variable           mean           sd       lower       upper
 #>   <dbl> <chr>             <dbl>        <dbl>       <dbl>       <dbl>
-#> 1  1963 b_div_bmsy        0.592       0.125        0.425       0.810
-#> 2  1963 b           3437225.    1175516.     2129357.    5792974.   
-#> 3  1963 c_div_msy         0.315       0.0958       0.167       0.482
-#> 4  1963 depletion         0.401       0.0831       0.288       0.547
-#> 5  1963 index_hat_t  175621.     121753.       16395.     381771.   
-#> 6  1963 u_div_umsy        0.537       0.134        0.300       0.749
+#> 1  1963 b_div_bmsy        0.586       0.130        0.411       0.814
+#> 2  1963 b           3461527.    1180922.     2114804.    5711225.   
+#> 3  1963 c_div_msy         0.310       0.101        0.159       0.480
+#> 4  1963 depletion         0.396       0.0853       0.281       0.545
+#> 5  1963 index_hat_t  180205.     128553.       19598.     409924.   
+#> 6  1963 u_div_umsy        0.529       0.128        0.310       0.701
 ```
 
 `results` is organized as a dataframe tracking different variables over
@@ -236,12 +236,12 @@ object is the output of the SIR algorithm.
 ``` r
 head(catch_only_fit$fit)
 #>   variable year draw   value
-#> 1      b_t 1963    1 3462561
-#> 2      b_t 1964    1 3554141
-#> 3      b_t 1965    1 3968343
-#> 4      b_t 1966    1 4039073
-#> 5      b_t 1967    1 4039164
-#> 6      b_t 1968    1 3772382
+#> 1      b_t 1963    1 3219868
+#> 2      b_t 1964    1 3261065
+#> 3      b_t 1965    1 3261253
+#> 4      b_t 1966    1 3275671
+#> 5      b_t 1967    1 3370717
+#> 6      b_t 1968    1 3366934
 ```
 
 From there, we can generate some standard plots of B/Bmsy
