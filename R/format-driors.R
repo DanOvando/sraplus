@@ -36,7 +36,7 @@
 #' @param shape_prior prior on shape parameter of Pella-Tomlinson model
 #' @param shape_prior_cv CV of prior on shape parameter of Pella-Tomlinson model
 #' @param q_prior_cv CV of prior on q itself (prior on q set in \code{fit_sraplus})
-#' @param sigma_obs_prior prior on observation effort
+#' @param sigma_obs_prior prior on observation error
 #' @param sigma_obs_prior_cv cv of prior on observation error
 #'
 #' @return a list of data and priors
@@ -73,15 +73,15 @@ format_driors <-
            sar = NA,
            sar_cv = NA,
            q_slope_prior = 0,
-           q_slope_prior_cv = 0.05,
+           q_slope_prior_cv = 0.1,
            m = NA,
            k_prior = NA,
-           k_prior_cv = 0.2,
-           sigma_r_prior = 0.05,
-           sigma_r_prior_cv = 0.05,
+           k_prior_cv = 0.5,
+           sigma_r_prior = 0.01,
+           sigma_r_prior_cv = 0.25,
            shape_prior = 1.01,
            shape_prior_cv = 0.05,
-           q_prior_cv = 0.1,
+           q_prior_cv = 1,
            sigma_obs_prior = 0.05,
            sigma_obs_prior_cv = .25) {
     
@@ -272,6 +272,16 @@ format_driors <-
       index_years = effort_years
       
     }
+    
+    # winkler life table translates one to the other
+    # state space model one or the other variances goes to zero
+    # can stabilize in some ways 
+    
+  # see gausian prior on the sum of the variances and the raio of the variances
+    # informative prior on the observation or process variance
+    # observation error of the index 
+    # normally distributed on the log variance ratio, centered at zero
+    # thorson munch ono 2014 
     
     driors <-
       list(

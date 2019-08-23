@@ -422,6 +422,16 @@ plot_sraplus(`no rocess error and no qslope ` = cpue_fit,
              `process error and sar` = cpue_sar_proc_fit,
              years = cpue_driors$years)
 
+
+# cpue_fit$results %>% 
+#   filter(variable == "") %>% 
+#   ggplot() + 
+#   geom_line(aes(year, mean)) + 
+#   geom_point(aes(1:length(cp[$index), flounder_index_driors$index))
+
+
+
+
 ```
 
 

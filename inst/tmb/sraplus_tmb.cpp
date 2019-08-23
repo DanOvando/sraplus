@@ -299,7 +299,7 @@ Type objective_function<Type>::operator() ()
         
       }
       
-      nll -= dnorm(log(index_t(t) + 1e-3), log(index_hat_t(index_years(t) - 1) + 1e-3), Type(0.00001) + sigma_obs, true);
+      nll -= dnorm(log(index_t(t) + 1e-3), log(index_hat_t(index_years(t) - 1) + 1e-3), sigma_obs, true);
       
     }
     
