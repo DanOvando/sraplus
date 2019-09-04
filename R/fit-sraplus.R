@@ -48,7 +48,7 @@ fit_sraplus <- function(driors,
                         seed = 42,
                         plim = 0.2,
                         model_name = "sraplus_tmb",
-                        randos = "uc_proc_errors",
+                        randos = "log_proc_errors",
                         draws = 1e6,
                         n_keep = 2000,
                         engine = "sir",
@@ -60,6 +60,7 @@ fit_sraplus <- function(driors,
                         estimate_shape = FALSE,
                         estimate_qslope = FALSE,
                         estimate_proc_error = TRUE,
+                        marginalize_q = FALSE,
                         ci = 0.89
 ) {
   knockout <-
@@ -118,7 +119,8 @@ fit_sraplus <- function(driors,
     shape_prior = driors$shape_prior,
     shape_cv = driors$shape_prior_cv,
     sigma_obs_prior = driors$sigma_obs_prior,
-    sigma_obs_prior_cv = driors$sigma_obs_prior_cv
+    sigma_obs_prior_cv = driors$sigma_obs_prior_cv,
+    marginalize_q = marginalize_q
   )
   
   
@@ -154,7 +156,7 @@ fit_sraplus <- function(driors,
     log_sigma_obs = log(0.2),
     log_init_dep = log(1),
     log_sigma_proc = log(0.01),
-    uc_proc_errors = rep(0, time - 1),
+    log_proc_errors = rep(0, time - 1),
     log_shape = log(driors$shape_prior),
     log_q_slope = log(ifelse(estimate_qslope == TRUE && sra_data$calc_cpue == 1,0.025,driors$q_slope_prior))
   )
@@ -174,11 +176,11 @@ fit_sraplus <- function(driors,
   if (sra_data$fit_index == 0 & sra_data$use_u_prior == 0) {
     knockout$log_sigma_proc <- NA
     
-    knockout$uc_proc_errors <- rep(NA, time - 1)
+    knockout$log_proc_errors <- rep(NA, time - 1)
     
     inits$log_sigma_proc <- log(1e-6)
     
-    inits$uc_proc_errors <- rep(0, time - 1)
+    inits$log_proc_errors <- rep(0, time - 1)
     
     randos <- NULL
     # randos <- "inv_f_t"
@@ -196,9 +198,24 @@ fit_sraplus <- function(driors,
     
   }
   
+  if (sra_data$calc_cpue == TRUE & marginalize_q == 1){
+    
+    sra_data$marginalize_q <-  0
+    
+    warning("You can't calculate CPUE and marginalize q, defaulting to calculating CPUE. Either set marginalize_q = 0 or calc_cpue = 0")
+    
+  }
+  
+  
+  if (sra_data$calc_cpue == FALSE & marginalize_q == 1){
+    knockout$log_q <- NA
+    
+  }
+  
+  
   if (estimate_proc_error == FALSE){
     
-    knockout$uc_proc_errors <- rep(NA, time - 1)
+    knockout$log_proc_errors <- rep(NA, time - 1)
     
     knockout$log_sigma_proc <- NA
     
@@ -355,8 +372,9 @@ fit_sraplus <- function(driors,
     
     upper["log_init_dep"] <- log(1.5)
     
-    upper['log_q'] <- log(1)
-    
+    if (marginalize_q == 0) {
+      upper['log_q'] <- log(1)
+    }    
     if (estimate_qslope == TRUE){
       
       lower['log_q_slope'] <- -Inf

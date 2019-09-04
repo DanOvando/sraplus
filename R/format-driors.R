@@ -76,7 +76,7 @@ format_driors <-
            q_slope_prior_cv = 0.1,
            m = NA,
            k_prior = NA,
-           k_prior_cv = 0.5,
+           k_prior_cv = 2,
            sigma_r_prior = 0.01,
            sigma_r_prior_cv = 0.25,
            shape_prior = 1.01,
