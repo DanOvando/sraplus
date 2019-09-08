@@ -48,6 +48,14 @@ purrr::walk(functions, ~ source(here::here("R", .x)))
 
 # load data ---------------------------------------------------------------
 
+load(here("data-raw","Return.Rdata"))
+
+FishLifeData<- Return[c("ParentChild_gz","beta_gv","Cov_gvv")]
+
+FishLifeData$metadata <- "emailed from Thorson, beta version with newparameters"
+
+usethis::use_data(FishLifeData, overwrite = TRUE, internal = TRUE)
+
 
 if (file.exists(here("data-raw","ram.RData")) == FALSE) {
   # for now storing in my google drive... will need to put this in a better and public location

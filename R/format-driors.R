@@ -83,19 +83,35 @@ format_driors <-
            shape_prior_cv = 0.05,
            q_prior_cv = 1,
            sigma_obs_prior = 0.05,
-           sigma_obs_prior_cv = .25) {
+           sigma_obs_prior_cv = .25,
+           isscaap_group = "Miscellaneous coastal fishes") {
     
     if (use_heuristics == TRUE){
       
       warning("WARNING: You are using catch heursitics as your stock assessment")
       
     }
-    
+
     if (!is.na(sar)) {
-      temp <- dplyr::tibble(sar = sar)
+      
+
+      # isscaap_group = "Flounders, halibuts, soles"
+      
+      tempmod <- best_sar_models$fit[best_sar_models$metric == "mean_u"][[1]]
+      
+      temp <- dplyr::tibble(sar = sar,
+                            c_div_max_c = last(catch / max(catch)),
+                            c_div_mean_c = last(catch / mean(catch)),
+                            isscaap_group = isscaap_group,
+                            sar_2 = sar^2)
+      
+      # factor_levels <- levels(tempmod$data$isscaap_group)
+      
+      # levels(temp$isscaap_group) <- factor_levels
+      
       
       pp <-
-        rstanarm::posterior_predict(regs$sar_f_reg, newdata = temp)
+        rstanarm::posterior_predict(tempmod, newdata = temp)
       
       pp <- pp[pp > quantile(pp, .05) & pp < quantile(pp, 0.95)]
       
@@ -109,10 +125,20 @@ format_driors <-
     
     
     if (any(!is.na(fmi))) {
+      
+      
       temp <- purrr::map_df(fmi,  ~ .)
       
+      temp$c_div_max_c = last(catch / max(catch))
+      
+      temp$c_div_mean_c = last(catch / mean(catch))
+      
+      temp$isscaap_group = isscaap_group
+      
+      tempmod <- best_fmi_models$fit[best_fmi_models$metric == "mean_u"][[1]]
+      
       pp <-
-        rstanarm::posterior_predict(regs$fmi_f_reg, newdata = temp)
+        rstanarm::posterior_predict(tempmod, newdata = temp)
       
       pp <- pp[pp > quantile(pp, .05) & pp < quantile(pp, 0.95)]
       
