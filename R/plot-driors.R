@@ -2,11 +2,12 @@
 #'
 #' @param driors a list of driors created by sraplus::format_driors
 #' @param fontsize font size for plots
+#' @param prob proportion of probabiltiy distribution to plot
 #'
 #' @return a ggplot2 object
 #' @export
 #'
-plot_driors <- function(driors,fontsize = 10) {
+plot_driors <- function(driors, fontsize = 10, prob = 0.9) {
   timeseries <- dplyr::tibble(year = driors$years,
                               catch = driors$catch)
   
@@ -35,7 +36,7 @@ plot_driors <- function(driors,fontsize = 10) {
   }
   
   timeseries_plot <- timeseries %>%
-    tidyr::gather(metric, value, -year) %>%
+    tidyr::gather(metric, value,-year) %>%
     ggplot2::ggplot(aes(year, value, color = metric)) +
     ggplot2::geom_line(size = 1, show.legend = FALSE) +
     ggplot2::geom_point(size = 2, show.legend = FALSE) +
@@ -44,9 +45,8 @@ plot_driors <- function(driors,fontsize = 10) {
     ggplot2::labs(x = "Year")  +
     theme_sraplus(base_size = 12)
   
-
-  if (length(driors$log_final_u) > 1){
-    
+  
+  if (length(driors$log_final_u) > 1) {
     driors$log_final_u1 = driors$log_final_u[1]
     
     driors$log_final_u1_cv = driors$log_final_u_cv[1]
@@ -55,10 +55,13 @@ plot_driors <- function(driors,fontsize = 10) {
     
     driors$log_final_u2_cv = driors$log_final_u_cv[2]
     
-    driors <- purrr::list_modify(driors, "log_final_u" = NULL, "log_final_u_cv" = NULL)
+    driors <-
+      purrr::list_modify(driors,
+                         "log_final_u" = NULL,
+                         "log_final_u_cv" = NULL)
     
   }
-    
+  
   
   vars <- names(driors)
   
@@ -66,22 +69,32 @@ plot_driors <- function(driors,fontsize = 10) {
   
   plot_vars <- names(var_count)[var_count == 2]
   
-  has_values <- purrr::map_lgl(plot_vars, ~ !all(is.na(driors[[.x]])))
+  has_values <-
+    purrr::map_lgl(plot_vars, ~ !all(is.na(driors[[.x]])))
   
   plot_vars <- plot_vars[has_values]
   
   
   
   foo <- function(var, driors, n = 1000) {
-    
-    if (stringr::str_detect(var,"log")){
-      
+    if (stringr::str_detect(var, "log")) {
       sims <- rnorm(n, driors[[var]], driors[[paste0(var, "_cv")]])
       
+      simquants <-
+        quantile(sims, probs = c((1 - prob) / 2, 1 - (1 - prob) / 2))
+      
+      sims <- sims[sims >= simquants[1] & sims <= simquants[2]]
+      
     } else {
-    
-    sims <- exp(rnorm(n, log(driors[[var]] + 1e-6), driors[[paste0(var, "_cv")]]))
-    
+      sims <-
+        exp(rnorm(n, log(driors[[var]] + 1e-6), driors[[paste0(var, "_cv")]]))
+      
+      simquants <-
+        quantile(sims, probs = c((1 - prob) / 2, 1 - (1 - prob) / 2))
+      
+      sims <- sims[sims >= simquants[1] & sims <= simquants[2]]
+      
+      
     }
   }
   sims <- dplyr::tibble(variable = plot_vars) %>%
@@ -93,7 +106,7 @@ plot_driors <- function(driors,fontsize = 10) {
     ggplot2::geom_density(aes(y = ..scaled..), fill = "lightgrey") +
     ggplot2::coord_flip() +
     # ggplot2::geom_boxplot() +
-    ggplot2::facet_wrap( ~ variable, scales = "free") +
+    ggplot2::facet_wrap(~ variable, scales = "free") +
     ggplot2::labs(y = "Prior Density", x = "Value") +
     theme_sraplus(base_size = fontsize) +
     ggplot2::theme(
@@ -105,6 +118,6 @@ plot_driors <- function(driors,fontsize = 10) {
   
   
   patchwork::wrap_plots(timeseries_plot,
-                        var_plots, widths = c(1,2))
+                        var_plots, widths = c(1, 2))
   
 }

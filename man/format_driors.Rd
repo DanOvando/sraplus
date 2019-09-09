@@ -12,11 +12,11 @@ format_driors(taxa = "gadus morhua", initial_state = 1,
   effort_years = NA, use_heuristics = FALSE, growth_rate_prior = NA,
   growth_rate_prior_cv = NA, fmi = c(research = NA, management = NA,
   enforcement = NA, socioeconomics = NA), fmi_cv = NA, sar = NA,
-  sar_cv = NA, q_slope_prior = 0, q_slope_prior_cv = 0.05, m = NA,
-  k_prior = NA, k_prior_cv = 0.2, sigma_r_prior = 0.05,
-  sigma_r_prior_cv = 0.05, shape_prior = 1.01, shape_prior_cv = 0.05,
-  q_prior_cv = 0.1, sigma_obs_prior = 0.05,
-  sigma_obs_prior_cv = 0.25)
+  sar_cv = NA, q_slope_prior = 0, q_slope_prior_cv = 0.1, m = NA,
+  k_prior = NA, k_prior_cv = 2, sigma_r_prior = 0.01,
+  sigma_r_prior_cv = 0.25, shape_prior = 1.01, shape_prior_cv = 0.05,
+  q_prior_cv = 1, sigma_obs_prior = 0.05, sigma_obs_prior_cv = 0.25,
+  isscaap_group = "Miscellaneous coastal fishes")
 }
 \arguments{
 \item{taxa}{the genus and species of the species (case insensitive)}
@@ -87,7 +87,7 @@ when \code{initial_state} is 1, implies either B/K = 1 or B/Bmsy = 1}
 
 \item{q_prior_cv}{CV of prior on q itself (prior on q set in \code{fit_sraplus})}
 
-\item{sigma_obs_prior}{prior on observation effort}
+\item{sigma_obs_prior}{prior on observation error}
 
 \item{sigma_obs_prior_cv}{cv of prior on observation error}
 

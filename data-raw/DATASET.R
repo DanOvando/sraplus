@@ -165,12 +165,9 @@ ram_data <- ram_data %>%
   mutate(delta_year = year - lag(year)) %>%
   mutate(delta_year = case_when(year == min(year) ~ as.integer(1),
                                 TRUE ~ delta_year)) %>%
-  mutate(missing_gaps = any(delta_year > 1)) %>%
-  filter(missing_gaps == FALSE) %>%
   mutate(n_years = n_distinct(year)) %>%
-  filter(n_years >= min_years_catch) %>%
-  filter(all(b_v_bmsy < crazy_b, na.rm = TRUE),
-         all(u_v_umsy < crazy_u, na.rm = TRUE)) %>%
+  # filter(all(b_v_bmsy < crazy_b, na.rm = TRUE),
+  #        all(u_v_umsy < crazy_u, na.rm = TRUE)) %>%
   ungroup() %>%
   group_by(stockid) %>%
   mutate(
@@ -178,7 +175,7 @@ ram_data <- ram_data %>%
     has_tb = !all(is.na(total_biomass)),
     first_catch_year = year[which(catch > 0)[1]]
   ) %>%
-  filter(year >= first_catch_year) %>%
+  # filter(year >= first_catch_year) %>%
   ungroup()
 
 
@@ -264,6 +261,26 @@ fao_stock_lookup <- fao %>%
   select(scientific_name, common_name, country, fao_area, fao_area_code) %>%
   unique()
 
+plot_prior_fit <- function(fit, split) {
+  fit_r2 <- bayes_R2(fit)
+  
+  
+  ppc_plot <- bayesplot::ppc_scatter_avg(y = split$log_value, yrep = posterior_predict(fit)) +
+    labs(
+      x = "Mean Posterior Predicted log(value)",
+      y = "Observed log(value)"
+    ) +
+    geom_smooth(method = "lm", se = TRUE)
+  
+  br2_plot <- ggplot() +
+    geom_density(data = data_frame(r2 = fit_r2), aes(r2), fill = "lightgrey") +
+    labs(x = bquote(R^2), y = "Count")
+  
+  ppc_plot + br2_plot + plot_layout(ncol = 2, widths = c(3, 1)) +
+    plot_annotation(tag_levels = "A")
+  
+  
+}
 
 
 # fmi data ----------------------------------------------------------------
@@ -475,7 +492,7 @@ recent_ram <- ram_data %>%
   group_by(stockid) %>%
   mutate(c_maxc = catch / max(catch, na.rm = TRUE),
          c_meanc = catch / mean(catch, na.rm = TRUE)) %>%
-  filter(year > (max(year) - 5)) %>%
+  filter(year > (max(year[!is.na(u_v_umsy)]) - 5)) %>%
   summarise(mean_b = mean(b_v_bmsy, na.rm = TRUE),
             mean_u = mean(u_v_umsy, na.rm = TRUE),
             mean_exp = mean(exploitation_rate, na.rm = TRUE),
@@ -486,7 +503,12 @@ recent_ram <- ram_data %>%
 
 
 sar_coverage <- readr::read_csv(here("data-raw","OverlapTable2.csv")) %>%
-  janitor::clean_names()
+  janitor::clean_names() %>% 
+  group_by(stockid) %>% 
+  summarise(mean_tbp_in_stock = mean(tbp_in_stock),
+            mean_stock_in_tbp = mean(stock_in_tbp)) %>% 
+  ungroup()
+  
 
 sar_to_ram <-
   readr::read_csv(here("data-raw", "RamStocksWithID2.csv")) %>%
@@ -637,13 +659,18 @@ usethis::use_data(best_fmi_models,overwrite = TRUE)
 # fit sar models --------------------------------------------------------------
 
 ram_v_sar <- sar_to_ram %>%
-  select(-semi_id) %>%
-  filter(mean_exp < 1) %>%
-  gather(metric, value, contains("mean_"), -c_div_mean_c) %>%
+  mutate(mean_exp = pmin(mean_exp, 0.9)) %>%
+  gather(metric, value, contains("mean_"), -c_div_mean_c,-mean_stock_in_tbp,-mean_tbp_in_stock) %>%
   mutate(log_value = log(value + 1e-3)) %>%
   mutate(sar_2 = sar ^ 2) %>%
+  select(stockid, sar, sar_2, isscaap_group, metric, value, log_value, c_div_mean_c, c_div_max_c,mean_stock_in_tbp) %>% 
   na.omit() %>%
-  filter(stock_in_tbp > 0.5)
+  filter(mean_stock_in_tbp > 50)
+
+ram_v_sar %>% 
+  ggplot(aes(sar, log_value, color = mean_stock_in_tbp)) + 
+  geom_point() + 
+  facet_wrap(~metric)
 
 ram_v_sar <- recipe(log_value ~ ., data = ram_v_sar) %>%
   step_other(isscaap_group) %>%
@@ -662,9 +689,13 @@ model_structures <-
   purrr::cross_df(list(
     sampid = random_sar_tests$sampid,
     model_structure = c(
-      # "log_value ~ poly(sar,2) + c_div_max_c + c_div_mean_c",
-      # "log_value ~ poly(sar,2) + c_div_max_c + c_div_mean_c",
-      "log_value ~ c_div_max_c + c_div_mean_c + (sar + sar_2 - 1|isscaap_group)"
+      "log_value ~ poly(sar,2) + c_div_max_c + c_div_mean_c",
+      "log_value ~ sar + c_div_max_c + c_div_mean_c",
+      "log_value ~ c_div_max_c + c_div_mean_c + (sar - 1|isscaap_group)",
+      "log_value ~ c_div_max_c + c_div_mean_c + (sar + sar_2 - 1|isscaap_group)",
+      "log_value ~  (sar + sar_2 - 1|isscaap_group)"
+      
+      
     )
   ))
 
@@ -726,7 +757,20 @@ best_sar_models <- best_sar_models %>%
 
 
 best_sar_models <- best_sar_models %>%
-  mutate(fit = map(best_fit, "fit")) 
+  mutate(fit = map(best_fit, "fit")) %>% 
+  mutate(prior_plot = map2(fit, splits, plot_prior_fit))
+
+
+sar_v_f_plot <- ppc_intervals(
+  x = best_sar_models$splits[[3]]$sar,
+  y = best_sar_models$splits[[3]]$log_value,
+  yrep = posterior_predict(best_sar_models$fit[[3]])
+) +
+  labs(
+    x = "SAR",
+    y = "log(U/Umsy)"
+  )
+
 
 usethis::use_data(best_sar_models,overwrite = TRUE)
 
