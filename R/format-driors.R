@@ -57,7 +57,8 @@ format_driors <-
            years = NA,
            index = NA,
            effort = NA,
-           ref_type = "k",
+           b_ref_type = "k",
+           f_ref_type = "fmsy",
            index_years = 1,
            effort_years = NA,
            use_heuristics = FALSE,
@@ -84,7 +85,8 @@ format_driors <-
            q_prior_cv = 1,
            sigma_obs_prior = 0.05,
            sigma_obs_prior_cv = .25,
-           isscaap_group = "Miscellaneous coastal fishes") {
+           isscaap_group = "Cods",
+           prob = 0.9) {
     
     if (use_heuristics == TRUE){
       
@@ -97,7 +99,16 @@ format_driors <-
 
       # isscaap_group = "Flounders, halibuts, soles"
       
-      tempmod <- best_sar_models$fit[best_sar_models$metric == "mean_u"][[1]]
+      # tempmod <- best_sar_models$fit[best_sar_models$metric == "mean_uumsy"][[1]]
+      
+      if (f_ref_type == "fmsy"){
+        
+        tempmod <- best_sar_models$fit[best_sar_models$metric == "mean_uumsy"][[1]]
+      } else if (f_ref_type == "f"){
+        
+        tempmod <- best_sar_models$fit[best_sar_models$metric == "mean_f"][[1]]
+      }
+      
       
       temp <- dplyr::tibble(sar = sar,
                             c_div_max_c = last(catch / max(catch)),
@@ -113,7 +124,7 @@ format_driors <-
       pp <-
         rstanarm::posterior_predict(tempmod, newdata = temp)
       
-      pp <- pp[pp > quantile(pp, .05) & pp < quantile(pp, 0.95)]
+      pp <- pp[pp > quantile(pp, (1 - prob)/2) & pp < quantile(pp, 1 - (1 - prob)/2)]
       
       final_u <- c(final_u, exp(mean(pp)))
       
@@ -134,29 +145,34 @@ format_driors <-
       temp$c_div_mean_c = last(catch / mean(catch))
       
       temp$isscaap_group = isscaap_group
+      if (f_ref_type == "fmsy"){
       
-      tempmod <- best_fmi_models$fit[best_fmi_models$metric == "mean_u"][[1]]
-      
+      tempmod <- best_fmi_models$fit[best_fmi_models$metric == "mean_uumsy"][[1]]
+      } else if (f_ref_type == "f"){
+        tempmod <- best_fmi_models$fit[best_fmi_models$metric == "mean_f"][[1]]
+      }
+    
+    
       pp <-
         rstanarm::posterior_predict(tempmod, newdata = temp)
       
-      pp <- pp[pp > quantile(pp, .05) & pp < quantile(pp, 0.95)]
+      pp <- pp[pp > quantile(pp, (1 - prob)/2) & pp < quantile(pp, 1 - (1 - prob)/2)]
       
       final_u <- c(final_u, exp(mean(pp)))
       
       final_u_cv <-
         c(final_u_cv, ifelse(is.na(fmi_cv), sd(pp), fmi_cv))
       
-      pp <-
-        rstanarm::posterior_predict(regs$fmi_b_reg, newdata = temp)
+      tempmod <- best_fmi_models$fit[best_fmi_models$metric == "mean_bbmsy"][[1]]
       
-      pp <- pp[pp > quantile(pp, .05) & pp < quantile(pp, 0.95)]
+      pp <-
+        rstanarm::posterior_predict(tempmod, newdata = temp)
+      
+      pp <- pp[pp > quantile(pp, (1 - prob)/2) & pp < quantile(pp, 1 - (1 - prob)/2)]
       
       terminal_state <- exp(mean(pp))
       
       terminal_state_cv <- ifelse(is.na(fmi_cv), sd(pp), fmi_cv)
-      
-      ref_type <- "b"
       
     }
     
@@ -269,7 +285,6 @@ format_driors <-
     }
     
     if (use_heuristics == TRUE) {
-      ref_type <-  "k"
       
       temp <-
         if (catch[1] / max(catch, na.rm = TRUE) < 0.2)
@@ -286,7 +301,7 @@ format_driors <-
         ifelse((dplyr::last(catch) / max(catch)) > 0.5, 0.6, 0.2)
       
       terminal_state <-
-        dplyr::case_when(ref_type == "k" ~ temp_terminal,
+        dplyr::case_when(b_ref_type == "k" ~ temp_terminal,
                          TRUE ~ temp_terminal * 2.5)
       
       terminal_state_cv <- 0.2
@@ -342,7 +357,9 @@ format_driors <-
         sigma_obs_prior_cv = sigma_obs_prior_cv
       )
     
-    driors$ref_type <- ref_type
+    driors$b_ref_type <- b_ref_type
+    
+    driors$f_ref_type <- f_ref_type
     
     return(driors)
     

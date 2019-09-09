@@ -493,9 +493,9 @@ recent_ram <- ram_data %>%
   mutate(c_maxc = catch / max(catch, na.rm = TRUE),
          c_meanc = catch / mean(catch, na.rm = TRUE)) %>%
   filter(year > (max(year[!is.na(u_v_umsy)]) - 5)) %>%
-  summarise(mean_b = mean(b_v_bmsy, na.rm = TRUE),
-            mean_u = mean(u_v_umsy, na.rm = TRUE),
-            mean_exp = mean(exploitation_rate, na.rm = TRUE),
+  summarise(mean_bbmsy = mean(b_v_bmsy, na.rm = TRUE),
+            mean_uumsy = mean(u_v_umsy, na.rm = TRUE),
+            mean_f = mean(-log(1 - pmin(0.95,exploitation_rate)), na.rm = TRUE),
             c_div_max_c = mean(c_maxc),
             c_div_mean_c = mean(c_meanc)) %>%
   na.omit()
@@ -541,9 +541,9 @@ ram_v_fmi <- ram_data %>%
   ) %>%
   filter(year > (max(year) - 5)) %>%
   summarise(
-    mean_b = mean(b_v_bmsy, na.rm = TRUE),
-    mean_u = mean(u_v_umsy, na.rm = TRUE),
-    mean_exp = mean(exploitation_rate, na.rm = TRUE),
+    mean_bbmsy = mean(b_v_bmsy, na.rm = TRUE),
+    mean_uumsy = mean(u_v_umsy, na.rm = TRUE),
+    mean_f = mean(-log(1 - pmin(0.95,exploitation_rate)), na.rm = TRUE),
     c_div_max_c = mean(c_maxc),
     c_div_mean_c = mean(c_meanc)
   ) %>%
@@ -581,8 +581,13 @@ model_structures <-
   purrr::cross_df(list(
     sampid = random_fmi_tests$sampid,
     model_structure = c(
-      "log_value ~ research + management + enforcement + socioeconomics + c_div_max_c + c_div_mean_c",
-      "log_value ~ (research + management + enforcement + socioeconomics + c_div_max_c  + c_div_mean_c - 1|isscaap_group)"
+      "log_value ~ research + management + enforcement + socioeconomics + c_div_max_c + c_div_mean_c" ,
+      "log_value ~ (research + management + enforcement + socioeconomics + c_div_max_c  + c_div_mean_c - 1|isscaap_group)",
+      "log_value ~ c_div_max_c + c_div_mean_c  + (research + management + enforcement + socioeconomics - 1|isscaap_group)",
+      "log_value ~ research + management + enforcement + socioeconomics",
+      "log_value ~ (research + management + enforcement + socioeconomics - 1|isscaap_group)",
+      "log_value ~ + management + enforcement + socioeconomics + c_div_max_c + c_div_mean_c"
+      
     )
   ))
 
@@ -620,10 +625,6 @@ random_fmi_tests <- random_fmi_tests %>%
     )
   )
 
-random_fmi_tests %>%
-  ggplot(aes(model_structure, testing_rmse, color = metric)) +
-  geom_point() +
-  coord_flip()
 
 best_fmi_models <- random_fmi_tests %>%
   group_by(metric, model_structure) %>%
@@ -651,7 +652,9 @@ best_fmi_models <- best_fmi_models %>%
 
 
 best_fmi_models <- best_fmi_models %>%
-  mutate(fit = map(best_fmi_fit, "fit"))
+  mutate(fit = map(best_fmi_fit, "fit")) %>% 
+  mutate(prior_plot = map2(fit, splits, plot_prior_fit))
+
 
 usethis::use_data(best_fmi_models,overwrite = TRUE)
 
@@ -659,7 +662,6 @@ usethis::use_data(best_fmi_models,overwrite = TRUE)
 # fit sar models --------------------------------------------------------------
 
 ram_v_sar <- sar_to_ram %>%
-  mutate(mean_exp = pmin(mean_exp, 0.9)) %>%
   gather(metric, value, contains("mean_"), -c_div_mean_c,-mean_stock_in_tbp,-mean_tbp_in_stock) %>%
   mutate(log_value = log(value + 1e-3)) %>%
   mutate(sar_2 = sar ^ 2) %>%
@@ -731,10 +733,10 @@ random_sar_tests <- random_sar_tests %>%
     )
   )
 
-random_sar_tests %>%
-  ggplot(aes(model_structure, testing_rmse, color = metric)) +
-  geom_point() +
-  coord_flip()
+# random_sar_tests %>%
+#   ggplot(aes(model_structure, testing_rmse, color = metric)) +
+#   geom_point() +
+#   coord_flip()
 
 best_sar_models <- random_sar_tests %>%
   group_by(metric, model_structure) %>%
@@ -761,7 +763,7 @@ best_sar_models <- best_sar_models %>%
   mutate(prior_plot = map2(fit, splits, plot_prior_fit))
 
 
-sar_v_f_plot <- ppc_intervals(
+sar_v_f_plot <- bayesplot::ppc_intervals(
   x = best_sar_models$splits[[3]]$sar,
   y = best_sar_models$splits[[3]]$log_value,
   yrep = posterior_predict(best_sar_models$fit[[3]])
