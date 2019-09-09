@@ -8,15 +8,16 @@ format_driors(taxa = "gadus morhua", initial_state = 1,
   initial_state_cv = 0.1, terminal_state = NA,
   terminal_state_cv = 0.1, u_v_umsy = NA, u_years = NA, u_cv = 0.1,
   final_u = NA, final_u_cv = NA, catch = NA, years = NA,
-  index = NA, effort = NA, ref_type = "k", index_years = 1,
-  effort_years = NA, use_heuristics = FALSE, growth_rate_prior = NA,
+  index = NA, effort = NA, b_ref_type = "k", f_ref_type = "fmsy",
+  index_years = 1, effort_years = NA, use_heuristics = FALSE,
+  use_b_reg = FALSE, growth_rate_prior = NA,
   growth_rate_prior_cv = NA, fmi = c(research = NA, management = NA,
   enforcement = NA, socioeconomics = NA), fmi_cv = NA, sar = NA,
   sar_cv = NA, q_slope_prior = 0, q_slope_prior_cv = 0.1, m = NA,
   k_prior = NA, k_prior_cv = 2, sigma_r_prior = 0.01,
   sigma_r_prior_cv = 0.25, shape_prior = 1.01, shape_prior_cv = 0.05,
   q_prior_cv = 1, sigma_obs_prior = 0.05, sigma_obs_prior_cv = 0.25,
-  isscaap_group = "Miscellaneous coastal fishes")
+  isscaap_group = "Cods", prob = 0.9)
 }
 \arguments{
 \item{taxa}{the genus and species of the species (case insensitive)}
@@ -49,13 +50,17 @@ when \code{initial_state} is 1, implies either B/K = 1 or B/Bmsy = 1}
 
 \item{effort}{vector of an effort series}
 
-\item{ref_type}{k if initial and final depletions are in depletion units, b if in b/bmsy units}
+\item{b_ref_type}{}
+
+\item{f_ref_type}{}
 
 \item{index_years}{the years in which abundance index data are available}
 
 \item{effort_years}{years in which effort data are available}
 
 \item{use_heuristics}{logical,TRUE uses catch-msy hueristics for priors, FALSE requires user to pass them}
+
+\item{use_b_reg}{}
 
 \item{growth_rate_prior}{manually pass prior on the growth rate r in the Pella-Tomlinson model}
 
@@ -70,6 +75,8 @@ when \code{initial_state} is 1, implies either B/K = 1 or B/Bmsy = 1}
 \item{sar_cv}{overwrite posterior predictive cv of SAR derived U/Umsy (NA to use empirical CV)}
 
 \item{q_slope_prior}{prior on the slope of catchability q}
+
+\item{q_slope_prior_cv}{}
 
 \item{m}{natural mortality}
 
@@ -91,7 +98,9 @@ when \code{initial_state} is 1, implies either B/K = 1 or B/Bmsy = 1}
 
 \item{sigma_obs_prior_cv}{cv of prior on observation error}
 
-\item{q_slope_cv}{cv of the prior on the slope of catchability q}
+\item{isscaap_group}{}
+
+\item{prob}{}
 }
 \value{
 a list of data and priors

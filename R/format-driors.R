@@ -16,7 +16,6 @@
 #' @param years vector of years that the catch data correspond to
 #' @param index vector of an abundance index
 #' @param effort vector of an effort series
-#' @param ref_type k if initial and final depletions are in depletion units, b if in b/bmsy units
 #' @param index_years the years in which abundance index data are available
 #' @param effort_years years in which effort data are available
 #' @param use_heuristics logical,TRUE uses catch-msy hueristics for priors, FALSE requires user to pass them
@@ -27,7 +26,6 @@
 #' @param growth_rate_prior manually pass prior on the growth rate r in the Pella-Tomlinson model
 #' @param growth_rate_prior_cv manually pass cv  for prior on the growth rate r in the Pella-Tomlinson model
 #' @param q_slope_prior prior on the slope of catchability q
-#' @param q_slope_cv cv of the prior on the slope of catchability q
 #' @param m natural mortality
 #' @param k_prior prior on carrying capacity
 #' @param k_prior_cv CV of prior on carrying capacity
@@ -38,6 +36,12 @@
 #' @param q_prior_cv CV of prior on q itself (prior on q set in \code{fit_sraplus})
 #' @param sigma_obs_prior prior on observation error
 #' @param sigma_obs_prior_cv cv of prior on observation error
+#' @param b_ref_type 
+#' @param f_ref_type 
+#' @param use_b_reg 
+#' @param q_slope_prior_cv 
+#' @param isscaap_group 
+#' @param prob 
 #'
 #' @return a list of data and priors
 #' @export
@@ -62,6 +66,7 @@ format_driors <-
            index_years = 1,
            effort_years = NA,
            use_heuristics = FALSE,
+           use_b_reg = FALSE,
            growth_rate_prior = NA,
            growth_rate_prior_cv = NA,
            fmi = c(
@@ -163,6 +168,8 @@ format_driors <-
       final_u_cv <-
         c(final_u_cv, ifelse(is.na(fmi_cv), sd(pp), fmi_cv))
       
+      if (use_b_reg == TRUE){
+      
       tempmod <- best_fmi_models$fit[best_fmi_models$metric == "mean_bbmsy"][[1]]
       
       pp <-
@@ -173,6 +180,7 @@ format_driors <-
       terminal_state <- exp(mean(pp))
       
       terminal_state_cv <- ifelse(is.na(fmi_cv), sd(pp), fmi_cv)
+      }
       
     }
     
@@ -262,21 +270,21 @@ format_driors <-
       log_final_u <- log(final_u[!is.na(final_u)])
       
       log_final_u_cv <- final_u_cv[!is.na(final_u)]
-      
-      if (is.na(terminal_state)){ # if no terminal b prior use approx from U/Umsy
-        
-        terminal_state <- pmax(.05,2.5 - mean(final_u[!is.na(final_u)]))
-        
-        terminal_state_cv <- 0.2
-        
-        if (ref_type == "k"){
-          
-          ref_type = "b"
-          
-          initial_state <- initial_state * 2.5
-        }
-        
-      }
+      # 
+      # if (is.na(terminal_state)){ # if no terminal b prior use approx from U/Umsy
+      #   
+      #   terminal_state <- pmax(.05,2.5 - mean(final_u[!is.na(final_u)]))
+      #   
+      #   terminal_state_cv <- 0.2
+      #   
+      #   if (ref_type == "k"){
+      #     
+      #     ref_type = "b"
+      #     
+      #     initial_state <- initial_state * 2.5
+      #   }
+      #   
+      # }
       
     } else {
       log_final_u <- NA

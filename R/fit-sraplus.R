@@ -102,7 +102,8 @@ fit_sraplus <- function(driors,
     sigma_proc_prior = driors$sigma_r_prior,
     sigma_proc_prior_cv = driors$sigma_r_prior_cv,
     b_ref_type = ifelse(driors$b_ref_type == "k", 0, 1),
-    use_final = !is.na(driors$terminal_state),
+    f_ref_type = ifelse(driors$f_ref_type == "f", 0, 1),
+    use_final_state = !is.na(driors$terminal_state),
     use_final_u = as.numeric(!all(is.na(
       driors$log_final_u
     ))),
@@ -231,16 +232,19 @@ fit_sraplus <- function(driors,
   
   
   # fit models
-  
   if ((sra_data$fit_index == 0 &
        sra_data$use_u_prior == 0) | engine == "sir") {
+    
+    if (sra_data$use_final_state == 0 & sra_data$use_final_u == 0){
+      stop("Trying to run SIR without priors on final status or fishing mortality! Specify one or both of these")
+    }
     sra_fit <- sraplus::sraplus(
       catches = sra_data$catch_t,
       r = pmax(
         0.01,
         rnorm(draws, driors$growth_rate_prior, driors$growth_rate_prior_cv)
       ),
-      m = runif(draws, 0.2, 6),
+      m = runif(draws, ifelse(estimate_shape,0.2, sra_data$shape_prior), ifelse(estimate_shape,6, sra_data$shape_prior)),
       init_dep = exp(
         rnorm(
           draws,
@@ -253,7 +257,7 @@ fit_sraplus <- function(driors,
         1.15 * max(sra_data$catch_t),
         50 * max(sra_data$catch_t)
       ),
-      sigma_procs = runif(draws, 0, 0.15),
+      sigma_procs = runif(draws, 0, ifelse(estimate_proc_error, 0.2, 0)),
       draws = draws,
       log_final_ref = ifelse(
         is.na(sra_data$log_final_dep_prior),
@@ -270,6 +274,7 @@ fit_sraplus <- function(driors,
       u_years = sra_data$u_years,
       sigma_u = sra_data$u_cv,
       b_ref_type = sra_data$b_ref_type,
+      f_ref_type = sra_data$f_ref_type,
       n_keep = n_keep,
       drawdex = 0:(draws - 1),
       qs = runif(draws, 1e-9, 1e-1),
@@ -279,6 +284,8 @@ fit_sraplus <- function(driors,
       sigma_obs = exp(rnorm(draws, log(0.2), 0.1)),
       plim = plim,
       use_final_u = sra_data$use_final_u,
+      use_final_state = sra_data$use_final_state,
+      
       log_final_u = sra_data$log_final_u,
       log_final_u_cv =  sra_data$log_final_u_cv
     )
