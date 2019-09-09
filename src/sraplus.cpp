@@ -18,7 +18,7 @@ IntegerVector index_years,
 IntegerVector u_years,
 int draws,
 int n_keep,
-int ref_type,
+int b_ref_type,
 int fit_index,
 int use_final_u,
 double log_final_ref,
@@ -131,12 +131,12 @@ double sigma_u
 
   if (crashed(i) == 0) {
 
-  if (ref_type == 0){
+  if (b_ref_type == 0){
 
     final_ref = dep_t(years - 1,i);
   }
 
-  if (ref_type == 1){
+  if (b_ref_type == 1){
 
     final_ref = b_bmsy_t(years - 1,i);
   }
