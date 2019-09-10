@@ -59,14 +59,16 @@ fit_prior_regressions <-
                    data = training,
                    chains = chains,
                    cores = cores,
-                   refresh = refresh)
+                   refresh = refresh,
+                   iter = iter)
     } else {
       fit <-
         stan_glm(model,
                  data = training,
                  chains = chains,
                  cores = cores,
-                 refresh = refresh)
+                 refresh = refresh,
+                 iter = iter)
       
     }
     

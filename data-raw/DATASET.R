@@ -581,12 +581,14 @@ model_structures <-
   purrr::cross_df(list(
     sampid = random_fmi_tests$sampid,
     model_structure = c(
+      "log_value ~ log(research) + log(management) + log(enforcement) + log(socioeconomics) + c_div_max_c + c_div_mean_c" ,
       "log_value ~ research + management + enforcement + socioeconomics + c_div_max_c + c_div_mean_c" ,
       "log_value ~ (research + management + enforcement + socioeconomics + c_div_max_c  + c_div_mean_c - 1|isscaap_group)",
       "log_value ~ c_div_max_c + c_div_mean_c  + (research + management + enforcement + socioeconomics - 1|isscaap_group)",
       "log_value ~ research + management + enforcement + socioeconomics",
       "log_value ~ (research + management + enforcement + socioeconomics - 1|isscaap_group)",
-      "log_value ~ + management + enforcement + socioeconomics + c_div_max_c + c_div_mean_c"
+      "log_value ~ + management + enforcement + socioeconomics + c_div_max_c + c_div_mean_c",
+      "log_value ~ (log(research) + log(management) + log(enforcement) + log(socioeconomics) - 1|isscaap_group)"
       
     )
   ))
@@ -601,7 +603,8 @@ random_fmi_tests <- random_fmi_tests %>%
       model_structure,
       fit_prior_regressions,
       produce = "summary",
-      refresh = 0
+      refresh = 500,
+      iter = 1000
     )
   )
 
@@ -644,9 +647,17 @@ best_fmi_models <- best_fmi_models %>%
       fit_prior_regressions,
       produce = "results",
       refresh = 100,
-      use_splits = FALSE
+      use_splits = FALSE,
+      iter = 1000
     )
   )
+
+# random_fmi_tests %>% 
+#   ggplot(aes(model_structure, testing_rmse)) + 
+#   geom_violin() + 
+#   coord_flip() + 
+#   facet_wrap(~metric) + 
+#   theme_minimal()
 
 
 
@@ -666,11 +677,12 @@ ram_v_sar <- sar_to_ram %>%
   mutate(log_value = log(value + 1e-3)) %>%
   mutate(sar_2 = sar ^ 2) %>%
   select(stockid, sar, sar_2, isscaap_group, metric, value, log_value, c_div_mean_c, c_div_max_c,mean_stock_in_tbp) %>% 
-  na.omit() %>%
-  filter(mean_stock_in_tbp > 50)
+  filter(mean_stock_in_tbp > 25 | is.na(mean_stock_in_tbp)) %>% 
+  select(-mean_stock_in_tbp) %>% 
+  na.omit()
 
 ram_v_sar %>% 
-  ggplot(aes(sar, log_value, color = mean_stock_in_tbp)) + 
+  ggplot(aes(sar, log_value)) + 
   geom_point() + 
   facet_wrap(~metric)
 
@@ -691,13 +703,14 @@ model_structures <-
   purrr::cross_df(list(
     sampid = random_sar_tests$sampid,
     model_structure = c(
+      "log_value ~  (log(sar) + log(sar_2) - 1|isscaap_group)",
       "log_value ~ poly(sar,2) + c_div_max_c + c_div_mean_c",
+      "log_value ~ log(sar) + c_div_max_c + c_div_mean_c",
       "log_value ~ sar + c_div_max_c + c_div_mean_c",
       "log_value ~ c_div_max_c + c_div_mean_c + (sar - 1|isscaap_group)",
       "log_value ~ c_div_max_c + c_div_mean_c + (sar + sar_2 - 1|isscaap_group)",
-      "log_value ~  (sar + sar_2 - 1|isscaap_group)"
-      
-      
+      "log_value ~  (sar + sar_2 - 1|isscaap_group)",
+      "log_value ~ c_div_max_c + c_div_mean_c + (log(sar) - 1|isscaap_group)"
     )
   ))
 
@@ -710,7 +723,8 @@ random_sar_tests <- random_sar_tests %>%
     model_structure,
     fit_prior_regressions,
     produce = "summary",
-    refresh = 0
+    refresh = 500,
+    iter = 1000
   ))
 
 random_sar_tests <- random_sar_tests %>%
@@ -753,7 +767,8 @@ best_sar_models <- best_sar_models %>%
       fit_prior_regressions,
       produce = "results",
       refresh = 100,
-      use_splits = FALSE
+      use_splits = FALSE,
+      iter = 1000
     )
   )
 
