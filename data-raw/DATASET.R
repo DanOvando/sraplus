@@ -572,7 +572,7 @@ ram_v_fmi <- recipe(log_value ~ ., data = ram_v_fmi) %>%
 
 random_fmi_tests <- ram_v_fmi %>%
   nest(-metric) %>%
-  mutate(splits = map(data, ~ rsample::vfold_cv(.x, v = 2, repeats = 1))) %>%
+  mutate(splits = map(data, ~ rsample::vfold_cv(.x, v = 3, repeats = 3))) %>%
   select(-data) %>%
   unnest() %>%
   mutate(sampid  = 1:nrow(.))
@@ -604,7 +604,7 @@ random_fmi_tests <- random_fmi_tests %>%
       fit_prior_regressions,
       produce = "summary",
       refresh = 500,
-      iter = 1000
+      iter = 2000
     )
   )
 
@@ -648,7 +648,7 @@ best_fmi_models <- best_fmi_models %>%
       produce = "results",
       refresh = 100,
       use_splits = FALSE,
-      iter = 1000
+      iter = 10000
     )
   )
 
@@ -694,7 +694,7 @@ ram_v_sar <- recipe(log_value ~ ., data = ram_v_sar) %>%
 
 random_sar_tests <- ram_v_sar %>%
   nest(-metric) %>%
-  mutate(splits = map(data, ~ rsample::vfold_cv(.x, v = 2, repeats = 1))) %>%
+  mutate(splits = map(data, ~ rsample::vfold_cv(.x, v = 3, repeats = 3))) %>%
   select(-data) %>%
   unnest() %>%
   mutate(sampid  = 1:nrow(.))
@@ -724,7 +724,7 @@ random_sar_tests <- random_sar_tests %>%
     fit_prior_regressions,
     produce = "summary",
     refresh = 500,
-    iter = 1000
+    iter = 2000
   ))
 
 random_sar_tests <- random_sar_tests %>%
@@ -768,7 +768,7 @@ best_sar_models <- best_sar_models %>%
       produce = "results",
       refresh = 100,
       use_splits = FALSE,
-      iter = 1000
+      iter = 10000
     )
   )
 
