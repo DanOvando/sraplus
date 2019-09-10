@@ -253,7 +253,7 @@ format_driors <-
       
     }
     if (is.na(initial_state)) {
-      initial_state <- ifelse(ref_type == "k", 1, 2.5)
+      initial_state <- ifelse(b_ref_type == "k", 1, 2.5)
     }
     
     if (is.na(initial_state)) {
@@ -300,7 +300,7 @@ format_driors <-
       else
         0.4
       
-      initial_state <-  dplyr::case_when(ref_type == "k" ~ temp,
+      initial_state <-  dplyr::case_when(b_ref_type == "k" ~ temp,
                                      TRUE ~ temp * 2.5)
       
       initial_state_cv <- 0.2

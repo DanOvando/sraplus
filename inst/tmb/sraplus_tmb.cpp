@@ -53,11 +53,13 @@ Type objective_function<Type>::operator() ()
   
   DATA_INTEGER(use_u_prior); //
   
-  DATA_INTEGER(ref_type); //0 means that initial and final are relative to K, 1 to Bmsy
+  DATA_INTEGER(b_ref_type); //0 means that initial and final are relative to K, 1 to Bmsy
+  
+  DATA_INTEGER(f_ref_type); //0 means f, 1 f/fmsy
   
   // DATA_INTEGER(use_init); // use initial reference point
   
-  DATA_INTEGER(use_final); // use final reference point
+  DATA_INTEGER(use_final_state); // use final reference point
   
   DATA_INTEGER(use_final_u); // use final U/Umsy
   
@@ -211,6 +213,9 @@ Type objective_function<Type>::operator() ()
     
   }
   
+  // std::cout << "sdfkjdsafdsfdf?" << std::endl;
+  
+  
   Type init_dep = exp(log_init_dep);
   
   // Type k = exp(log_k);
@@ -362,7 +367,7 @@ Type objective_function<Type>::operator() ()
   Type init_ref = 1.0;
   
   
-  if (ref_type == 0){
+  if (b_ref_type == 0){
     
     final_ref = dep_t(time - 1);
     
@@ -370,9 +375,7 @@ Type objective_function<Type>::operator() ()
     
   }
   
-  if (ref_type == 1) {
-    
-    // std::cout << "hello?" << "//n";
+  if (b_ref_type == 1) {
     
     final_ref = b_v_bmsy(time - 1);
     
@@ -381,7 +384,7 @@ Type objective_function<Type>::operator() ()
   }
   
   
-  if (use_final == 1) {
+  if (use_final_state == 1) {
     
     nll -= dnorm(log(final_ref), log_final_dep_prior,log_final_dep_cv, true);
     
@@ -390,13 +393,24 @@ Type objective_function<Type>::operator() ()
   }
   
   // allow for arbitarry numbers of priors on final U/Umsy, so that you can use FMI + SAR
-  
   if (use_final_u == 1){
     
     for (int i = 0; i < log_final_u.size(); i++){
       
+      if (f_ref_type == 1){
+      
       nll -= dnorm(log(u_v_umsy(time - 1)), log_final_u(i),log_final_u_cv(i), true);
       
+      } 
+      
+      if (f_ref_type == 0){
+        
+        // std::cout<< "hello? it's u!" << std::endl;
+      
+      nll -= dnorm(log(u_t(time - 1)), log_final_u(i),log_final_u_cv(i), true);
+      
+        
+      }
     } // cluse use final u loops
     
   } // close use final u

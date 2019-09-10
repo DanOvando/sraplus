@@ -352,7 +352,6 @@ fit_sraplus <- function(driors,
     upper_k <- log(50 * max(driors$catch))
     
     sraplus::get_tmb_model(model_name = model_name)
-    
     sra_model <-
       TMB::MakeADFun(
         data = sra_data,

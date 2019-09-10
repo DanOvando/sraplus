@@ -370,8 +370,11 @@ cpue_sar_qslope_driors <- format_driors(taxa = example_taxa,
                            shape_prior = 1.01,
                            q_slope_prior = 0.025,
                            q_slope_prior_cv = 0.25,
+                           f_ref_type = "f",
                            sar = 2,
-                           sar_cv = NA)
+                           sar_cv = 0.1)
+
+cpue_sar_qslope_driors$log_final_u
 
 cpue_sar_qslope_fit <- fit_sraplus(driors = cpue_sar_qslope_driors,
                              engine = "stan",
@@ -383,6 +386,8 @@ cpue_sar_qslope_fit <- fit_sraplus(driors = cpue_sar_qslope_driors,
                              cores = 1,
                              estimate_qslope = TRUE,
                              estimate_proc_error = FALSE)
+
+plot_sraplus(cpue_sar_qslope_fit)
 ```
 
 And for good measure one more with SAR data and process error instead of qslope
@@ -400,7 +405,8 @@ cpue_sar_proc_driors <- format_driors(taxa = example_taxa,
                            q_slope_prior = 0,
                            q_slope_prior_cv = 0.25,
                            sar = 4,
-                           sar_cv = .05)
+                           sar_cv = .05,
+                           f_ref_type = "f")
 
 cpue_sar_proc_fit <- fit_sraplus(driors = cpue_sar_proc_driors,
                              engine = "tmb",
