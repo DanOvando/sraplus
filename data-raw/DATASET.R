@@ -31,7 +31,7 @@ min_draws <- 2000 # minimum number of unique SIR draws
 
 n_cores <- 6 # number of cores for parallel processing
 
-lookup_fmi_names <- FALSE
+lookup_fmi_names <- TRUE
 
 future::plan(future::multiprocess, workers = n_cores)
 
@@ -67,20 +67,6 @@ if (file.exists(here("data-raw","ram.RData")) == FALSE) {
 }
 
 load(here::here("data-raw", "ram.RData"))
-
-
-
-min_years_catch = 20
-crazy_b = 4
-crazy_u = 5
-lookup_fmi_names = FALSE
-
-
-min_years_catch = 20
-crazy_b = 4
-crazy_u = 5
-lookup_fmi_names = FALSE
-
 
 # process data ------------------------------------------------------------
 
@@ -177,6 +163,11 @@ ram_data <- ram_data %>%
   ) %>%
   # filter(year >= first_catch_year) %>%
   ungroup()
+
+
+cod <- ram_data %>% 
+  filter(stocklong.x == "Atlantic cod IIIa (west) and IV-VIId")
+usethis::use_data(cod, overwrite = TRUE, internal = FALSE)
 
 
 # load other data ---------------------------------------------------------
@@ -572,7 +563,7 @@ ram_v_fmi <- recipe(log_value ~ ., data = ram_v_fmi) %>%
 
 random_fmi_tests <- ram_v_fmi %>%
   nest(-metric) %>%
-  mutate(splits = map(data, ~ rsample::vfold_cv(.x, v = 3, repeats = 3))) %>%
+  mutate(splits = map(data, ~ rsample:: vfold_cv(.x, v = 3, repeats = 1))) %>%
   select(-data) %>%
   unnest() %>%
   mutate(sampid  = 1:nrow(.))
@@ -694,7 +685,7 @@ ram_v_sar <- recipe(log_value ~ ., data = ram_v_sar) %>%
 
 random_sar_tests <- ram_v_sar %>%
   nest(-metric) %>%
-  mutate(splits = map(data, ~ rsample::vfold_cv(.x, v = 3, repeats = 3))) %>%
+  mutate(splits = map(data, ~ rsample::vfold_cv(.x, v = 3, repeats = 1))) %>%
   select(-data) %>%
   unnest() %>%
   mutate(sampid  = 1:nrow(.))
