@@ -658,7 +658,7 @@ best_fmi_models <- best_fmi_models %>%
   mutate(prior_plot = map2(fit, splits, plot_prior_fit))
 
 
-usethis::use_data(best_fmi_models,overwrite = TRUE)
+usethis::use_data(best_fmi_models %>% select(-best_fmi_fit),overwrite = TRUE)
 
 
 # fit sar models --------------------------------------------------------------
