@@ -1,19 +1,3 @@
-﻿fao_fishing_area,region
-34,africa
-47,africa
-51,africa
-67,north_america
-18,north_america
-21,north_america
-77,north_america
-31,north_america
-87,south_america
-41,south_america
-18,asia
-61,asia
-57,asia
-71,oceania
-81,oceania
-5,europe
-27,europe
-37,europe
+version https://git-lfs.github.com/spec/v1
+oid sha256:afeb2bdbacb231cebcfc6bc59661e2d22747dbb3dcb969d04c3e58c0e2a5196b
+size 268

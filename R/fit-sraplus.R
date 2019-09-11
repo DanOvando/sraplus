@@ -209,6 +209,7 @@ fit_sraplus <- function(driors,
   
   
   if (sra_data$calc_cpue == FALSE & marginalize_q == 1){
+    
     knockout$log_q <- NA
     
   }
@@ -228,14 +229,16 @@ fit_sraplus <- function(driors,
   
   knockout <- purrr::map(knockout, as.factor)
   
-  
-  
-  
   # fit models
-  if ((sra_data$fit_index == 0 &
-       sra_data$use_u_prior == 0) | engine == "sir") {
+  if (sra_data$fit_index == 0 | engine == "sir") {
     
-    if (sra_data$use_final_state == 0 & sra_data$use_final_u == 0){
+    if (engine != "sir"){
+      
+      warning("You tried to fit a model with nothing in the likelihood - using SIR instead")
+      
+    }
+    
+    if (sra_data$use_final_state == 0 & sra_data$use_final_u == 0 & sra_data$use_u_prior == 0){
       stop("Trying to run SIR without priors on final status or fishing mortality! Specify one or both of these")
     }
     sra_fit <- sraplus::sraplus(
@@ -269,7 +272,7 @@ fit_sraplus <- function(driors,
         1,
         sra_data$log_final_dep_cv
       ),
-      u_prior = sra_data$use_u_prior,
+      use_u_prior = sra_data$use_u_prior,
       u_priors = sra_data$u_priors,
       u_years = sra_data$u_years,
       sigma_u = sra_data$u_cv,
@@ -378,7 +381,7 @@ fit_sraplus <- function(driors,
     
     upper["log_init_dep"] <- log(1.5)
     
-    if (marginalize_q == 0) {
+    if (marginalize_q == 0 & sra_data$fit_index == 1) {
       upper['log_q'] <- log(1)
     }    
     if (estimate_qslope == TRUE){

@@ -54,7 +54,7 @@ format_driors <-
            terminal_state_cv = 0.1,
            u_v_umsy = NA,
            u_years = NA,
-           u_cv = 0.1,
+           u_cv = 0.2,
            final_u = NA,
            final_u_cv = NA,
            catch = NA,

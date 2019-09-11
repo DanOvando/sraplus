@@ -26,7 +26,7 @@ int use_final_state,
 double log_final_ref,
 double sigma_dep,
 double plim,
-int u_prior,
+int use_u_prior,
 NumericVector u_priors,
 double sigma_u
 ) {
@@ -152,12 +152,15 @@ double sigma_u
   log_like(i) += R::dnorm(log(final_ref),log_final_ref, sigma_dep, true);
   }
 
-  if (u_prior == 1){
+  if (use_u_prior == 1){
 
     for (int t = 0; t < u_years.size(); t++) {
 
-      log_like(i) += R::dnorm(log(u_priors(t) + 1e-6), log(u_umsy_t(u_years(t) - 1,i) + 1e-6), sigma_u, true);
+      // log_like(i) += R::dnorm(log(u_priors(t) + 1e-6), log(u_umsy_t(u_years(t) - 1,i) + 1e-6), sigma_u, true);
 
+      log_like(i) += R::dnorm(log(u_umsy_t(u_years(t) - 1,i) + 1e-6),log(u_priors(t) + 1e-6), sigma_u, true);
+      
+      
     }
 
   }
