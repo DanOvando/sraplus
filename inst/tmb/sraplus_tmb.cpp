@@ -3,23 +3,11 @@
 template<class Type>
 Type growfoo(Type r, Type m, Type b, Type plim)
 {
-  // if ( b > plim ){
-  
-  
+
   Type growth = (r  / (m - 1)) * b * (1 - pow(b,m - 1));
   
-  // pen += Type(0.0);
-  
   return growth;
-  // } else {
-  // 
-  //   Type growth = (b * 1/plim) * ((r  / (m - 1)) * b * (1 - pow(b,m - 1)));
-  //   
-  //   pen += Type(0.0);
-  //   
-  //   return growth;
-  // }
-  
+
 } // close function
 
 template<class Type>
@@ -35,8 +23,7 @@ Type objective_function<Type>::operator() ()
 {
   
   //// data and all that ////
-  // hello there
-  
+
   DATA_VECTOR(catch_t);
   
   DATA_VECTOR(index_t);
@@ -70,8 +57,6 @@ Type objective_function<Type>::operator() ()
   DATA_VECTOR(u_priors);
   
   DATA_IVECTOR(u_years);
-  
-  // DATA_SCALAR(u_cv);
   
   DATA_IVECTOR(index_years);
   
@@ -107,12 +92,6 @@ Type objective_function<Type>::operator() ()
   
   DATA_SCALAR(log_final_dep_cv);
   
-  // DATA_SCALAR(q_slope);
-  
-  // DATA_SCALAR(q_prior);
-  // 
-  // DATA_SCALAR(q_prior_cv);
-  // 
   DATA_SCALAR(q_slope_prior);
   
   DATA_SCALAR(q_slope_cv);
@@ -129,8 +108,6 @@ Type objective_function<Type>::operator() ()
   
   PARAMETER(log_k);
   
-  // PARAMETER(q);
-  
   PARAMETER(log_q);
   
   PARAMETER(log_q_slope);
@@ -143,15 +120,8 @@ Type objective_function<Type>::operator() ()
   
   PARAMETER(log_shape);
   
-  // PARAMETER_VECTOR(inv_f_t);
-  
-  // PARAMETER_VECTOR(log_f_t);
-  
   //// model ////
   
-  // if (  fit_index == 1 && fit_cpue == 1 ) {
-  //   throw std::invalid_argument( "Tried to use both fit_index and fit_effort, do you really have two different indices?" );
-  // }
   Type crashed = 0;
   
   Type nll = 0.0;
@@ -184,14 +154,7 @@ Type objective_function<Type>::operator() ()
   
   Type sigma_proc = exp(log_sigma_proc);
   
-  // Type sigma_u = exp(log_sigma_u);
-  
-  
-  // vector<Type> catch_hat_t(time - 1);
-  
   vector<Type> proc_errors(time - 1);
-  
-  // proc_errors = exp(sigma_proc * uc_proc_errors - pow(sigma_proc,2)/2);
   
   proc_errors = exp(log_proc_errors - pow(sigma_proc,2)/2);
   
@@ -213,30 +176,14 @@ Type objective_function<Type>::operator() ()
     
   }
   
-  // std::cout << "sdfkjdsafdsfdf?" << std::endl;
-  
   
   Type init_dep = exp(log_init_dep);
-  
-  // Type k = exp(log_k);
-  
-  // f_t = exp(log_f_t);
-  
-  // short_u_t = (f_t / (f_t + Type(0.2))) * (1 - exp(-(f_t + Type(0.2))));
-  
-  // Type init_u = 1 / (1 + exp(-inv_f_t(0)));
-  
-  // Type init_b = catch_t(0) / short_u_t[0];
-  
-  // Type k = init_b / init_dep;
   
   Type bmsy = k*pow(m, -1/(m - 1));
   
   Type umsy = (r / (m - 1)) * (1 - 1/m);
   
   Type msy = bmsy * umsy;
-  
-  // b_t(0) = k * init_dep;
   
   b_t(0) = init_dep;
   
@@ -246,13 +193,7 @@ Type objective_function<Type>::operator() ()
     
     q_t[t] = q_t[t - 1] * (1 + q_slope);
     
-    // u_t(t - 1) = 1 / (1 + exp(-inv_f_t(t - 1)));
-    
-    // u_t(t - 1) = short_u_t[t - 1];
-    
     u_t(t - 1) = catch_t(t - 1) / (b_t(t - 1) * k);
-    
-    // catch_hat_t(t - 1) = u_t(t - 1) * b_t(t - 1) * k;
     
     growth_t(t - 1) = growfoo(r,m,b_t(t - 1),plim);
     
@@ -314,6 +255,7 @@ Type objective_function<Type>::operator() ()
       
       if (marginalize_q == 0){ // standard estimation of q
         
+          // test bias correction on the sigma_obs
         nll -= dnorm(log(index_t(t) + 1e-3), log(index_hat_t(index_years(t) - 1) + 1e-3), sigma_obs, true);
         
       } else { // marginalized q 
@@ -339,33 +281,16 @@ Type objective_function<Type>::operator() ()
   
   for (int t = 0; t < (time - 1); t++){
     
-    // nll -= dnorm(log(catch_t(t)), log(catch_hat_t(t) + 1e-3), Type(.01), true);
-    
-    // nll -= dnorm(proc_errors(t), Type(0), Type(1), true);
-    
     nll -= dnorm(log_proc_errors(t), Type(0), sigma_proc, true);
     
   }
   
-  // for (int t = 1; t < (time - 1); t++){
-  // 
-  // 
-  //   nll -= dnorm(log_f_t(t), log_f_t(t - 1), f_cv, true);
-  // 
-  // }
-  
-  // nll -= dbinom(crashed, Type(time), Type(0.01), true);
-  
-  // nll += crashed;
-  
-  // nll -= dnorm(log_r, Type(-1.6), Type(0.05), true);
   
   nll -= dnorm(log_r, log_r_prior, log_r_cv, true);
   
   Type final_ref = 0.5;
   
   Type init_ref = 1.0;
-  
   
   if (b_ref_type == 0){
     
@@ -387,8 +312,6 @@ Type objective_function<Type>::operator() ()
   if (use_final_state == 1) {
     
     nll -= dnorm(log(final_ref), log_final_dep_prior,log_final_dep_cv, true);
-    
-    // nll -= dnorm((final_ref), exp(log_final_dep_prior),log_final_dep_cv, true);
     
   }
   
@@ -421,10 +344,6 @@ Type objective_function<Type>::operator() ()
   
   nll -= dnorm(log_q_slope,log(q_slope_prior),q_slope_cv, true);
   
-  // nll -= dbeta(q, Type(0.5), Type(1), true);
-  
-  // nll -= dnorm(log_q, log(q_prior), q_prior_cv);
-  
   nll -= dnorm(log_sigma_proc,log(sigma_proc_prior), sigma_proc_prior_cv, true);
   
   nll -= dnorm(log_k,log(k_prior),Type(k_prior_cv), true);
@@ -441,13 +360,9 @@ Type objective_function<Type>::operator() ()
   
   vector<Type> log_c_div_msy = log(catch_t / msy);
   
-  // vector<Type> log_chat = log(catch_hat_t);
-  
   vector<Type> log_ihat = log(index_hat_t);
   
   vector<Type> ck = catch_t / k;
-  
-  // REPORT(log_chat)
   
   REPORT(umsy);
   
@@ -467,10 +382,6 @@ Type objective_function<Type>::operator() ()
   
   ADREPORT(log_c_div_msy);
   
-  // ADREPORT(log_chat);
-  
-  // one more time for true report
-  
   REPORT(log_b);
   
   REPORT(log_bt);
@@ -480,8 +391,6 @@ Type objective_function<Type>::operator() ()
   REPORT(log_u);
   
   REPORT(log_c_div_msy);
-  
-  // REPORT(log_chat);
   
   REPORT(final_ref);
   

@@ -31,7 +31,7 @@ min_draws <- 2000 # minimum number of unique SIR draws
 
 n_cores <- 6 # number of cores for parallel processing
 
-lookup_fmi_names <- TRUE
+lookup_fmi_names <- FALSE
 
 future::plan(future::multiprocess, workers = n_cores)
 
@@ -69,6 +69,15 @@ if (file.exists(here("data-raw","ram.RData")) == FALSE) {
 load(here::here("data-raw", "ram.RData"))
 
 # process data ------------------------------------------------------------
+
+area$management_body <- str_split(area$areaid, '-', simplify = TRUE)[,2]
+
+stock <- stock %>%
+  left_join(area, by = "areaid")
+
+
+stock$country_rfmo <-  ifelse(tolower(stock$country) == "multinational" & !is.na(stock$country),stock$management_body, countrycode::countrycode(stock$country, "country.name", "fao.name"))
+
 
 # catches
 ram_catches <- tcbest.data %>%
@@ -237,6 +246,10 @@ fao_genus = fao_species %>%
   select(-n) %>%
   ungroup()
 
+fao_taxa <- list(fao_species = fao_species,
+                 fao_genus = fao_genus)
+
+usethis::use_data(fao_taxa, overwrite = TRUE)
 
 fao$fao_country_name <-
   countrycode::countrycode(fao$country, "country.name", "fao.name")
@@ -295,21 +308,32 @@ ram_species <- ram_fmi$ram_species %>%
 ram_data <<- ram_data %>%
   left_join(ram_species, by = "scientificname")
 
-# stock$country <- ifelse(stock$country == "USA", "United States of America", stock$country)
+
+ram_fmi_linkages <-
+  readxl::read_xlsx(
+    here::here("data-raw", "RAM-FMI linkages for DO 2019-09-16.xlsx"),
+    sheet = "RAM-FMI linkages",
+    skip = 1
+  ) %>%
+  janitor::clean_names() %>%
+  select(-contains("primary")) %>%
+  select(stockid,
+         areaid,
+         iso3_pref,
+         scientificname,
+         fao_scientific_name) %>%
+  mutate(iso3_pref = stringr::str_trim(stringr::str_replace_all(iso3_pref, ' \\| ', "\\|")))
 
 
-ram_vs_fmi <- read_csv(here::here("data-raw", "RAM vs FMI.csv"))
-
-ram_fmi_sheets <-
-  readxl::excel_sheets(here("data-raw", "RAM FMI stocks and taxonomic groupings.xlsx"))
-
-ram_fmi <-
-  map(ram_fmi_sheets, ~ readxl::read_xlsx(
-    here("data-raw", "RAM FMI stocks and taxonomic groupings.xlsx"),
-    sheet = .x
-  )) %>%
-  set_names(str_replace(tolower(ram_fmi_sheets), " ", "_"))
-
+ram_fmi_fao_regions_linkages <-
+  readxl::read_xlsx(
+    here::here("data-raw", "RAM-FMI linkages for DO 2019-09-16.xlsx"),
+    sheet = "csv",
+    skip = 0
+  ) %>%
+  janitor::clean_names() %>%
+  mutate(lookup_code = stringr::str_trim(stringr::str_replace_all(cspref, ' \\| ', "\\|"))) %>%
+  select(-contains("_recent"), stockid, region, primary_country, faor)
 
 
 fmi <-
@@ -322,9 +346,24 @@ fmi <-
 fmi$fao_country_name <-
   countrycode::countrycode(fmi$country_rfmo, "country.name", "fao.name")
 
-fmi <- fmi %>%
-  mutate(country_rfmo = case_when(is.na(fao_country_name) ~ country_rfmo, TRUE ~ fao_country_name))
+fmi$region <-   countrycode::countrycode(fmi$country_rfmo, "country.name", "region")
 
+# fmi <- fmi %>%
+#   mutate(country_rfmo = case_when(is.na(fao_country_name) ~ country_rfmo, TRUE ~ fao_country_name))
+# 
+# fmi$country <- fmi$country_rfmo
+# 
+# fmi$country_rfmo <-
+#   case_when(
+#     (fmi$region == "Southern Europe"  &
+#        (fmi$basin == "Med" |
+#           is.na(fmi$basin))) |
+#       (fmi$basin == "Med" | is.na(fmi$basin))  ~ "GFCM",
+#     fmi$region %in%  c("Northern Europe", "Western Europe") |
+#       (fmi$region == "Southern Europe" &
+#          !(fmi$basin == "Med" | is.na(fmi$basin))) ~ "ICES",
+#     TRUE ~ fmi$country_rfmo
+#   )
 
 if (lookup_fmi_names == TRUE) {
   fmi_names <- fmi %>%
@@ -365,64 +404,16 @@ if (lookup_fmi_names == TRUE) {
 }
 
 fmi <- fmi %>%
-  left_join(fmi_scinames, by = "species")
+  left_join(fmi_scinames %>% rename(scientificname2 = scientificname), by = "species")
 
-stock <- stock %>%
-  left_join(area, by = "areaid")
+fmi$lookup_code <- stringr::str_trim(stringr::str_replace_all(fmi$lookup_code,' \\| ', "\\|"))
 
-stock <- stock %>%
-  left_join(
-    fmi %>% select(lookup_code, country_rfmo, scientificname),
-    by = c("scientificname", "country" = "country_rfmo")
-  )
+fmi <- fmi %>% 
+  left_join(ram_fmi_linkages, by = c("lookup_code" = "iso3_pref")) %>% 
+  left_join(ram_fmi_fao_regions_linkages, by = c("stockid", "lookup_code")) %>% 
+  mutate(scientificname = ifelse(is.na(scientificname), scientificname2, scientificname)) %>% 
+  select(-scientificname2)
 
-fmi <- fmi %>%
-  left_join(stock %>% select(stockid, lookup_code), by = "lookup_code")
-
-
-manual_fmi_to_fao <-
-  tribble(
-    ~country_rfmo,
-    ~basin,
-    ~fao_area_code,
-    "the United States of America",
-    "Pac",
-    67,
-    "the United States of America",
-    "Pac",
-    77,
-    "the United States of America",
-    "Atl",
-    21,
-    "the United States of America",
-    "Atl",
-    31,
-    "Canada",
-    "Atl",
-    21,
-    "Canada",
-    "Pac",
-    67,
-    "the Russian Federation",
-    "Atl",
-    27,
-    "the Russian Federation",
-    "Pac",
-    61,
-    "Spain",
-    "Atl",
-    27,
-    "Spain",
-    "Atl",
-    34
-  )
-
-likely_country_to_fao <- fao_stock_lookup %>%
-  group_by(country, fao_area_code) %>%
-  count() %>%
-  group_by(country) %>%
-  mutate(rank_n = n / sum(n)) %>%
-  filter(rank_n > 0.15) # serious hack to try and keep it nearshore, knocks out China in 87 but unfortunately also USA in 67.. but those are mostly identified to basin in FMI so we'll take it
 
 fmi <-
   fmi %>%
@@ -430,49 +421,7 @@ fmi <-
   left_join(fao_species, by = c("scientificname" = "scientific_name")) %>%
   left_join(fao_genus, by = "genus") %>%
   mutate(isscaap_group = ifelse(is.na(isscaap_group.x), isscaap_group.y, isscaap_group.x)) %>%
-  select(-isscaap_group.x,-isscaap_group.y) %>%
-  left_join(fao_stock_lookup,
-            by = c("species" = "common_name", "country_rfmo" = "country")
-  ) %>%
-  rename(best_fao_code = fao_area_code) %>%
-  left_join(manual_fmi_to_fao, by = c("country_rfmo", "basin")) %>%
-  rename(second_best_fao_code = fao_area_code) %>%
-  left_join(likely_country_to_fao, by = c("country_rfmo" = "country")) %>%
-  rename(third_best_fao_code = fao_area_code) %>%
-  nest(-lookup_code)
-
-find_best_fao <- function(data) {
-  # data <- temp$data[[55]]
-  
-  best_match <- data %>% filter(!is.na(best_fao_code))
-  
-  second_best_match <- data %>% filter(!is.na(second_best_fao_code))
-  
-  third_best_match <- data %>% filter(!is.na(third_best_fao_code))
-  
-  if (nrow(best_match) > 0) {
-    out <- best_match %>%
-      mutate(fao_area_code = best_fao_code)
-  } else if (nrow(second_best_match) > 0) {
-    out <- second_best_match %>%
-      mutate(fao_area_code = second_best_fao_code)
-  } else if (nrow(third_best_match) > 0) {
-    out <- third_best_match %>%
-      mutate(fao_area_code = third_best_fao_code)
-  } else {
-    out <- best_match
-  }
-  
-  out <- out %>%
-    select(-(fao_area:rank_n))
-  return(out)
-}
-
-fmi <- fmi %>%
-  mutate(best_matches = map(data, find_best_fao)) %>%
-  select(-data) %>%
-  unnest()
-
+  select(-isscaap_group.x,-isscaap_group.y)
 
 usethis::use_data(fmi, overwrite = TRUE)
 
@@ -538,14 +487,18 @@ ram_v_fmi <- ram_data %>%
     c_div_max_c = mean(c_maxc),
     c_div_mean_c = mean(c_meanc)
   ) %>%
-  na.omit() %>%
   gather(metric, value,-stockid, -c_div_max_c, -c_div_mean_c) %>%
   ungroup() %>%
   left_join(fmi, by = "stockid") %>%
   filter(!is.na(lookup_code)) %>%
-  select(-basin, -stock, -scientificname, -scientific_name) %>%
+  select(-basin, -stock, -scientificname,-species,-contains("fao"),-contains(".x")) %>%
   mutate(log_value = log(value)) %>%
-  unique() #%>%
+  unique() %>% 
+  na.omit() %>% 
+  mutate_at(c("research", "management", "enforcement", "socioeconomics"), ~ .x + 1e-6)
+
+a = fmi %>% 
+  filter(!is.na(lookup_code))
 
 ram_v_fmi <- recipe(log_value ~ ., data = ram_v_fmi) %>%
   step_other(isscaap_group) %>%
@@ -560,10 +513,15 @@ ram_v_fmi <- recipe(log_value ~ ., data = ram_v_fmi) %>%
 #   filter(stockid %in% huh) %>%
 #   select(year, stockid, b_v_bmsy, u_v_umsy, catch)
 
+ram_v_fmi %>%
+  ggplot(aes(mean_fmi, log_value)) +
+  geom_point() +
+  facet_wrap(~metric)  +
+  geom_smooth()
 
 random_fmi_tests <- ram_v_fmi %>%
   nest(-metric) %>%
-  mutate(splits = map(data, ~ rsample:: vfold_cv(.x, v = 3, repeats = 1))) %>%
+  mutate(splits = map(data, ~ rsample:: vfold_cv(.x, v = 2, repeats = 1))) %>%
   select(-data) %>%
   unnest() %>%
   mutate(sampid  = 1:nrow(.))
@@ -639,7 +597,7 @@ best_fmi_models <- best_fmi_models %>%
       produce = "results",
       refresh = 100,
       use_splits = FALSE,
-      iter = 10000
+      iter = 5000
     )
   )
 
@@ -655,10 +613,10 @@ best_fmi_models <- best_fmi_models %>%
 
 best_fmi_models <- best_fmi_models %>%
   mutate(fit = map(best_fmi_fit, "fit")) %>% 
-  mutate(prior_plot = map2(fit, splits, plot_prior_fit))
+  mutate(prior_plot = map2(fit, splits, plot_prior_fit)) %>% 
+  select(-best_fmi_fit)
 
-
-usethis::use_data(best_fmi_models %>% select(-best_fmi_fit),overwrite = TRUE)
+usethis::use_data(best_fmi_models,overwrite = TRUE)
 
 
 # fit sar models --------------------------------------------------------------
@@ -685,7 +643,7 @@ ram_v_sar <- recipe(log_value ~ ., data = ram_v_sar) %>%
 
 random_sar_tests <- ram_v_sar %>%
   nest(-metric) %>%
-  mutate(splits = map(data, ~ rsample::vfold_cv(.x, v = 3, repeats = 1))) %>%
+  mutate(splits = map(data, ~ rsample::vfold_cv(.x, v = 2, repeats = 1))) %>%
   select(-data) %>%
   unnest() %>%
   mutate(sampid  = 1:nrow(.))
@@ -759,7 +717,7 @@ best_sar_models <- best_sar_models %>%
       produce = "results",
       refresh = 100,
       use_splits = FALSE,
-      iter = 10000
+      iter = 5000
     )
   )
 
@@ -779,6 +737,8 @@ sar_v_f_plot <- bayesplot::ppc_intervals(
     y = "log(U/Umsy)"
   )
 
+best_sar_models <- best_sar_models %>% 
+  select(-best_fit, -prior_plot)
 
 usethis::use_data(best_sar_models,overwrite = TRUE)
 

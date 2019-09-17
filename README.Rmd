@@ -82,6 +82,8 @@ library(tidyr)
 library(dplyr)
 library(sraplus)
 library(tmbstan)
+library(tmbstan)
+
 ```
 
 Once you've successfully installed `sraplus` you can take for a test drive with these examples. We'll now work through a couple examples, from simple to complex, of using `sraplus`
@@ -137,7 +139,9 @@ From there, we pass the `driors` object to `sraplus::fit_sraplus`, and plot the 
  catch_only_fit <- sraplus::fit_sraplus(driors = catch_only_driors,
                        engine = "sir",
                        draws = 1e6,
-                       n_keep = 2000)
+                       n_keep = 2000,
+                       estimate_proc_error = TRUE, 
+                       estimate_shape = TRUE)
 ```
 
 Running `fit_sraplus` always produces a list with two objects: `results` and `fit`. `results` is (mostly) standardized across engines set of summary outputs from the fitted model. This allows us to easily plot and compare outputs from models fit using `sir`, TMB, or stan. The `fit` object contains the actual fitted model, which will of course vary dramatically depending on what engine was used. 
@@ -188,8 +192,8 @@ fmi_sar_driors <- format_driors(
   initial_state = 1,
   initial_state_cv = 0.2,
   use_heuristics = FALSE,
-  sar = 3,
-  fmi = c("research" = 0.85,"management" = 0.75, "enforcement" = 0.75, "socioeconomics" = 0.75))
+  sar = 5,
+  fmi = c("research" = 0, "management" = 0, "socioeconomics" = 0, 'enforcement' = 0))
 
 sraplus::plot_driors(fmi_sar_driors)
 ```
@@ -203,7 +207,8 @@ fmi_sar_fit <- fit_sraplus(
   driors = fmi_sar_driors,
   engine = "sir",
   draws = 1e6,
-  n_keep = 2000
+  n_keep = 2000,
+  estimate_shape = TRUE
 )
 
 plot_sraplus(fmi_sar = fmi_sar_fit,
@@ -314,7 +319,6 @@ Just to explore functionality of `sraplus`, we'll fit the model using Bayesian e
 
 ```{r, results="hide"}
 
-library(tmbstan)
 
 cpue_driors <- format_driors(taxa = example_taxa,
                            catch = sim$pop$catch,
@@ -329,7 +333,7 @@ cpue_driors <- format_driors(taxa = example_taxa,
 
 
 cpue_fit <- fit_sraplus(driors = cpue_driors,
-                             engine = "stan",
+                             engine = "tmb",
                              model = "sraplus_tmb",
                              adapt_delta = 0.9,
                              max_treedepth = 10,
@@ -343,7 +347,7 @@ cpue_qslope_fit <- fit_sraplus(driors = cpue_driors,
                              model = "sraplus_tmb",
                              adapt_delta = 0.9,
                              max_treedepth = 10,
-                             n_keep = 2000,
+                             n_keep = 5000,
                              chains = 1, 
                              cores = 1,
                              estimate_qslope = TRUE,
@@ -377,7 +381,7 @@ cpue_sar_qslope_driors <- format_driors(taxa = example_taxa,
 cpue_sar_qslope_driors$log_final_u
 
 cpue_sar_qslope_fit <- fit_sraplus(driors = cpue_sar_qslope_driors,
-                             engine = "stan",
+                             engine = "tmb",
                              model = "sraplus_tmb",
                              adapt_delta = 0.9,
                              max_treedepth = 10,
@@ -387,7 +391,7 @@ cpue_sar_qslope_fit <- fit_sraplus(driors = cpue_sar_qslope_driors,
                              estimate_qslope = TRUE,
                              estimate_proc_error = FALSE)
 
-plot_sraplus(cpue_sar_qslope_fit)
+plot_sraplus(cpue_sar_qslope_fit, years = cpue_sar_qslope_driors$years)
 ```
 
 And for good measure one more with SAR data and process error instead of qslope

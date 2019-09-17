@@ -47,7 +47,7 @@
 #' @export
 #'
 format_driors <-
-  function(taxa = "gadus morhua",
+  function(taxa = "lutjanus griseus",
            initial_state = 1,
            initial_state_cv = 0.1,
            terminal_state = NA,
@@ -90,12 +90,33 @@ format_driors <-
            q_prior_cv = 1,
            sigma_obs_prior = 0.05,
            sigma_obs_prior_cv = .25,
-           isscaap_group = "Cods",
+           isscaap_group = "Flounders, halibuts, soles",
            prob = 0.9) {
     
     if (use_heuristics == TRUE){
       
       warning("WARNING: You are using catch heursitics as your stock assessment")
+      
+    }
+    
+    genus <- tolower(strsplit(taxa, split = ' ')[[1]][1])
+    
+    if (is.na(isscaap_group)){
+      
+      
+      if (any(grepl(tolower(taxa), tolower(fao_taxa$fao_species$scientific_name)))) {
+        
+        isscaap_group = fao_taxa$fao_species$isscaap_group[tolower(fao_taxa$fao_species$scientific_name) == tolower(taxa)][1]
+        
+      } else if (any(grepl(tolower(genus),tolower(fao_taxa$fao_genus$genus)))) {
+        
+        isscaap_group = fao_taxa$fao_genus$isscaap_group[tolower(fao_taxa$fao_genus$genus) == genus][1]
+        
+        
+      } else{
+        isscaap_group = "unknown"
+      }
+      
       
     }
 
@@ -143,7 +164,7 @@ format_driors <-
     if (any(!is.na(fmi))) {
       
       
-      temp <- purrr::map_df(fmi,  ~ .)
+      temp <- purrr::map_df(fmi,  ~ . + 1e-6)
       
       temp$c_div_max_c = last(catch / max(catch))
       

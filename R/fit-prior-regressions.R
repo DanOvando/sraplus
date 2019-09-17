@@ -50,8 +50,16 @@ fit_prior_regressions <-
     # has_nas <- map_lgl(training, ~any(is.na(.x))) | map_lgl(testing, ~any(is.na(.x)))
     
     
-    
     model <- as.formula(model_structure)
+    
+    # if (str_detect(model_structure,"log")){
+    #   
+    #   training[,c("research","management","socioeconomics","enforcement")] <- training[,c("research","management","socioeconomics","enforcement")] + 1e-6
+    #   
+    #   testing[,c("research","management","socioeconomics","enforcement")] <- testing[,c("research","management","socioeconomics","enforcement")] + 1e-6
+    #   
+    #   
+    # }
     
     if (str_detect(model_structure, "\\|")) {
       fit <-
