@@ -90,7 +90,7 @@ format_driors <-
            q_prior_cv = 1,
            sigma_obs_prior = 0.05,
            sigma_obs_prior_cv = .25,
-           isscaap_group = "Flounders, halibuts, soles",
+           isscaap_group = NA,
            prob = 0.9) {
     
     if (use_heuristics == TRUE){

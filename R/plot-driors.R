@@ -28,8 +28,8 @@ plot_driors <- function(driors, fontsize = 10, prob = 0.9) {
   }
   
   if (any(!is.na(driors$effort))) {
-    e_frame <- dplyr::tibble(year = driors$effort,
-                             effort = driors$effort_years)
+    e_frame <- dplyr::tibble(year = driors$effort_years,
+                             effort = driors$effort)
     timeseries <- timeseries %>%
       dplyr::left_join(e_frame, by = "year")
     

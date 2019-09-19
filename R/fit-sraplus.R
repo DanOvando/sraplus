@@ -61,6 +61,8 @@ fit_sraplus <- function(driors,
                         estimate_qslope = FALSE,
                         estimate_proc_error = TRUE,
                         marginalize_q = FALSE,
+                        use_baranov = TRUE,
+                        include_m = FALSE,
                         ci = 0.89
 ) {
   knockout <-
@@ -94,6 +96,7 @@ fit_sraplus <- function(driors,
     fit_index = as.numeric(!all(is.na(driors$index)) |
                              !all(is.na(driors$effort))),
     calc_cpue =  as.numeric(!all(is.na(driors$effort))),
+    use_baranov = as.numeric(use_baranov),
     use_u_prior = as.numeric(!all(is.na(driors$u_v_umsy))),
     u_years = which(driors$u_years %in% driors$years),
     u_priors = driors$u_v_umsy,
@@ -116,7 +119,7 @@ fit_sraplus <- function(driors,
     q_slope_prior = driors$q_slope_prior,
     q_slope_cv = driors$q_slope_prior_cv,
     eps = 1e-3,
-    nat_m = driors$m,
+    nat_m = ifelse(include_m, driors$m,0),
     shape_prior = driors$shape_prior,
     shape_cv = driors$shape_prior_cv,
     sigma_obs_prior = driors$sigma_obs_prior,
@@ -238,7 +241,7 @@ fit_sraplus <- function(driors,
       
     }
     
-    if (sra_data$use_final_state == 0 & sra_data$use_final_u == 0 & sra_data$use_u_prior == 0){
+    if (sra_data$use_final_state == 0 & sra_data$use_final_u == 0 & sra_data$use_u_prior == 0 & is.na(driors$terminal_state)){
       stop("Trying to run SIR without priors on final status or fishing mortality! Specify one or both of these")
     }
     sra_fit <- sraplus::sraplus(
@@ -483,7 +486,6 @@ fit_sraplus <- function(driors,
       
       
     } else if (engine == "tmb") {
-      
       set.seed(seed)
       fit <- TMBhelper::fit_tmb(
         sra_model,
