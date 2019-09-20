@@ -54,8 +54,6 @@ FishLifeData<- Return[c("ParentChild_gz","beta_gv","Cov_gvv")]
 
 FishLifeData$metadata <- "emailed from Thorson, beta version with newparameters"
 
-usethis::use_data(FishLifeData, overwrite = TRUE, internal = TRUE)
-
 
 if (file.exists(here("data-raw","ram.RData")) == FALSE) {
   # for now storing in my google drive... will need to put this in a better and public location
@@ -249,7 +247,7 @@ fao_genus = fao_species %>%
 fao_taxa <- list(fao_species = fao_species,
                  fao_genus = fao_genus)
 
-usethis::use_data(fao_taxa, overwrite = TRUE)
+usethis::use_data(fao_taxa,FishLifeData, overwrite = TRUE, internal = TRUE)
 
 fao$fao_country_name <-
   countrycode::countrycode(fao$country, "country.name", "fao.name")
