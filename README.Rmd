@@ -125,7 +125,7 @@ You can take a look at the information in the `catch_only_driors` object by usin
 
 ```{r c-msy-3}
 
-sraplus::plot_driors(catch_only_driors)
+plot_driors(catch_only_driors)
 
 ```
 
@@ -190,10 +190,13 @@ fmi_sar_driors <- format_driors(
   catch = cod$catch,
   years = cod$year,
   initial_state = 1,
-  initial_state_cv = 0.2,
+  initial_state_cv = 0.25,
   use_heuristics = FALSE,
-  sar = 5,
-  fmi = c("research" = 0, "management" = 0, "socioeconomics" = 0, 'enforcement' = 0))
+  sar = 2,
+  fmi = c("research" = 0, "management" = 0, "socioeconomics" = 0, 'enforcement' = 0),
+  use_b_reg = FALSE,
+  b_ref_type = "k",
+  sigma_r_prior_cv = 0.5)
 
 sraplus::plot_driors(fmi_sar_driors)
 ```
@@ -208,8 +211,14 @@ fmi_sar_fit <- fit_sraplus(
   engine = "sir",
   draws = 1e6,
   n_keep = 2000,
-  estimate_shape = TRUE
+  estimate_shape = FALSE,
+  estimate_proc_error = TRUE
 )
+
+fmi_sar_fit$fit %>% 
+  filter(variable == "b_bmsy_t") %>% 
+  ggplot(aes(year, value, group = draw)) + 
+  geom_line(alpha = 0.5)
 
 plot_sraplus(fmi_sar = fmi_sar_fit,
              catch_only = catch_only_fit,
@@ -347,7 +356,7 @@ cpue_qslope_fit <- fit_sraplus(driors = cpue_driors,
                              model = "sraplus_tmb",
                              adapt_delta = 0.9,
                              max_treedepth = 10,
-                             n_keep = 5000,
+                             n_keep = 1000,
                              chains = 1, 
                              cores = 1,
                              estimate_qslope = TRUE,

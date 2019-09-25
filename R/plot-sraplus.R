@@ -28,7 +28,7 @@ plot_sraplus <- function(..., fontsize = 14,
                             temp = fits) %>% 
     dplyr::mutate(results = purrr::map(temp,"results")) %>% 
     dplyr::select(-temp) %>% 
-    tidyr::unnest()
+    tidyr::unnest(cols = results)
   
   facet_labeller <- c(
     b_div_bmsy = "B/Bmsy",

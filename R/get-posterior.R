@@ -22,12 +22,13 @@ get_posterior <-  function(draws,
   
   draw_names <-
     stringr::str_remove_all(draw_names, "\\d|__|\\[|\\]")
-  
+
   draw_locs <- which(draw_names %in% names(inits))
-  
   par_list <-
     dplyr::tibble(par = draw_names[draw_locs], vals = as.numeric(draws[draw_locs])) %>%
-    tidyr::nest(-par)
+    group_by(par) %>% 
+    tidyr::nest() %>% 
+    dplyr::ungroup()
   
   
   # SERIOUSLY annoying step to put back in things that you knocked out with map

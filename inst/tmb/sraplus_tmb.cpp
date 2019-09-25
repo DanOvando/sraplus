@@ -160,6 +160,9 @@ Type objective_function<Type>::operator() ()
   
   proc_errors = exp(log_proc_errors - pow(sigma_proc,2)/2);
   
+  // proc_errors = exp(log_proc_errors * sigma_proc - pow(sigma_proc,2)/2);
+  
+  
   Type k = exp(log_k);
   
   catch_t = catch_t + Type(1e-3);
@@ -247,16 +250,16 @@ Type objective_function<Type>::operator() ()
       
       if (calc_cpue == 1){
         
-        Type ftemp = q_t(index_years(t) - 1) * effort_t(index_years(t) - 1);
+        Type ftemp = q_t(index_years(t) - 1) * effort_t(t);
         
         Type effective_f = (ftemp / (ftemp + nat_m)) * (1 - exp(-(ftemp + nat_m)));
         
         if (use_baranov == 1){
         
-        index_t(index_years(t) - 1) = catch_t(index_years(t) - 1) / effective_f;
+        index_t(t) = catch_t(index_years(t) - 1) / effective_f;
           
         } else {
-          index_t(index_years(t) - 1) = catch_t(index_years(t) - 1) / ftemp;
+          index_t(t) = catch_t(index_years(t) - 1) / ftemp;
         }
         
       }
@@ -289,7 +292,10 @@ Type objective_function<Type>::operator() ()
   
   for (int t = 0; t < (time - 1); t++){
     
-    nll -= dnorm(log_proc_errors(t), Type(0), sigma_proc, true);
+    nll -= dnorm(log_proc_errors(t), -pow(sigma_proc,2)/2, sigma_proc, true);
+    
+    // nll -= dnorm(log_proc_errors(t), Type(0), Type(1), true);
+    
     
   }
   
