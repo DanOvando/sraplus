@@ -20,8 +20,8 @@ plot_driors <- function(driors, fontsize = 10, prob = 0.9) {
   }
   
   if (any(!is.na(driors$u_v_umsy))) {
-    u_frame <- dplyr::tibble(year = driors$u_v_umsy,
-                             u_v_umsy = driors$u_years)
+    u_frame <- dplyr::tibble(year = driors$u_years,
+                             u_v_umsy = driors$u_v_umsy)
     timeseries <- timeseries %>%
       dplyr::left_join(u_frame, by = "year")
     
@@ -99,7 +99,7 @@ plot_driors <- function(driors, fontsize = 10, prob = 0.9) {
   }
   sims <- dplyr::tibble(variable = plot_vars) %>%
     dplyr::mutate(draws = purrr::map(variable, foo, driors = driors)) %>%
-    tidyr::unnest()
+    tidyr::unnest(cols = draws)
   
   var_plots <- sims %>%
     ggplot2::ggplot(aes(draws)) +

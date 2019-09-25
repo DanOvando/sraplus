@@ -68,7 +68,7 @@ format_driors <-
            use_heuristics = FALSE,
            use_b_reg = FALSE,
            growth_rate_prior = NA,
-           growth_rate_prior_cv = NA,
+           growth_rate_prior_cv = 0.5,
            fmi = c(
              "research" = NA,
              "management" = NA,
@@ -83,13 +83,13 @@ format_driors <-
            m = NA,
            k_prior = NA,
            k_prior_cv = 2,
-           sigma_r_prior = 0.01,
-           sigma_r_prior_cv = 0.25,
+           sigma_r_prior = 0.05,
+           sigma_r_prior_cv = 0.5,
            shape_prior = 1.01,
-           shape_prior_cv = 0.05,
+           shape_prior_cv = 0.25,
            q_prior_cv = 1,
            sigma_obs_prior = 0.05,
-           sigma_obs_prior_cv = .25,
+           sigma_obs_prior_cv = .5,
            isscaap_group = NA,
            prob = 0.9) {
     
@@ -157,6 +157,20 @@ format_driors <-
       usd <- ifelse(is.na(sar_cv), sd(pp), sar_cv)
       
       final_u_cv <- c(final_u_cv, usd)
+      
+      if (use_b_reg == TRUE){
+        
+        tempmod <- best_sar_models$fit[best_sar_models$metric == "mean_bbmsy"][[1]]
+        
+        pp <-
+          rstanarm::posterior_predict(tempmod, newdata = temp)
+        
+        pp <- pp[pp > quantile(pp, (1 - prob)/2) & pp < quantile(pp, 1 - (1 - prob)/2)]
+        
+        terminal_state <- exp(mean(pp))
+        
+        terminal_state_cv <- ifelse(is.na(sar_cv), sd(pp), sar_cv)
+      }
       
     }
     
