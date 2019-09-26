@@ -336,7 +336,7 @@ fit_sraplus <- function(driors,
       .id = "variable"
     )
     out <- tidy_fits %>%
-      bind_rows(tidy_static_fits) %>% 
+      dplyr::bind_rows(tidy_static_fits) %>% 
       dplyr::group_by(year, variable) %>%
       dplyr::summarise(
         mean = mean(value),
