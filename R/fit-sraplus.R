@@ -317,7 +317,6 @@ fit_sraplus <- function(driors,
     outs <- stringr::str_detect(names(sra_fit), "_t")
     
     sra_fit$b_t[, keepers] -> a
-    
     tidy_fits <-
       purrr::map_df(
         purrr::keep(sra_fit, outs),
@@ -327,8 +326,17 @@ fit_sraplus <- function(driors,
       ) %>%
       dplyr::mutate(draw = stringr::str_replace_all(draw, "\\D", "") %>% as.numeric())
     
+    static_outs <- !stringr::str_detect(names(sra_fit), "_t") & names(sra_fit) != "keepers"
     
+    
+    tidy_static_fits <-   purrr::map_df(
+      purrr::keep(sra_fit, static_outs),
+      ~ data.frame(value = .x[keepers]) %>% dplyr::mutate(year = 1, draw = 1:nrow(.)),
+      keepers = keepers,
+      .id = "variable"
+    )
     out <- tidy_fits %>%
+      bind_rows(tidy_static_fits) %>% 
       dplyr::group_by(year, variable) %>%
       dplyr::summarise(
         mean = mean(value),

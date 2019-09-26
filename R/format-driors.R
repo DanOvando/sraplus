@@ -68,7 +68,7 @@ format_driors <-
            use_heuristics = FALSE,
            use_b_reg = FALSE,
            growth_rate_prior = NA,
-           growth_rate_prior_cv = 0.5,
+           growth_rate_prior_cv = 0.1,
            fmi = c(
              "research" = NA,
              "management" = NA,

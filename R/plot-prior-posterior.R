@@ -29,7 +29,7 @@ plot_prior_posterior <- function(fit, driors){
   plot_driors(cpue_driors)
   
   cpue_fit  <- fit_sraplus(driors = cpue_driors,
-                                               engine = "tmb",
+                                               engine = "stan",
                                                model = "sraplus_tmb",
                                                adapt_delta = 0.9,
                                                max_treedepth = 10,

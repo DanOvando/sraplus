@@ -217,6 +217,8 @@ NumericVector keepers = sample(drawdex, n_keep, 1, scaled_like) + 1;
       Rcpp::Named("c_msy_t") = c_msy_t,
       Rcpp::Named("r") = rs,
       Rcpp::Named("m") = ms,
-      Rcpp::Named("k") = ks);
+      Rcpp::Named("k") = ks,
+      Rcpp::Named("umsy") = umsy,
+      Rcpp::Named("msy") = msy);
 
 } // close popmodel
