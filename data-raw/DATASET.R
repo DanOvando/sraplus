@@ -434,8 +434,7 @@ recent_ram <- ram_data %>%
   summarise(mean_bbmsy = mean(b_v_bmsy, na.rm = TRUE),
             mean_uumsy = mean(u_v_umsy, na.rm = TRUE),
             mean_f = mean(-log(1 - pmin(0.95,exploitation_rate)), na.rm = TRUE),
-            c_div_max_c = mean(c_maxc),
-            c_div_mean_c = mean(c_meanc)) %>%
+            c_div_max_c = mean(c_maxc)) %>%
   na.omit()
 
 
@@ -482,10 +481,8 @@ ram_v_fmi <- ram_data %>%
     mean_bbmsy = mean(b_v_bmsy, na.rm = TRUE),
     mean_uumsy = mean(u_v_umsy, na.rm = TRUE),
     mean_f = mean(-log(1 - pmin(0.95,exploitation_rate)), na.rm = TRUE),
-    c_div_max_c = mean(c_maxc),
-    c_div_mean_c = mean(c_meanc)
-  ) %>%
-  gather(metric, value,-stockid, -c_div_max_c, -c_div_mean_c) %>%
+    c_div_max_c = mean(c_maxc)) %>%
+  gather(metric, value,-stockid, -c_div_max_c) %>%
   ungroup() %>%
   left_join(fmi, by = "stockid") %>%
   filter(!is.na(lookup_code)) %>%
@@ -519,7 +516,7 @@ ram_v_fmi %>%
 
 random_fmi_tests <- ram_v_fmi %>%
   nest(-metric) %>%
-  mutate(splits = map(data, ~ rsample:: vfold_cv(.x, v = 2, repeats = 1))) %>%
+  mutate(splits = map(data, ~ rsample:: vfold_cv(.x, v = 3, repeats = 5))) %>%
   select(-data) %>%
   unnest() %>%
   mutate(sampid  = 1:nrow(.))
@@ -528,13 +525,13 @@ model_structures <-
   purrr::cross_df(list(
     sampid = random_fmi_tests$sampid,
     model_structure = c(
-      "log_value ~ log(research) + log(management) + log(enforcement) + log(socioeconomics) + c_div_max_c + c_div_mean_c" ,
-      "log_value ~ research + management + enforcement + socioeconomics + c_div_max_c + c_div_mean_c" ,
-      "log_value ~ (research + management + enforcement + socioeconomics + c_div_max_c  + c_div_mean_c - 1|isscaap_group)",
-      "log_value ~ c_div_max_c + c_div_mean_c  + (research + management + enforcement + socioeconomics - 1|isscaap_group)",
+      "log_value ~ log(research) + log(management) + log(enforcement) + log(socioeconomics) + c_div_max_c" ,
+      "log_value ~ research + management + enforcement + socioeconomics + c_div_max_c" ,
+      "log_value ~ (research + management + enforcement + socioeconomics + c_div_max_c - 1|isscaap_group)",
+      "log_value ~ c_div_max_c  + (research + management + enforcement + socioeconomics - 1|isscaap_group)",
       "log_value ~ research + management + enforcement + socioeconomics",
       "log_value ~ (research + management + enforcement + socioeconomics - 1|isscaap_group)",
-      "log_value ~ + management + enforcement + socioeconomics + c_div_max_c + c_div_mean_c",
+      "log_value ~ + management + enforcement + socioeconomics + c_div_max_c",
       "log_value ~ (log(research) + log(management) + log(enforcement) + log(socioeconomics) - 1|isscaap_group)"
       
     )
@@ -620,10 +617,10 @@ usethis::use_data(best_fmi_models,overwrite = TRUE)
 # fit sar models --------------------------------------------------------------
 
 ram_v_sar <- sar_to_ram %>%
-  gather(metric, value, contains("mean_"), -c_div_mean_c,-mean_stock_in_tbp,-mean_tbp_in_stock) %>%
+  gather(metric, value, contains("mean_"),-mean_stock_in_tbp,-mean_tbp_in_stock) %>%
   mutate(log_value = log(value + 1e-3)) %>%
   mutate(sar_2 = sar ^ 2) %>%
-  select(stockid, sar, sar_2, isscaap_group, metric, value, log_value, c_div_mean_c, c_div_max_c,mean_stock_in_tbp) %>% 
+  select(stockid, sar, sar_2, isscaap_group, metric, value, log_value, c_div_max_c,mean_stock_in_tbp) %>% 
   filter(mean_stock_in_tbp > 25 | is.na(mean_stock_in_tbp)) %>% 
   select(-mean_stock_in_tbp) %>% 
   na.omit()
@@ -641,7 +638,7 @@ ram_v_sar <- recipe(log_value ~ ., data = ram_v_sar) %>%
 
 random_sar_tests <- ram_v_sar %>%
   nest(-metric) %>%
-  mutate(splits = map(data, ~ rsample::vfold_cv(.x, v = 2, repeats = 1))) %>%
+  mutate(splits = map(data, ~ rsample::vfold_cv(.x, v = 3, repeats = 5))) %>%
   select(-data) %>%
   unnest() %>%
   mutate(sampid  = 1:nrow(.))
@@ -651,13 +648,13 @@ model_structures <-
     sampid = random_sar_tests$sampid,
     model_structure = c(
       "log_value ~  (log(sar) + log(sar_2) - 1|isscaap_group)",
-      "log_value ~ poly(sar,2) + c_div_max_c + c_div_mean_c",
-      "log_value ~ log(sar) + c_div_max_c + c_div_mean_c",
-      "log_value ~ sar + c_div_max_c + c_div_mean_c",
-      "log_value ~ c_div_max_c + c_div_mean_c + (sar - 1|isscaap_group)",
-      "log_value ~ c_div_max_c + c_div_mean_c + (sar + sar_2 - 1|isscaap_group)",
+      "log_value ~ poly(sar,2) + c_div_max_c",
+      "log_value ~ log(sar) + c_div_max_c",
+      "log_value ~ sar + c_div_max_c",
+      "log_value ~ c_div_max_c + (sar - 1|isscaap_group)",
+      "log_value ~ c_div_max_c + (sar + sar_2 - 1|isscaap_group)",
       "log_value ~  (sar + sar_2 - 1|isscaap_group)",
-      "log_value ~ c_div_max_c + c_div_mean_c + (log(sar) - 1|isscaap_group)"
+      "log_value ~ c_div_max_c + (log(sar) - 1|isscaap_group)"
     )
   ))
 
