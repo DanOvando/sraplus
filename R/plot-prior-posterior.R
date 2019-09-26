@@ -1,51 +1,53 @@
-plot_prior_posterior <- function(fit, driors){
+plot_prior_posterior <- function(fit, driors,
+                                 draws = 1000,
+                                 prob  = 0.9){
   
-  draws = 1000
-  
-  prob = 0.9
-  
-  effort_years <- seq(5,25, by = 2)
+  # draws = 1000
+  # 
+  # prob = 0.9
+  # 
+  # effort_years <- seq(5,25, by = 2)
   
   # effort_years <- 1:nrow(sim$pop)
   
   
-  cpue_driors <- format_driors(taxa = example_taxa,
-                                        catch = sim$pop$catch,
-                                        years = sim$pop$year,
-                                        effort = sim$pop$effort[effort_years],
-                                        effort_years = effort_years,
-                               u_v_umsy = sim$pop$u_umsy[effort_years],
-                               u_years = effort_years,
-                                        growth_rate_prior = 0.4,
-                                        growth_rate_prior_cv = 0.1,
-                                        shape_prior = 1.01,
-                                        q_slope_prior = 0.025,
-                                        q_slope_prior_cv = 0.25,
-                               sar = 0,
-                               sar_cv = 0.1,
-                               fmi = c("research" = 0, "management" = 0, "socioeconomics" = 0, 'enforcement' = 0),
-                                        f_ref_type = "f")
-
-  plot_driors(cpue_driors)
+  # cpue_driors <- format_driors(taxa = example_taxa,
+  #                                       catch = sim$pop$catch,
+  #                                       years = sim$pop$year,
+  #                                       effort = sim$pop$effort[effort_years],
+  #                                       effort_years = effort_years,
+  #                              u_v_umsy = sim$pop$u_umsy[effort_years],
+  #                              u_years = effort_years,
+  #                                       growth_rate_prior = 0.4,
+  #                                       growth_rate_prior_cv = 0.1,
+  #                                       shape_prior = 1.01,
+  #                                       q_slope_prior = 0.025,
+  #                                       q_slope_prior_cv = 0.25,
+  #                              sar = 0,
+  #                              sar_cv = 0.1,
+  #                              fmi = c("research" = 0, "management" = 0, "socioeconomics" = 0, 'enforcement' = 0),
+  #                                       f_ref_type = "f")
+  # 
+  # plot_driors(cpue_driors)
+  # 
+  # cpue_fit  <- fit_sraplus(driors = cpue_driors,
+  #                                              engine = "tmb",
+  #                                              model = "sraplus_tmb",
+  #                                              adapt_delta = 0.9,
+  #                                              max_treedepth = 10,
+  #                                              n_keep = 2000,
+  #                                              chains = 1, 
+  #                                              cores = 1,
+  #                                              estimate_qslope = FALSE,
+  #                                              estimate_proc_error = FALSE)
+  # 
+  # plot_sraplus(cpue_fit, years = sim$pop$year)
   
-  cpue_fit  <- fit_sraplus(driors = cpue_driors,
-                                               engine = "tmb",
-                                               model = "sraplus_tmb",
-                                               adapt_delta = 0.9,
-                                               max_treedepth = 10,
-                                               n_keep = 2000,
-                                               chains = 1, 
-                                               cores = 1,
-                                               estimate_qslope = FALSE,
-                                               estimate_proc_error = FALSE)
-  
-  plot_sraplus(cpue_fit, years = sim$pop$year)
-  
-  
-  fit <- cpue_fit
-  
-  driors <- cpue_driors
-  
+  # 
+  # fit <- cpue_fit
+  # 
+  # driors <- cpue_driors
+  # 
   
   timeseries <- dplyr::tibble(year = driors$years,
                               catch = driors$catch)
