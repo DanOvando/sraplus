@@ -48,7 +48,9 @@ plot_prior_posterior <- function(fit, driors,
   # 
   # driors <- cpue_driors
   # 
-  
+
+ 
+
   timeseries <- dplyr::tibble(year = driors$years,
                               catch = driors$catch)
   
