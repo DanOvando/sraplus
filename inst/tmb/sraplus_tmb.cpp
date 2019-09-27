@@ -204,7 +204,7 @@ Type objective_function<Type>::operator() ()
     
     b_t(t) = (b_t(t - 1) +  growth_t(t - 1) - catch_t(t - 1) / k) * proc_errors(t - 1);
     
-    b_t(t) = posfun(b_t(t),eps,pen);
+    b_t(t) = posfun(b_t(t) * k,eps,pen) / k;
     
     
   } // close population model

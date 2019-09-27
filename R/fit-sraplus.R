@@ -64,7 +64,8 @@ fit_sraplus <- function(driors,
                         use_baranov = TRUE,
                         include_m = FALSE,
                         ci = 0.89,
-                        try_again = FALSE) {
+                        try_again = FALSE,
+                        eps = 1e-6) {
   knockout <-
     list() #parameters to knockout from TMB estimation using TMB::map
   
@@ -118,7 +119,7 @@ fit_sraplus <- function(driors,
     k_prior_cv = driors$k_prior_cv,
     q_slope_prior = driors$q_slope_prior,
     q_slope_cv = driors$q_slope_prior_cv,
-    eps = 1e-3,
+    eps = eps,
     nat_m = ifelse(include_m, driors$m, 0),
     shape_prior = driors$shape_prior,
     shape_cv = driors$shape_prior_cv,
@@ -516,7 +517,8 @@ fit_sraplus <- function(driors,
         sra_model,
         fn = sra_model$fn,
         gr = sra_model$gr,
-        newtonsteps = 6,
+        loopnum = 3,
+        newtonsteps = 1,
         lower = lower,
         upper = upper,
         getsd = FALSE,
