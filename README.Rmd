@@ -193,7 +193,8 @@ fmi_sar_driors <- format_driors(
   initial_state_cv = 0.25,
   use_heuristics = FALSE,
   sar = 2,
-  fmi = c("research" = 0, "management" = 0, "socioeconomics" = 0, 'enforcement' = 0),
+  fmi = c("research" = 0.5, "management" = 0.5, "socioeconomics" = 0.5, 'enforcement' = 0.5),
+  fmi_cv = 0.2,
   use_b_reg = FALSE,
   b_ref_type = "k",
   sigma_r_prior_cv = 0.5)

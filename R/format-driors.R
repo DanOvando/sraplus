@@ -89,7 +89,7 @@ format_driors <-
            shape_prior_cv = 0.25,
            q_prior_cv = 1,
            sigma_obs_prior = 0.05,
-           sigma_obs_prior_cv = .5,
+           sigma_obs_prior_cv = 2,
            isscaap_group = NA,
            prob = 0.9) {
     

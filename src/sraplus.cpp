@@ -111,7 +111,7 @@ double sigma_u
 
     }
 
-    if (b_t(t,i) < 0 || umsy(i) >= 1){
+    if (b_t(t,i) <= 0 || umsy(i) >= 1){
 
         log_like(i) = -1e9;
 

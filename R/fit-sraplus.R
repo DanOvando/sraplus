@@ -65,7 +65,15 @@ fit_sraplus <- function(driors,
                         include_m = FALSE,
                         ci = 0.89,
                         try_again = FALSE,
-                        eps = 1e-6) {
+                        eps = 1e-6,
+                        max_time = Inf) {
+  
+  if (max_time < Inf){
+    
+    setTimeLimit(elapsed = max_time)
+    
+  }
+  
   knockout <-
     list() #parameters to knockout from TMB estimation using TMB::map
   
