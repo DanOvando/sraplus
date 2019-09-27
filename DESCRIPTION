@@ -1,7 +1,7 @@
 Package: sraplus
 Type: Package
 Title: Run sraplus Assessments
-Version: 2.1.0.9000
+Version: 2.1.1
 Date: 2019-01-09
 Author: Dan Ovando
 Maintainer: Dan Ovando <danovan@uw.edu>
