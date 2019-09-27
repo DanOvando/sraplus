@@ -63,7 +63,8 @@ fit_sraplus <- function(driors,
                         marginalize_q = FALSE,
                         use_baranov = TRUE,
                         include_m = FALSE,
-                        ci = 0.89) {
+                        ci = 0.89,
+                        try_again = FALSE) {
   knockout <-
     list() #parameters to knockout from TMB estimation using TMB::map
   
@@ -520,13 +521,13 @@ fit_sraplus <- function(driors,
         upper = upper,
         getsd = FALSE,
         control = list(
-          eval.max = 1e3,
-          iter.max = 1e3,
+          eval.max = 200,
+          iter.max = 150,
           rel.tol = 1e-10
         )
       )
       
-      if (fit$max_gradient > 1e-3) {
+      if (fit$max_gradient > 1e-3 & try_again == TRUE) {
         fit <- TMBhelper::fit_tmb(
           sra_model,
           fn = sra_model$fn,
@@ -536,8 +537,8 @@ fit_sraplus <- function(driors,
           upper = upper,
           getsd = FALSE,
           control = list(
-            eval.max = 1e3,
-            iter.max = 1e3,
+            eval.max = 500,
+            iter.max = 500,
             rel.tol = 1e-10
           )
         )
