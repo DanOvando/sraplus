@@ -66,7 +66,12 @@ fit_sraplus <- function(driors,
                         ci = 0.89,
                         try_again = FALSE,
                         eps = 1e-6,
-                        max_time = Inf) {
+                        max_time = Inf,
+                        eval.max = 200,
+                        iter.max = 150,
+                        rel.tol = 1e-10,
+                        loopnum = 1,
+                        newtonsteps = 1) {
   
   if (max_time < Inf){
     
@@ -473,7 +478,6 @@ fit_sraplus <- function(driors,
         dplyr::group_by(variable, .draw) %>%
         dplyr::mutate(year = seq_along(value))
       
-      
       draws$variable <-
         dplyr::case_when(
           draws$variable == "log_b" ~ "log_b_div_bmsy",
@@ -494,7 +498,7 @@ fit_sraplus <- function(driors,
         dplyr::filter(!stringr::str_detect(variable, "log_")) %>%
         dplyr::bind_rows(logs)
       
-      out <- logs %>%
+      out <- draws %>%
         dplyr::group_by(variable, year) %>%
         dplyr::summarise(
           mean = mean(value),
@@ -525,15 +529,15 @@ fit_sraplus <- function(driors,
         sra_model,
         fn = sra_model$fn,
         gr = sra_model$gr,
-        loopnum = 3,
-        newtonsteps = 1,
+        loopnum = loopnum,
+        newtonsteps = newtonsteps,
         lower = lower,
         upper = upper,
         getsd = FALSE,
         control = list(
-          eval.max = 200,
-          iter.max = 150,
-          rel.tol = 1e-10
+          eval.max = eval.max,
+          iter.max = iter.max,
+          rel.tol = rel.tol
         )
       )
       
@@ -542,14 +546,14 @@ fit_sraplus <- function(driors,
           sra_model,
           fn = sra_model$fn,
           gr = sra_model$gr,
-          newtonsteps = 10,
+          newtonsteps = newtonsteps * 2,
           lower = lower,
           upper = upper,
           getsd = FALSE,
           control = list(
-            eval.max = 500,
-            iter.max = 500,
-            rel.tol = 1e-10
+            eval.max = eval.max * 2,
+            iter.max = iter.max * 2,
+            rel.tol = rel.tol
           )
         )
         

@@ -338,8 +338,8 @@ cpue_driors <- format_driors(taxa = example_taxa,
                            growth_rate_prior = 0.4,
                            growth_rate_prior_cv = 0.1,
                            shape_prior = 1.01,
-                           q_slope_prior = 0.025,
-                           q_slope_prior_cv = 0.25)
+                           q_slope_prior = 0,
+                           q_slope_prior_cv = 0.2)
 
 
 cpue_fit <- fit_sraplus(driors = cpue_driors,
@@ -352,7 +352,19 @@ cpue_fit <- fit_sraplus(driors = cpue_driors,
                              cores = 1,
                              estimate_qslope = FALSE)
 
-cpue_qslope_fit <- fit_sraplus(driors = cpue_driors,
+
+cpue_qslope_driors <- format_driors(taxa = example_taxa,
+                           catch = sim$pop$catch,
+                           years = sim$pop$year,
+                           effort = sim$pop$effort,
+                           effort_years = sim$pop$year,
+                           growth_rate_prior = 0.4,
+                           growth_rate_prior_cv = 0.1,
+                           shape_prior = 1.01,
+                           q_slope_prior = 0.025,
+                           q_slope_prior_cv = 0.05)
+
+cpue_qslope_fit <- fit_sraplus(driors = cpue_qslope_driors,
                              engine = "stan",
                              model = "sraplus_tmb",
                              adapt_delta = 0.9,
@@ -362,6 +374,8 @@ cpue_qslope_fit <- fit_sraplus(driors = cpue_driors,
                              cores = 1,
                              estimate_qslope = TRUE,
                              estimate_proc_error = FALSE)
+
+plot_driors(cpue_driors)
 
 ```
 

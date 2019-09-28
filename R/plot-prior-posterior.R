@@ -2,15 +2,39 @@ plot_prior_posterior <- function(fit, driors,
                                  draws = 1000,
                                  prob  = 0.9){
   
-  # draws = 1000
+  # example_taxa <- "gadus morhua"
   # 
-  # prob = 0.9
+  #  draws = 1000
   # 
-  # effort_years <- seq(5,25, by = 2)
-  
-  # effort_years <- 1:nrow(sim$pop)
-  
-  
+  #  prob = 0.9
+  #  set.seed(42)
+  #  
+  #  sim <-
+  #    sraplus_simulator(
+  #      sigma_proc = 0.05,
+  #      sigma_u = 0.05,
+  #      q_slope = 0.05,
+  #      r = 0.2,
+  #      years = 25,
+  #      q = 1e-3,
+  #      m = 1.01,
+  #      init_u_umsy = 0.75
+  #    )
+  #  
+  #  sim$pop %>% 
+  #    select(year, depletion,catch, effort,u) %>% 
+  #    gather(metric, value, -year) %>% 
+  #    ggplot(aes(year, value)) + 
+  #    geom_point() + 
+  #    facet_wrap(~metric, scales = "free_y") + 
+  #    labs(y = "Value", x = "Year") + 
+  #    sraplus::theme_sraplus()
+  # 
+  #  effort_years <- seq(5,25, by = 2)
+  # 
+  #  effort_years <- 1:nrow(sim$pop)
+  # 
+  # 
   # cpue_driors <- format_driors(taxa = example_taxa,
   #                                       catch = sim$pop$catch,
   #                                       years = sim$pop$year,
@@ -27,27 +51,41 @@ plot_prior_posterior <- function(fit, driors,
   #                              sar_cv = 0.1,
   #                              fmi = c("research" = 0, "management" = 0, "socioeconomics" = 0, 'enforcement' = 0),
   #                                       f_ref_type = "f")
+  # #
+  # 
+  # cpue_driors  <- format_driors(taxa = example_taxa,
+  #                                          catch = sim$pop$catch,
+  #                                          years = sim$pop$year,
+  #                                          growth_rate_prior = 0.4,
+  #                                          growth_rate_prior_cv = 0.1,
+  #                                          shape_prior = 1.01,
+  #                                          q_slope_prior = 0,
+  #                                          q_slope_prior_cv = 0.25,
+  #                                          sar = 2,
+  #                                          sar_cv = 0.1,
+  #                                          fmi = c("research" = 0.5, "management" = 0.5, "socioeconomics" = 0.5, 'enforcement' = 0.5),
+  #                                          f_ref_type = "f")
   # 
   # plot_driors(cpue_driors)
-  # 
+  # #
   # cpue_fit  <- fit_sraplus(driors = cpue_driors,
-  #                                              engine = "tmb",
+  #                                              engine = "sir",
   #                                              model = "sraplus_tmb",
   #                                              adapt_delta = 0.9,
   #                                              max_treedepth = 10,
   #                                              n_keep = 2000,
-  #                                              chains = 1, 
+  #                                              chains = 1,
   #                                              cores = 1,
   #                                              estimate_qslope = FALSE,
   #                                              estimate_proc_error = FALSE)
-  # 
+  # #
   # plot_sraplus(cpue_fit, years = sim$pop$year)
-  
   # 
+  # #
   # fit <- cpue_fit
   # 
   # driors <- cpue_driors
-  # 
+
 
  
 
