@@ -477,7 +477,7 @@ fit_sraplus <- function(driors,
       draws <- draws %>%
         dplyr::group_by(variable, .draw) %>%
         dplyr::mutate(year = seq_along(value))
-      
+
       draws$variable <-
         dplyr::case_when(
           draws$variable == "log_b" ~ "log_b_div_bmsy",

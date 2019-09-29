@@ -490,7 +490,8 @@ ram_v_fmi <- ram_data %>%
   mutate(log_value = log(value)) %>%
   unique() %>% 
   na.omit() %>% 
-  mutate_at(c("research", "management", "enforcement", "socioeconomics"), ~ .x + 1e-6)
+  mutate_at(c("research", "management", "enforcement", "socioeconomics"), ~ .x + 1e-6) %>% 
+  filter(isscaap_group != "Tunas, bonitos, billfishes")
 
 a = fmi %>% 
   filter(!is.na(lookup_code))
