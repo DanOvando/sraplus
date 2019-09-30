@@ -93,6 +93,12 @@ format_driors <-
            isscaap_group = NA,
            prob = 0.9) {
     
+    if (use_b_reg == TRUE){
+      
+      b_ref_type <-  "b"
+      
+    }
+    
     if (use_heuristics == TRUE){
       
       warning("WARNING: You are using catch heursitics as your stock assessment")
