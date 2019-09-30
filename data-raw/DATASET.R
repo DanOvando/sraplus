@@ -526,14 +526,13 @@ model_structures <-
   purrr::cross_df(list(
     sampid = random_fmi_tests$sampid,
     model_structure = c(
-      "log_value ~ log(research) + log(management) + log(enforcement) + log(socioeconomics) + c_div_max_c" ,
       "log_value ~ research + management + enforcement + socioeconomics + c_div_max_c" ,
-      "log_value ~ (research + management + enforcement + socioeconomics + c_div_max_c - 1|isscaap_group)",
-      "log_value ~ c_div_max_c  + (research + management + enforcement + socioeconomics - 1|isscaap_group)",
+      # "log_value ~ (research + management + enforcement + socioeconomics + c_div_max_c - 1|isscaap_group)",
+      # "log_value ~ c_div_max_c  + (research + management + enforcement + socioeconomics - 1|isscaap_group)",
       "log_value ~ research + management + enforcement + socioeconomics",
-      "log_value ~ (research + management + enforcement + socioeconomics - 1|isscaap_group)",
-      "log_value ~ + management + enforcement + socioeconomics + c_div_max_c",
-      "log_value ~ (log(research) + log(management) + log(enforcement) + log(socioeconomics) - 1|isscaap_group)"
+      # "log_value ~ (research + management + enforcement + socioeconomics - 1|isscaap_group)",
+      "log_value ~ + management + enforcement + socioeconomics + c_div_max_c"
+      # "log_value ~ (log(research) + log(management) + log(enforcement) + log(socioeconomics) - 1|isscaap_group)"
       
     )
   ))
@@ -648,14 +647,14 @@ model_structures <-
   purrr::cross_df(list(
     sampid = random_sar_tests$sampid,
     model_structure = c(
-      "log_value ~  (log(sar) + log(sar_2) - 1|isscaap_group)",
+      # "log_value ~  (log(sar) + log(sar_2) - 1|isscaap_group)",
       "log_value ~ poly(sar,2) + c_div_max_c",
       "log_value ~ log(sar) + c_div_max_c",
-      "log_value ~ sar + c_div_max_c",
-      "log_value ~ c_div_max_c + (sar - 1|isscaap_group)",
-      "log_value ~ c_div_max_c + (sar + sar_2 - 1|isscaap_group)",
-      "log_value ~  (sar + sar_2 - 1|isscaap_group)",
-      "log_value ~ c_div_max_c + (log(sar) - 1|isscaap_group)"
+      "log_value ~ sar + c_div_max_c"
+      # "log_value ~ c_div_max_c + (sar - 1|isscaap_group)",
+      # "log_value ~ c_div_max_c + (sar + sar_2 - 1|isscaap_group)",
+      # "log_value ~  (sar + sar_2 - 1|isscaap_group)",
+      # "log_value ~ c_div_max_c + (log(sar) - 1|isscaap_group)"
     )
   ))
 
