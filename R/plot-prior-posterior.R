@@ -2,89 +2,94 @@ plot_prior_posterior <- function(fit, driors,
                                  draws = 1000,
                                  prob  = 0.9){
   
-  # example_taxa <- "gadus morhua"
-  # 
-  #  draws = 1000
-  # 
-  #  prob = 0.9
-  #  set.seed(42)
-  #  
-  #  sim <-
-  #    sraplus_simulator(
-  #      sigma_proc = 0.05,
-  #      sigma_u = 0.05,
-  #      q_slope = 0.05,
-  #      r = 0.2,
-  #      years = 25,
-  #      q = 1e-3,
-  #      m = 1.01,
-  #      init_u_umsy = 0.75
-  #    )
-  #  
-  #  sim$pop %>% 
-  #    select(year, depletion,catch, effort,u) %>% 
-  #    gather(metric, value, -year) %>% 
-  #    ggplot(aes(year, value)) + 
-  #    geom_point() + 
-  #    facet_wrap(~metric, scales = "free_y") + 
-  #    labs(y = "Value", x = "Year") + 
-  #    sraplus::theme_sraplus()
-  # 
-  #  effort_years <- seq(5,25, by = 2)
-  # 
-  #  effort_years <- 1:nrow(sim$pop)
-  # 
-  # 
-  # cpue_driors <- format_driors(taxa = example_taxa,
-  #                                       catch = sim$pop$catch,
-  #                                       years = sim$pop$year,
-  #                                       effort = sim$pop$effort[effort_years],
-  #                                       effort_years = effort_years,
-  #                              u_v_umsy = sim$pop$u_umsy[effort_years],
-  #                              u_years = effort_years,
-  #                                       growth_rate_prior = 0.4,
-  #                                       growth_rate_prior_cv = 0.1,
-  #                                       shape_prior = 1.01,
-  #                                       q_slope_prior = 0.025,
-  #                                       q_slope_prior_cv = 0.25,
-  #                              sar = 0,
-  #                              sar_cv = 0.1,
-  #                              fmi = c("research" = 0, "management" = 0, "socioeconomics" = 0, 'enforcement' = 0),
-  #                                       f_ref_type = "f")
-  # #
-  # 
-  # cpue_driors  <- format_driors(taxa = example_taxa,
-  #                                          catch = sim$pop$catch,
-  #                                          years = sim$pop$year,
-  #                                          growth_rate_prior = 0.4,
-  #                                          growth_rate_prior_cv = 0.1,
-  #                                          shape_prior = 1.01,
-  #                                          q_slope_prior = 0,
-  #                                          q_slope_prior_cv = 0.25,
-  #                                          sar = 2,
-  #                                          sar_cv = 0.1,
-  #                                          fmi = c("research" = 0.5, "management" = 0.5, "socioeconomics" = 0.5, 'enforcement' = 0.5),
-  #                                          f_ref_type = "f")
-  # 
-  # plot_driors(cpue_driors)
-  # #
-  # cpue_fit  <- fit_sraplus(driors = cpue_driors,
-  #                                              engine = "sir",
-  #                                              model = "sraplus_tmb",
-  #                                              adapt_delta = 0.9,
-  #                                              max_treedepth = 10,
-  #                                              n_keep = 2000,
-  #                                              chains = 1,
-  #                                              cores = 1,
-  #                                              estimate_qslope = FALSE,
-  #                                              estimate_proc_error = FALSE)
-  # #
-  # plot_sraplus(cpue_fit, years = sim$pop$year)
-  # 
-  # #
-  # fit <- cpue_fit
-  # 
-  # driors <- cpue_driors
+  
+#   library(tidyverse)
+#   library(tmbstan)
+#   library(sraplus)
+#   example_taxa <- "gadus morhua"
+#
+#    draws = 1000
+#
+#    prob = 0.9
+#    set.seed(42)
+#
+#    sim <-
+#      sraplus_simulator(
+#        sigma_proc = 0.05,
+#        sigma_u = 0.05,
+#        q_slope = 0.05,
+#        r = 0.2,
+#        years = 25,
+#        q = 1e-3,
+#        m = 1.01,
+#        init_u_umsy = 0.75
+#      )
+#
+#    sim$pop %>%
+#      select(year, depletion,catch, effort,u) %>%
+#      gather(metric, value, -year) %>%
+#      ggplot(aes(year, value)) +
+#      geom_point() +
+#      facet_wrap(~metric, scales = "free_y") +
+#      labs(y = "Value", x = "Year") +
+#      sraplus::theme_sraplus()
+#
+#    effort_years <- seq(5,25, by = 2)
+#
+#    effort_years <- 1:nrow(sim$pop)
+#
+#
+#   cpue_driors <- format_driors(taxa = example_taxa,
+#                                         catch = sim$pop$catch,
+#                                         years = sim$pop$year,
+#                                         effort = sim$pop$effort[effort_years],
+#                                         effort_years = effort_years,
+#                                u_v_umsy = sim$pop$u_umsy[effort_years],
+#                                u_years = effort_years,
+#                                         growth_rate_prior = 0.4,
+#                                         growth_rate_prior_cv = 0.1,
+#                                         shape_prior = 1.01,
+#                                         q_slope_prior = 0.025,
+#                                         q_slope_prior_cv = 0.25,
+#                                sar = 0,
+#                                sar_cv = 0.1,
+#                                fmi = c("research" = 0, "management" = 0, "socioeconomics" = 0, 'enforcement' = 0),
+#                                         f_ref_type = "f")
+#   #
+# #
+#   cpue_driors  <- format_driors(taxa = example_taxa,
+#                                            catch = sim$pop$catch,
+#                                            years = sim$pop$year,
+#                                            growth_rate_prior = 0.4,
+#                                            growth_rate_prior_cv = 0.1,
+#                                            shape_prior = 1.01,
+#                                            q_slope_prior = 0,
+#                                            q_slope_prior_cv = 0.25,
+#                                            sar = 2,
+#                                            sar_cv = 0.1,
+#                                            fmi = c("research" = 0.5, "management" = 0.5, "socioeconomics" = 0.5, 'enforcement' = 0.5),
+#                                            f_ref_type = "f",
+#                                 terminal_state = 0.5)
+#
+#   plot_driors(cpue_driors)
+#   #
+#   cpue_fit  <- fit_sraplus(driors = cpue_driors,
+#                                                engine = "sir",
+#                                                model = "sraplus_tmb",
+#                                                adapt_delta = 0.9,
+#                                                max_treedepth = 10,
+#                                                n_keep = 2000,
+#                                                chains = 1,
+#                                                cores = 1,
+#                                                estimate_qslope = FALSE,
+#                                                estimate_proc_error = FALSE)
+#   #
+#   plot_sraplus(cpue_fit, years = sim$pop$year)
+#
+#   #
+#   fit <- cpue_fit
+#
+#   driors <- cpue_driors
 
 
  
@@ -92,10 +97,10 @@ plot_prior_posterior <- function(fit, driors,
   timeseries <- dplyr::tibble(year = driors$years,
                               catch = driors$catch)
   
-  fitseries <- as.data.frame(matrix(NA, nrow = 0, ncol = 4))
+  fitseries <- as.data.frame(matrix(NA, nrow = 0, ncol = 5))
   
-  colnames(fitseries) <- c("metric", "mean", 'lower','upper')
-
+  colnames(fitseries) <- c("metric","year", "mean", 'lower','upper')
+  any_fits <- TRUE
   if (any(!is.na(driors$index))) {
     index_frame <- dplyr::tibble(year = driors$index_years,
                                  index = driors$index)
@@ -152,12 +157,33 @@ plot_prior_posterior <- function(fit, driors,
     
   }
   
+  if (nrow(fitseries) == 0){
+    
+    any_fits <- FALSE
+    
+    fitseries <- as.data.frame(matrix(NA, nrow = nrow(timeseries), ncol = 3))
+    
+    colnames(fitseries) <- c("mean", 'lower','upper')
+    
+  }
+  
+  
+  
   timeseries_plot <- timeseries %>%
     tidyr::gather(metric, value,-year) %>% 
     dplyr::group_by(metric) %>% 
     dplyr::mutate(value = scale(value)) %>% 
-    dplyr:: ungroup() %>% 
-    dplyr::left_join(fitseries, by = c("year","metric")) %>% 
+    dplyr:: ungroup() %>% {
+      if (any_fits){
+        dplyr::left_join(.,fitseries, by = c("year","metric"))
+      } else {
+        dplyr::bind_cols(.,fitseries)
+      }
+    } 
+  
+  
+  if (any_fits){
+    timeseries_plot <- timeseries_plot %>% 
     ggplot2::ggplot() +
     ggplot2::geom_line(aes(year, value, color = metric),size = 1, show.legend = FALSE) +
     ggplot2::geom_point(aes(year, value, color = metric),size = 2, show.legend = FALSE) +
@@ -167,6 +193,19 @@ plot_prior_posterior <- function(fit, driors,
     ggplot2::labs(x = "Year")  +
     theme_sraplus(base_size = 12)  +
     theme(legend.position = "top")
+  } else {
+    
+    timeseries_plot <- timeseries_plot %>% 
+      ggplot2::ggplot() +
+      ggplot2::geom_line(aes(year, value, color = metric),size = 1, show.legend = FALSE) +
+      ggplot2::geom_point(aes(year, value, color = metric),size = 2, show.legend = FALSE) +
+      ggplot2::facet_grid(metric ~ ., scales = "free_y") +
+      ggplot2::scale_y_continuous(labels = scales::comma, name = "") +
+      ggplot2::labs(x = "Year")  +
+      theme_sraplus(base_size = 12)  +
+      theme(legend.position = "top")
+    
+  }
   
   
   if (length(driors$log_final_u) > 1) {

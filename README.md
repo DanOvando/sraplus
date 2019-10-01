@@ -100,6 +100,7 @@ library(tidyr)
 library(dplyr)
 library(sraplus)
 library(tmbstan)
+library(tmbstan)
 ```
 
 Once you’ve successfully installed `sraplus` you can take for a test
@@ -130,26 +131,27 @@ example_taxa <- "gadus morhua"
 data(cod)
 
 head(cod)
-#> # A tibble: 6 x 50
-#>   scientificname commonname  year  catch stocklong.x TBmsybest ERmsybest
-#>   <chr>          <chr>      <dbl>  <dbl> <chr>           <dbl>     <dbl>
-#> 1 Gadus morhua   Atlantic …  1963 118000 Atlantic c…   948996.     0.262
-#> 2 Gadus morhua   Atlantic …  1964 145000 Atlantic c…   948996.     0.262
-#> 3 Gadus morhua   Atlantic …  1965 199000 Atlantic c…   948996.     0.262
-#> 4 Gadus morhua   Atlantic …  1966 241000 Atlantic c…   948996.     0.262
-#> 5 Gadus morhua   Atlantic …  1967 288000 Atlantic c…   948996.     0.262
-#> 6 Gadus morhua   Atlantic …  1968 294000 Atlantic c…   948996.     0.262
-#> # … with 43 more variables: TBmgtbest <dbl>, ERmgtbest <lgl>, TBmsy <dbl>,
-#> #   SSBmsy <lgl>, Nmsy <lgl>, MSY <dbl>, Fmsy <dbl>, ERmsy <dbl>,
-#> #   TBmgt <lgl>, SSBmgt <dbl>, Fmgt <dbl>, ERmgt <lgl>, TB0 <lgl>,
-#> #   SSB0 <lgl>, M <lgl>, TBlim <dbl>, SSBlim <dbl>, Flim <dbl>,
-#> #   ERlim <lgl>, b_v_bmsy <dbl>, u_v_umsy <dbl>, effort <lgl>,
-#> #   total_biomass <dbl>, ss_biomass <dbl>, tsn <dbl>, areaid <chr>,
-#> #   stocklong.y <chr>, region <chr>, inmyersdb <dbl>, myersstockid <lgl>,
-#> #   tb_v_tb0 <lgl>, ssb_v_ssb0 <lgl>, delta_year <dbl>,
-#> #   missing_gaps <lgl>, n_years <dbl>, has_tb0 <lgl>, has_tb <lgl>,
-#> #   first_catch_year <dbl>, pchange_effort <dbl>, cs_effort <dbl>,
-#> #   index <dbl>, approx_cpue <dbl>, b_rel <dbl>
+#> # A tibble: 6 x 53
+#>   stockid scientificname commonname  year  catch stocklong.x TBmsybest
+#>   <chr>   <chr>          <chr>      <int>  <dbl> <chr>           <dbl>
+#> 1 CODIII… Gadus morhua   Atlantic …  1963 118000 Atlantic c…   948996.
+#> 2 CODIII… Gadus morhua   Atlantic …  1964 145000 Atlantic c…   948996.
+#> 3 CODIII… Gadus morhua   Atlantic …  1965 199000 Atlantic c…   948996.
+#> 4 CODIII… Gadus morhua   Atlantic …  1966 241000 Atlantic c…   948996.
+#> 5 CODIII… Gadus morhua   Atlantic …  1967 288000 Atlantic c…   948996.
+#> 6 CODIII… Gadus morhua   Atlantic …  1968 294000 Atlantic c…   948996.
+#> # … with 46 more variables: ERmsybest <dbl>, TBmgtbest <dbl>,
+#> #   ERmgtbest <dbl>, TBmsy <dbl>, SSBmsy <dbl>, Nmsy <dbl>, MSY <dbl>,
+#> #   Fmsy <dbl>, ERmsy <dbl>, TBmgt <dbl>, SSBmgt <dbl>, Fmgt <dbl>,
+#> #   ERmgt <dbl>, TB0 <dbl>, SSB0 <dbl>, M <dbl>, TBlim <dbl>,
+#> #   SSBlim <dbl>, Flim <dbl>, ERlim <dbl>, b_v_bmsy <dbl>, u_v_umsy <dbl>,
+#> #   exploitation_rate <dbl>, effort <dbl>, total_biomass <dbl>,
+#> #   ss_biomass <dbl>, tsn <chr>, areaid <chr>, stocklong.y <chr>,
+#> #   region <chr>, inmyersdb <chr>, myersstockid <chr>, country <chr>,
+#> #   areatype <chr>, areacode <chr>, areaname <chr>,
+#> #   alternateareaname <chr>, management_body <chr>, country_rfmo <chr>,
+#> #   tb_v_tb0 <dbl>, ssb_v_ssb0 <dbl>, delta_year <int>, n_years <int>,
+#> #   has_tb0 <lgl>, has_tb <lgl>, first_catch_year <int>
 ```
 
 From there, we’ll pass the catch data, and the years corresponding to
@@ -177,7 +179,7 @@ by using `sraplus::plot_driors`
 
 ``` r
 
-sraplus::plot_driors(catch_only_driors)
+plot_driors(catch_only_driors)
 ```
 
 ![](README_files/figure-gfm/c-msy-3-1.svg)<!-- -->
@@ -197,7 +199,9 @@ in this case the SIR algorithm will run 1 million iterations, and sample
  catch_only_fit <- sraplus::fit_sraplus(driors = catch_only_driors,
                        engine = "sir",
                        draws = 1e6,
-                       n_keep = 2000)
+                       n_keep = 2000,
+                       estimate_proc_error = TRUE, 
+                       estimate_shape = TRUE)
 ```
 
 Running `fit_sraplus` always produces a list with two objects: `results`
@@ -215,12 +219,12 @@ head(catch_only_fit$results)
 #> # A tibble: 6 x 6
 #>    year variable           mean           sd       lower       upper
 #>   <dbl> <chr>             <dbl>        <dbl>       <dbl>       <dbl>
-#> 1  1963 b_div_bmsy        0.586       0.130        0.411       0.814
-#> 2  1963 b           3461527.    1180922.     2114804.    5711225.   
-#> 3  1963 c_div_msy         0.310       0.101        0.159       0.480
-#> 4  1963 depletion         0.396       0.0853       0.281       0.545
-#> 5  1963 index_hat_t  180205.     128553.       19598.     409924.   
-#> 6  1963 u_div_umsy        0.529       0.128        0.310       0.701
+#> 1  1963 b_div_bmsy        0.622       0.146        0.441       0.852
+#> 2  1963 b           4924908.    1807352.     2430506.    8024676.   
+#> 3  1963 c_div_msy         0.352       0.206        0.167       0.593
+#> 4  1963 crashed           0           0            0           0    
+#> 5  1963 depletion         0.407       0.0789       0.293       0.535
+#> 6  1963 index_hat_t  246115.     173138.       21489.     562958.
 ```
 
 `results` is organized as a dataframe tracking different variables over
@@ -236,12 +240,12 @@ object is the output of the SIR algorithm.
 ``` r
 head(catch_only_fit$fit)
 #>   variable year draw   value
-#> 1      b_t 1963    1 3219868
-#> 2      b_t 1964    1 3261065
-#> 3      b_t 1965    1 3261253
-#> 4      b_t 1966    1 3275671
-#> 5      b_t 1967    1 3370717
-#> 6      b_t 1968    1 3366934
+#> 1      b_t 1963    1 2851671
+#> 2      b_t 1964    1 3371807
+#> 3      b_t 1965    1 3400289
+#> 4      b_t 1966    1 3149938
+#> 5      b_t 1967    1 3092161
+#> 6      b_t 1968    1 3425096
 ```
 
 From there, we can generate some standard plots of B/Bmsy
@@ -281,10 +285,14 @@ fmi_sar_driors <- format_driors(
   catch = cod$catch,
   years = cod$year,
   initial_state = 1,
-  initial_state_cv = 0.2,
+  initial_state_cv = 0.25,
   use_heuristics = FALSE,
-  sar = 3,
-  fmi = c("research" = 0.85,"management" = 0.75, "enforcement" = 0.75, "socioeconomics" = 0.75))
+  sar = 17,
+  sar_cv = 0.1,
+  fmi = c("research" = 0.5, "management" = 0.5, "socioeconomics" = 0.5, 'enforcement' = 0.5),
+  use_b_reg = FALSE,
+  b_ref_type = "k",
+  sigma_r_prior_cv = 0.5)
 
 sraplus::plot_driors(fmi_sar_driors)
 ```
@@ -299,7 +307,9 @@ fmi_sar_fit <- fit_sraplus(
   driors = fmi_sar_driors,
   engine = "sir",
   draws = 1e6,
-  n_keep = 2000
+  n_keep = 2000,
+  estimate_shape = FALSE,
+  estimate_proc_error = TRUE
 )
 
 plot_sraplus(fmi_sar = fmi_sar_fit,
@@ -397,7 +407,7 @@ sim <-
   sraplus_simulator(
     sigma_proc = 0.05,
     sigma_u = 0.05,
-    q_slope = 0.05,
+    q_slope = 0.025,
     r = 0.2,
     years = 25,
     q = 1e-3,
@@ -454,7 +464,6 @@ pass standard `rstan` options to `fit_sraplus`.
 
 ``` r
 
-library(tmbstan)
 
 cpue_driors <- format_driors(taxa = example_taxa,
                            catch = sim$pop$catch,
@@ -464,38 +473,42 @@ cpue_driors <- format_driors(taxa = example_taxa,
                            growth_rate_prior = 0.4,
                            growth_rate_prior_cv = 0.1,
                            shape_prior = 1.01,
-                           q_slope_prior = 0.025,
-                           q_slope_prior_cv = 0.25)
+                           q_slope_prior = 0,
+                           q_slope_prior_cv = 0.2)
 
 
 cpue_fit <- fit_sraplus(driors = cpue_driors,
-                             engine = "stan",
+                             engine = "tmb",
                              model = "sraplus_tmb",
                              adapt_delta = 0.9,
                              max_treedepth = 10,
-                             n_keep = 4000,
+                             n_keep = 2000,
                              chains = 1, 
                              cores = 1,
                              estimate_qslope = FALSE)
-#> Warning: There were 2 divergent transitions after warmup. Increasing adapt_delta above 0.9 may help. See
-#> http://mc-stan.org/misc/warnings.html#divergent-transitions-after-warmup
-#> Warning: Examine the pairs() plot to diagnose sampling problems
 
-cpue_qslope_fit <- fit_sraplus(driors = cpue_driors,
+
+cpue_qslope_driors <- format_driors(taxa = example_taxa,
+                           catch = sim$pop$catch,
+                           years = sim$pop$year,
+                           effort = sim$pop$effort,
+                           effort_years = sim$pop$year,
+                           growth_rate_prior = 0.4,
+                           growth_rate_prior_cv = 0.1,
+                           shape_prior = 1.01,
+                           q_slope_prior = 0.025,
+                           q_slope_prior_cv = 0.05)
+
+cpue_qslope_fit <- fit_sraplus(driors = cpue_qslope_driors,
                              engine = "stan",
                              model = "sraplus_tmb",
                              adapt_delta = 0.9,
                              max_treedepth = 10,
-                             n_keep = 4000,
+                             n_keep = 1000,
                              chains = 1, 
                              cores = 1,
                              estimate_qslope = TRUE,
                              estimate_proc_error = FALSE)
-#> Warning: There were 90 divergent transitions after warmup. Increasing adapt_delta above 0.9 may help. See
-#> http://mc-stan.org/misc/warnings.html#divergent-transitions-after-warmup
-#> Warning: There were 1190 transitions after warmup that exceeded the maximum treedepth. Increase max_treedepth above 10. See
-#> http://mc-stan.org/misc/warnings.html#maximum-treedepth-exceeded
-#> Warning: Examine the pairs() plot to diagnose sampling problems
 ```
 
 ``` r
@@ -525,28 +538,27 @@ cpue_sar_qslope_driors <- format_driors(taxa = example_taxa,
                            shape_prior = 1.01,
                            q_slope_prior = 0.025,
                            q_slope_prior_cv = 0.25,
+                           f_ref_type = "f",
                            sar = 2,
-                           sar_cv = NA)
+                           sar_cv = 0.1)
+#> Closest match: Actinopterygii_Gadiformes_Gadidae_Gadus_morhua
+#> Closest match: Actinopterygii_Gadiformes_Gadidae_Gadus_morhua
 
 cpue_sar_qslope_fit <- fit_sraplus(driors = cpue_sar_qslope_driors,
-                             engine = "stan",
+                             engine = "tmb",
                              model = "sraplus_tmb",
                              adapt_delta = 0.9,
                              max_treedepth = 10,
-                             n_keep = 4000,
+                             n_keep = 2000,
                              chains = 1, 
                              cores = 1,
                              estimate_qslope = TRUE,
                              estimate_proc_error = FALSE)
-#> Warning: There were 344 divergent transitions after warmup. Increasing adapt_delta above 0.9 may help. See
-#> http://mc-stan.org/misc/warnings.html#divergent-transitions-after-warmup
-#> Warning: There were 2 transitions after warmup that exceeded the maximum treedepth. Increase max_treedepth above 10. See
-#> http://mc-stan.org/misc/warnings.html#maximum-treedepth-exceeded
-#> Warning: Examine the pairs() plot to diagnose sampling problems
-#> Warning: Tail Effective Samples Size (ESS) is too low, indicating posterior variances and tail quantiles may be unreliable.
-#> Running the chains for more iterations may help. See
-#> http://mc-stan.org/misc/warnings.html#tail-ess
+
+plot_sraplus(cpue_sar_qslope_fit, years = cpue_sar_qslope_driors$years)
 ```
+
+![](README_files/figure-gfm/unnamed-chunk-13-1.svg)<!-- -->
 
 And for good measure one more with SAR data and process error instead of
 qslope
@@ -564,32 +576,19 @@ cpue_sar_proc_driors <- format_driors(taxa = example_taxa,
                            q_slope_prior = 0,
                            q_slope_prior_cv = 0.25,
                            sar = 4,
-                           sar_cv = .05)
+                           sar_cv = .05,
+                           f_ref_type = "f")
 
 cpue_sar_proc_fit <- fit_sraplus(driors = cpue_sar_proc_driors,
-                             engine = "stan",
+                             engine = "tmb",
                              model = "sraplus_tmb",
                              adapt_delta = 0.9,
                              max_treedepth = 10,
-                             n_keep = 4000,
+                             n_keep = 2000,
                              chains = 1, 
                              cores = 1,
                              estimate_qslope = FALSE,
                              estimate_proc_error = TRUE)
-#> Warning: There were 105 divergent transitions after warmup. Increasing adapt_delta above 0.9 may help. See
-#> http://mc-stan.org/misc/warnings.html#divergent-transitions-after-warmup
-#> Warning: There were 1845 transitions after warmup that exceeded the maximum treedepth. Increase max_treedepth above 10. See
-#> http://mc-stan.org/misc/warnings.html#maximum-treedepth-exceeded
-#> Warning: Examine the pairs() plot to diagnose sampling problems
-#> Warning: The largest R-hat is 2.06, indicating chains have not mixed.
-#> Running the chains for more iterations may help. See
-#> http://mc-stan.org/misc/warnings.html#r-hat
-#> Warning: Bulk Effective Samples Size (ESS) is too low, indicating posterior means and medians may be unreliable.
-#> Running the chains for more iterations may help. See
-#> http://mc-stan.org/misc/warnings.html#bulk-ess
-#> Warning: Tail Effective Samples Size (ESS) is too low, indicating posterior variances and tail quantiles may be unreliable.
-#> Running the chains for more iterations may help. See
-#> http://mc-stan.org/misc/warnings.html#tail-ess
 ```
 
 ``` r
@@ -602,3 +601,59 @@ plot_sraplus(`no rocess error and no qslope ` = cpue_fit,
 ```
 
 ![](README_files/figure-gfm/unnamed-chunk-15-1.svg)<!-- -->
+
+We can also use several built-in processing functions to display and
+store the results
+
+`plot_prior_posterior` displays the prior and posterior distributions
+for selected parameters
+
+``` r
+
+plot_prior_posterior(cpue_sar_proc_fit, cpue_sar_proc_driors)
+#> Warning: Removed 50 rows containing missing values (geom_pointrange).
+```
+
+![](README_files/figure-gfm/unnamed-chunk-16-1.svg)<!-- -->
+
+We can plot a summary of the most recent status estimates, along with
+key outcomes such as MSY
+
+``` r
+summarize_sralpus(cpue_sar_proc_fit, output = "plot")
+```
+
+![](README_files/figure-gfm/unnamed-chunk-17-1.svg)<!-- -->
+
+Or produce a summary table that can be saved to a .csv file.
+
+``` r
+summarize_sralpus(cpue_sar_proc_fit, output = "table") %>% 
+  knitr::kable()
+```
+
+| variable          |        mean |          sd |       lower |        upper | year |
+| :---------------- | ----------: | ----------: | ----------: | -----------: | ---: |
+| log\_ihat         |   6.4246370 |   0.2559840 |   6.0155252 |    6.8337488 |   25 |
+| log\_b\_div\_bmsy |   0.5545893 |   0.0997763 |   0.3951275 |    0.7140511 |   25 |
+| log\_b            |   6.4246370 |   0.2559840 |   6.0155252 |    6.8337488 |   25 |
+| log\_depletion    | \-0.4404438 |   0.0997763 | \-0.5999056 |  \-0.2809820 |   25 |
+| log\_u\_div\_umsy | \-1.0198170 |   0.2532328 | \-1.4245319 |  \-0.6151022 |   25 |
+| log\_c\_div\_msy  | \-0.4652277 |   0.1645654 | \-0.7282350 |  \-0.2022205 |   25 |
+| proc\_errors      |   0.9631473 |   0.0125003 |   0.9431694 |    0.9831251 |   24 |
+| plim              |   0.2000000 |   0.0000000 |   0.2000000 |    0.2000000 |    1 |
+| b\_to\_k          |   0.3697112 |   0.0000000 |   0.3697112 |    0.3697112 |    1 |
+| crashed           |   0.0000000 |   0.0000000 |   0.0000000 |    0.0000000 |    1 |
+| index\_hat\_t     | 616.8568553 | 157.9054557 | 364.4934393 |  869.2202713 |   25 |
+| r                 |   0.3419930 |   0.0302143 |   0.2937047 |    0.3902812 |    1 |
+| m                 |   1.0100000 |   0.0000000 |   1.0100000 |    1.0100000 |    1 |
+| umsy              |   0.3386069 |   0.0299151 |   0.2907968 |    0.3864170 |    1 |
+| k                 | 958.2232513 | 165.0769203 | 694.3984497 | 1222.0480529 |    1 |
+| q\_t              |   0.0010918 |   0.0002985 |   0.0006147 |    0.0015689 |   25 |
+| q\_slope          |   0.0000010 |   0.0000000 |   0.0000010 |    0.0000010 |    1 |
+| ihat              | 616.8568553 |   0.2559840 | 409.7409783 |  928.6656695 |   25 |
+| b\_div\_bmsy      |   1.7412257 |   0.0997763 |   1.4845735 |    2.0422478 |   25 |
+| b                 | 616.8568553 |   0.2559840 | 409.7409783 |  928.6656695 |   25 |
+| depletion         |   0.6437507 |   0.0997763 |   0.5488635 |    0.7550419 |   25 |
+| u\_div\_umsy      |   0.3606609 |   0.2532328 |   0.2406211 |    0.5405857 |   25 |
+| c\_div\_msy       |   0.6279921 |   0.1645654 |   0.4827603 |    0.8169148 |   25 |

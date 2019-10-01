@@ -216,14 +216,11 @@ fmi_sar_fit <- fit_sraplus(
   estimate_proc_error = TRUE
 )
 
-fmi_sar_fit$fit %>% 
-  filter(variable == "b_bmsy_t") %>% 
-  ggplot(aes(year, value, group = draw)) + 
-  geom_line(alpha = 0.5)
-
 plot_sraplus(fmi_sar = fmi_sar_fit,
              catch_only = catch_only_fit,
              years = fmi_sar_driors$years)
+
+
 
 ```
 
@@ -298,7 +295,7 @@ sim <-
   sraplus_simulator(
     sigma_proc = 0.05,
     sigma_u = 0.05,
-    q_slope = 0.05,
+    q_slope = 0.025,
     r = 0.2,
     years = 25,
     q = 1e-3,
@@ -327,7 +324,7 @@ Just to explore functionality of `sraplus`, we'll fit the model using Bayesian e
 
 
 
-```{r, results="hide"}
+```{r, results="hide", message=FALSE, warning=FALSE}
 
 
 cpue_driors <- format_driors(taxa = example_taxa,
@@ -375,8 +372,6 @@ cpue_qslope_fit <- fit_sraplus(driors = cpue_qslope_driors,
                              estimate_qslope = TRUE,
                              estimate_proc_error = FALSE)
 
-plot_driors(cpue_driors)
-
 ```
 
 ```{r}
@@ -387,7 +382,7 @@ plot_sraplus(`CPUE fit no qslope` = cpue_fit, `CPUE fit with qslope` =  cpue_qsl
 
 As a final step, we can try adding in some fictional SAR data to our fake fishery, just to see how it works. We can weight the SAR data using the `sar_cv` input. Leaving `sar_cv = NA` uses the srandard deviation from the posterior predictive of the fitted relationahip between SAR and U/Umsy contained in the model. In other words, setting `sar_cv = NA` lets the data tell you how much weight to assign to the SAR data. You can however overwrite this if desired and pass a stronger weight to the SAR data if desired. 
 
-```{r, results = "hide"}
+```{r, results = "hide", message = "FALSE", warning = "FALSE"}
 cpue_sar_qslope_driors <- format_driors(taxa = example_taxa,
                            catch = sim$pop$catch,
                            years = sim$pop$year,
@@ -401,8 +396,6 @@ cpue_sar_qslope_driors <- format_driors(taxa = example_taxa,
                            f_ref_type = "f",
                            sar = 2,
                            sar_cv = 0.1)
-
-cpue_sar_qslope_driors$log_final_u
 
 cpue_sar_qslope_fit <- fit_sraplus(driors = cpue_sar_qslope_driors,
                              engine = "tmb",
@@ -457,15 +450,32 @@ plot_sraplus(`no rocess error and no qslope ` = cpue_fit,
              years = cpue_driors$years)
 
 
-# cpue_fit$results %>% 
-#   filter(variable == "") %>% 
-#   ggplot() + 
-#   geom_line(aes(year, mean)) + 
-#   geom_point(aes(1:length(cp[$index), flounder_index_driors$index))
+```
 
 
+We can also use several built-in processing functions to display and store the results
+
+`plot_prior_posterior` displays the prior and posterior distributions for selected parameters
+
+```{r}
+
+plot_prior_posterior(cpue_sar_proc_fit, cpue_sar_proc_driors)
+
+```
 
 
+We can plot a summary of the most recent status estimates, along with key outcomes such as MSY
+
+
+```{r}
+summarize_sralpus(cpue_sar_proc_fit, output = "plot")
+```
+
+Or produce a summary table that can be saved to a .csv file. 
+
+```{r}
+summarize_sralpus(cpue_sar_proc_fit, output = "table") %>% 
+  knitr::kable()
 ```
 
 

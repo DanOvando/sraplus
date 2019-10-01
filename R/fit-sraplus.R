@@ -378,8 +378,6 @@ fit_sraplus <- function(driors,
     out$fit$year <- out$fit$year - 1 + min(driors$years)
     
     # index_tests <- sra_fit$index_hat[, sra_fit$keepers]
-    
-    
   }
   else {
     if (sra_data$use_u_prior == 0) {
@@ -515,6 +513,8 @@ fit_sraplus <- function(driors,
       out <- list(results = out,
                   fit = fit)
       
+      out$results$year <- out$results$year - 1 + min(driors$years)
+      
       rm(sra_model)
       
       rm(fit)
@@ -586,7 +586,11 @@ fit_sraplus <- function(driors,
       
       out <- out %>%
         dplyr::mutate(lower = mean - qnorm(1 - (1 - ci) / 2) * sd,
-                      upper = mean +  qnorm(1 - (1 - ci) / 2) * sd)
+                      upper = mean +  qnorm(1 - (1 - ci) / 2) * sd) %>% 
+        dplyr::group_by(variable) %>% 
+        dplyr::mutate(year = seq_along(mean)) %>% 
+        ungroup()
+      
       
       logs <- out %>%
         dplyr::filter(stringr::str_detect(variable, "log_")) %>%
@@ -606,6 +610,9 @@ fit_sraplus <- function(driors,
       
       out <- list(results = out,
                   fit = fit)
+      
+      out$results$year <- out$results$year - 1 + min(driors$years)
+      
       
       rm(sra_model)
       
