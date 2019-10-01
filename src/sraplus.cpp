@@ -18,13 +18,15 @@ IntegerVector index_years,
 IntegerVector u_years,
 int draws,
 int n_keep,
-int ref_type,
+int b_ref_type,
+int f_ref_type,
 int fit_index,
 int use_final_u,
+int use_final_state,
 double log_final_ref,
 double sigma_dep,
 double plim,
-int u_prior,
+int use_u_prior,
 NumericVector u_priors,
 double sigma_u
 ) {
@@ -41,6 +43,8 @@ double sigma_u
 
   NumericMatrix u_umsy_t(years, draws);
 
+  NumericMatrix u_t(years, draws);
+  
   NumericMatrix c_msy_t(years, draws);
 
   NumericMatrix proc_error_t(years, draws);
@@ -107,7 +111,7 @@ double sigma_u
 
     }
 
-    if (b_t(t,i) < 0 || umsy(i) >= 1){
+    if (b_t(t,i) <= 0 || umsy(i) >= 1){
 
         log_like(i) = -1e9;
 
@@ -127,28 +131,36 @@ double sigma_u
 
   c_msy_t(_,i) = catches / msy(i);
 
+  u_t(_,i) = u_umsy_t(_,i) * umsy(i);
+  
   //// assign penalties ////
 
   if (crashed(i) == 0) {
 
-  if (ref_type == 0){
+  if (b_ref_type == 0){
 
     final_ref = dep_t(years - 1,i);
   }
 
-  if (ref_type == 1){
+  if (b_ref_type == 1){
 
     final_ref = b_bmsy_t(years - 1,i);
   }
+  
+  if (use_final_state == 1){
 
   log_like(i) += R::dnorm(log(final_ref),log_final_ref, sigma_dep, true);
+  }
 
-  if (u_prior == 1){
+  if (use_u_prior == 1){
 
     for (int t = 0; t < u_years.size(); t++) {
 
-      log_like(i) += R::dnorm(log(u_priors(t) + 1e-6), log(u_umsy_t(u_years(t) - 1,i) + 1e-6), sigma_u, true);
+      // log_like(i) += R::dnorm(log(u_priors(t) + 1e-6), log(u_umsy_t(u_years(t) - 1,i) + 1e-6), sigma_u, true);
 
+      log_like(i) += R::dnorm(log(u_umsy_t(u_years(t) - 1,i) + 1e-6),log(u_priors(t) + 1e-6), sigma_u, true);
+      
+      
     }
 
   }
@@ -166,10 +178,17 @@ double sigma_u
   if (use_final_u == 1){
 
     for (int j = 0; j < log_final_u.size(); j++){
+      
+      if (f_ref_type == 1){
 
       log_like(i) += R::dnorm(log(u_umsy_t(years - 1, i) + 1e-6), log_final_u(j),log_final_u_cv(j), true);
+      } else {
+        
+        log_like(i) += R::dnorm(log(u_t(years - 1, i) + 1e-6), log_final_u(j),log_final_u_cv(j), true);
+        
+      }
 
-    } // cluse use final u loops
+    } // close use final u loops
 
   } // close use final u
 
@@ -198,6 +217,8 @@ NumericVector keepers = sample(drawdex, n_keep, 1, scaled_like) + 1;
       Rcpp::Named("c_msy_t") = c_msy_t,
       Rcpp::Named("r") = rs,
       Rcpp::Named("m") = ms,
-      Rcpp::Named("k") = ks);
+      Rcpp::Named("k") = ks,
+      Rcpp::Named("umsy") = umsy,
+      Rcpp::Named("msy") = msy);
 
 } // close popmodel

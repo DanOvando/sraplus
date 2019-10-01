@@ -1,5 +1,5 @@
 #' Run sraplus
-#' 
+#'
 #' The main function for taking an object created by \code{format_driors} and fitting a
 #' model using \code{sraplus}
 #'
@@ -17,38 +17,38 @@
 #' @param cleanup logical indicating whether to remove the compiled TMB model after running
 #' @param max_treedepth max_treedepth for models fit using stan
 #' @param adapt_delta adap_delta for models fit using stan
-#' @param estimate_shape logical indicating whether to estimate the shape parameter of the Pella-Tomlinson model. 
+#' @param estimate_shape logical indicating whether to estimate the shape parameter of the Pella-Tomlinson model.
 #' If FALSE shape parameter is held at the initial value, either default or supplied
-#' @param estimate_qslope logical indicating whether to estimate a slope parameter for q in CPUE fitting. 
+#' @param estimate_qslope logical indicating whether to estimate a slope parameter for q in CPUE fitting.
 #' If FALSE q_slope is held at the initial value, either default or supplied. if TRUE, \code{estimate_proc_error} should be set to FALSE
-#' @param estimate_proc_error logical indicating whether to estimate process errors. 
+#' @param estimate_proc_error logical indicating whether to estimate process errors.
 #' If FALSE process errors are not included in the model
 #' @param ci confidence/credible interval range for summaries
 #'
 #' @return a fitted sraplus object
 #' @export
-#' @examples 
+#' @examples
 #' \dontrun{
-#' 
+#'
 #' catch_only_driors <- sraplus::format_driors(
 #' taxa = example_taxa,
 #' catch = cod$catch,
 #' years = cod$year,
 #' use_heuristics = TRUE
 #' )
-#' 
+#'
 #'  catch_only_fit <- sraplus::fit_sraplus(driors = catch_only_driors,
 #'engine = "sir",
 #'draws = 1e6,
 #'n_keep = 2000)
-#' 
+#'
 #' }
 fit_sraplus <- function(driors,
                         include_fit = TRUE,
                         seed = 42,
                         plim = 0.2,
                         model_name = "sraplus_tmb",
-                        randos = "uc_proc_errors",
+                        randos = "log_proc_errors",
                         draws = 1e6,
                         n_keep = 2000,
                         engine = "sir",
@@ -60,8 +60,25 @@ fit_sraplus <- function(driors,
                         estimate_shape = FALSE,
                         estimate_qslope = FALSE,
                         estimate_proc_error = TRUE,
-                        ci = 0.89
-) {
+                        marginalize_q = FALSE,
+                        use_baranov = TRUE,
+                        include_m = FALSE,
+                        ci = 0.89,
+                        try_again = FALSE,
+                        eps = 1e-6,
+                        max_time = Inf,
+                        eval.max = 200,
+                        iter.max = 150,
+                        rel.tol = 1e-10,
+                        loopnum = 1,
+                        newtonsteps = 1) {
+  
+  if (max_time < Inf){
+    
+    setTimeLimit(elapsed = max_time)
+    
+  }
+  
   knockout <-
     list() #parameters to knockout from TMB estimation using TMB::map
   
@@ -82,7 +99,7 @@ fit_sraplus <- function(driors,
     catch_t = driors$catch,
     index_t = index_t,
     effort_t = driors$effort,
-    index_years = which(driors$index_years %in% driors$years),
+    index_years = which(driors$years %in% driors$index_years),
     log_r_prior = log(driors$growth_rate_prior),
     log_r_cv = driors$growth_rate_prior_cv,
     log_init_dep_prior = log(driors$initial_state),
@@ -93,15 +110,17 @@ fit_sraplus <- function(driors,
     fit_index = as.numeric(!all(is.na(driors$index)) |
                              !all(is.na(driors$effort))),
     calc_cpue =  as.numeric(!all(is.na(driors$effort))),
+    use_baranov = as.numeric(use_baranov),
     use_u_prior = as.numeric(!all(is.na(driors$u_v_umsy))),
-    u_years = which(driors$u_years %in% driors$years),
+    u_years = which(driors$years %in% driors$u_years),
     u_priors = driors$u_v_umsy,
     u_cv = driors$u_cv,
     plim = plim,
     sigma_proc_prior = driors$sigma_r_prior,
     sigma_proc_prior_cv = driors$sigma_r_prior_cv,
-    ref_type = ifelse(driors$ref_type == "k", 0, 1),
-    use_final = !is.na(driors$terminal_state),
+    b_ref_type = ifelse(driors$b_ref_type == "k", 0, 1),
+    f_ref_type = ifelse(driors$f_ref_type == "f", 0, 1),
+    use_final_state = !is.na(driors$terminal_state),
     use_final_u = as.numeric(!all(is.na(
       driors$log_final_u
     ))),
@@ -113,12 +132,13 @@ fit_sraplus <- function(driors,
     k_prior_cv = driors$k_prior_cv,
     q_slope_prior = driors$q_slope_prior,
     q_slope_cv = driors$q_slope_prior_cv,
-    eps = 1e-3,
-    nat_m = driors$m,
+    eps = eps,
+    nat_m = ifelse(include_m, driors$m, 0),
     shape_prior = driors$shape_prior,
     shape_cv = driors$shape_prior_cv,
     sigma_obs_prior = driors$sigma_obs_prior,
-    sigma_obs_prior_cv = driors$sigma_obs_prior_cv
+    sigma_obs_prior_cv = driors$sigma_obs_prior_cv,
+    marginalize_q = marginalize_q
   )
   
   
@@ -135,9 +155,10 @@ fit_sraplus <- function(driors,
     
   }
   
-  if (estimate_qslope == TRUE & estimate_proc_error == TRUE){
-    
-    warning("Trying to estiamte both qslope and process error, are you sure you want to do that? We recommend setting either estimate_qslope = FALSE or estimate_proc_error = FALSE")
+  if (estimate_qslope == TRUE & estimate_proc_error == TRUE) {
+    warning(
+      "Trying to estiamte both qslope and process error, are you sure you want to do that? We recommend setting either estimate_qslope = FALSE or estimate_proc_error = FALSE"
+    )
     
   }
   
@@ -154,9 +175,16 @@ fit_sraplus <- function(driors,
     log_sigma_obs = log(0.2),
     log_init_dep = log(1),
     log_sigma_proc = log(0.01),
-    uc_proc_errors = rep(0, time - 1),
+    log_proc_errors = rep(0, time - 1),
     log_shape = log(driors$shape_prior),
-    log_q_slope = log(ifelse(estimate_qslope == TRUE && sra_data$calc_cpue == 1,0.025,driors$q_slope_prior))
+    log_q_slope = log(
+      ifelse(
+        estimate_qslope == TRUE &&
+          sra_data$calc_cpue == 1,
+        0.025,
+        driors$q_slope_prior
+      )
+    )
   )
   
   
@@ -174,11 +202,11 @@ fit_sraplus <- function(driors,
   if (sra_data$fit_index == 0 & sra_data$use_u_prior == 0) {
     knockout$log_sigma_proc <- NA
     
-    knockout$uc_proc_errors <- rep(NA, time - 1)
+    knockout$log_proc_errors <- rep(NA, time - 1)
     
     inits$log_sigma_proc <- log(1e-6)
     
-    inits$uc_proc_errors <- rep(0, time - 1)
+    inits$log_proc_errors <- rep(0, time - 1)
     
     randos <- NULL
     # randos <- "inv_f_t"
@@ -190,15 +218,29 @@ fit_sraplus <- function(driors,
     knockout$log_shape <- NA
   }
   
-  if (!(estimate_qslope == TRUE && sra_data$calc_cpue == 1)){
-    
+  if (!(estimate_qslope == TRUE && sra_data$calc_cpue == 1)) {
     knockout$log_q_slope <- NA
     
   }
   
-  if (estimate_proc_error == FALSE){
+  if (sra_data$calc_cpue == TRUE & marginalize_q == 1) {
+    sra_data$marginalize_q <-  0
     
-    knockout$uc_proc_errors <- rep(NA, time - 1)
+    warning(
+      "You can't calculate CPUE and marginalize q, defaulting to calculating CPUE. Either set marginalize_q = 0 or calc_cpue = 0"
+    )
+    
+  }
+  
+  
+  if (sra_data$calc_cpue == FALSE & marginalize_q == 1) {
+    knockout$log_q <- NA
+    
+  }
+  
+  
+  if (estimate_proc_error == FALSE) {
+    knockout$log_proc_errors <- rep(NA, time - 1)
     
     knockout$log_sigma_proc <- NA
     
@@ -210,20 +252,35 @@ fit_sraplus <- function(driors,
   
   knockout <- purrr::map(knockout, as.factor)
   
-  
-  
-  
   # fit models
-  
-  if ((sra_data$fit_index == 0 &
-       sra_data$use_u_prior == 0) | engine == "sir") {
+  if (sra_data$fit_index == 0 | engine == "sir") {
+    if (engine != "sir") {
+      warning("You tried to fit a model with nothing in the likelihood - using SIR instead")
+      
+    }
+    
+    if (sra_data$use_final_state == 0 &
+        sra_data$use_final_u == 0 &
+        sra_data$use_u_prior == 0 & is.na(driors$terminal_state)) {
+      stop(
+        "Trying to run SIR without priors on final status or fishing mortality! Specify one or both of these"
+      )
+    }
     sra_fit <- sraplus::sraplus(
       catches = sra_data$catch_t,
       r = pmax(
         0.01,
-        rnorm(draws, driors$growth_rate_prior, driors$growth_rate_prior_cv)
+        rnorm(
+          draws,
+          driors$growth_rate_prior,
+          driors$growth_rate_prior_cv
+        )
       ),
-      m = runif(draws, 0.2, 6),
+      m = runif(
+        draws,
+        ifelse(estimate_shape, 0.2, sra_data$shape_prior),
+        ifelse(estimate_shape, 6, sra_data$shape_prior)
+      ),
       init_dep = exp(
         rnorm(
           draws,
@@ -236,7 +293,7 @@ fit_sraplus <- function(driors,
         1.15 * max(sra_data$catch_t),
         50 * max(sra_data$catch_t)
       ),
-      sigma_procs = runif(draws, 0, 0.15),
+      sigma_procs = runif(draws, 0, ifelse(estimate_proc_error, 0.2, 0)),
       draws = draws,
       log_final_ref = ifelse(
         is.na(sra_data$log_final_dep_prior),
@@ -248,11 +305,12 @@ fit_sraplus <- function(driors,
         1,
         sra_data$log_final_dep_cv
       ),
-      u_prior = sra_data$use_u_prior,
+      use_u_prior = sra_data$use_u_prior,
       u_priors = sra_data$u_priors,
       u_years = sra_data$u_years,
       sigma_u = sra_data$u_cv,
-      ref_type = sra_data$ref_type,
+      b_ref_type = sra_data$b_ref_type,
+      f_ref_type = sra_data$f_ref_type,
       n_keep = n_keep,
       drawdex = 0:(draws - 1),
       qs = runif(draws, 1e-9, 1e-1),
@@ -262,6 +320,8 @@ fit_sraplus <- function(driors,
       sigma_obs = exp(rnorm(draws, log(0.2), 0.1)),
       plim = plim,
       use_final_u = sra_data$use_final_u,
+      use_final_state = sra_data$use_final_state,
+      
       log_final_u = sra_data$log_final_u,
       log_final_u_cv =  sra_data$log_final_u_cv
     )
@@ -272,7 +332,6 @@ fit_sraplus <- function(driors,
     outs <- stringr::str_detect(names(sra_fit), "_t")
     
     sra_fit$b_t[, keepers] -> a
-    
     tidy_fits <-
       purrr::map_df(
         purrr::keep(sra_fit, outs),
@@ -282,8 +341,17 @@ fit_sraplus <- function(driors,
       ) %>%
       dplyr::mutate(draw = stringr::str_replace_all(draw, "\\D", "") %>% as.numeric())
     
+    static_outs <- !stringr::str_detect(names(sra_fit), "_t") & names(sra_fit) != "keepers"
     
+    
+    tidy_static_fits <-   purrr::map_df(
+      purrr::keep(sra_fit, static_outs),
+      ~ data.frame(value = .x[keepers]) %>% dplyr::mutate(year = 1, draw = 1:nrow(.)),
+      keepers = keepers,
+      .id = "variable"
+    )
     out <- tidy_fits %>%
+      dplyr::bind_rows(tidy_static_fits) %>% 
       dplyr::group_by(year, variable) %>%
       dplyr::summarise(
         mean = mean(value),
@@ -310,11 +378,8 @@ fit_sraplus <- function(driors,
     out$fit$year <- out$fit$year - 1 + min(driors$years)
     
     # index_tests <- sra_fit$index_hat[, sra_fit$keepers]
-    
-    
   }
   else {
-    
     if (sra_data$use_u_prior == 0) {
       udist <- NULL
       
@@ -328,7 +393,6 @@ fit_sraplus <- function(driors,
     upper_k <- log(50 * max(driors$catch))
     
     sraplus::get_tmb_model(model_name = model_name)
-    
     sra_model <-
       TMB::MakeADFun(
         data = sra_data,
@@ -355,10 +419,10 @@ fit_sraplus <- function(driors,
     
     upper["log_init_dep"] <- log(1.5)
     
-    upper['log_q'] <- log(1)
-    
-    if (estimate_qslope == TRUE){
-      
+    if (marginalize_q == 0 & sra_data$fit_index == 1) {
+      upper['log_q'] <- log(1)
+    }
+    if (estimate_qslope == TRUE) {
       lower['log_q_slope'] <- -Inf
       
       upper['log_q_slope'] <- log(.1)
@@ -369,7 +433,6 @@ fit_sraplus <- function(driors,
     }
     
     if (engine == "stan") {
-      
       set.seed(seed)
       fit <-
         tmbstan::tmbstan(
@@ -385,13 +448,14 @@ fit_sraplus <- function(driors,
         )
       
       draws = tidybayes::tidy_draws(fit) %>%
-        tidyr::nest(-.chain, .iteration,-.draw,-.iteration)
+        group_by(.chain, .iteration, .draw) %>%
+        tidyr::nest()
       
       draws <- draws %>%
         dplyr::mutate(
           pars = purrr::map(
             data,
-            get_posterior,
+            purrr::quietly(get_posterior),
             inits = inits,
             sra_data = sra_data,
             model_name = model_name,
@@ -401,16 +465,17 @@ fit_sraplus <- function(driors,
         ) %>%
         dplyr::select(-data)
       
+      draws$pars <- purrr::map(draws$pars, "result")
+      
       draws <- draws %>%
         dplyr::mutate(stack = purrr::map(pars, stack_stan)) %>%
         dplyr::select(-pars) %>%
-        tidyr::unnest()
+        tidyr::unnest(col = stack)
       
       draws <- draws %>%
         dplyr::group_by(variable, .draw) %>%
         dplyr::mutate(year = seq_along(value))
-      
-      
+
       draws$variable <-
         dplyr::case_when(
           draws$variable == "log_b" ~ "log_b_div_bmsy",
@@ -431,7 +496,7 @@ fit_sraplus <- function(driors,
         dplyr::filter(!stringr::str_detect(variable, "log_")) %>%
         dplyr::bind_rows(logs)
       
-      out <- logs %>%
+      out <- draws %>%
         dplyr::group_by(variable, year) %>%
         dplyr::summarise(
           mean = mean(value),
@@ -448,6 +513,8 @@ fit_sraplus <- function(driors,
       out <- list(results = out,
                   fit = fit)
       
+      out$results$year <- out$results$year - 1 + min(driors$years)
+      
       rm(sra_model)
       
       rm(fit)
@@ -456,36 +523,37 @@ fit_sraplus <- function(driors,
       
       
     } else if (engine == "tmb") {
-      
       set.seed(seed)
+      
       fit <- TMBhelper::fit_tmb(
         sra_model,
         fn = sra_model$fn,
         gr = sra_model$gr,
-        newtonsteps = 6,
+        loopnum = loopnum,
+        newtonsteps = newtonsteps,
         lower = lower,
         upper = upper,
         getsd = FALSE,
         control = list(
-          eval.max = 1e3,
-          iter.max = 1e3,
-          rel.tol = 1e-10
+          eval.max = eval.max,
+          iter.max = iter.max,
+          rel.tol = rel.tol
         )
       )
-
-      if (fit$max_gradient > 1e-3) {
+      
+      if (fit$max_gradient > 1e-3 & try_again == TRUE) {
         fit <- TMBhelper::fit_tmb(
           sra_model,
           fn = sra_model$fn,
           gr = sra_model$gr,
-          newtonsteps = 10,
+          newtonsteps = newtonsteps * 2,
           lower = lower,
           upper = upper,
           getsd = FALSE,
           control = list(
-            eval.max = 1e3,
-            iter.max = 1e3,
-            rel.tol = 1e-10
+            eval.max = eval.max * 2,
+            iter.max = iter.max * 2,
+            rel.tol = rel.tol
           )
         )
         
@@ -495,7 +563,8 @@ fit_sraplus <- function(driors,
       
       fit_report <- fit_save$report()
       
-      fit <- TMB::sdreport(fit_save, bias.correct = ifelse(is.null(randos), FALSE,TRUE))
+      fit <-
+        TMB::sdreport(fit_save, bias.correct = ifelse(is.null(randos), FALSE, TRUE))
       
       out <-
         dplyr::tibble(
@@ -516,8 +585,12 @@ fit_sraplus <- function(driors,
       
       
       out <- out %>%
-        dplyr::mutate(lower = mean - qnorm(1 - (1 - ci)/2) * sd,
-                      upper = mean +  qnorm(1 - (1 - ci)/2) * sd)
+        dplyr::mutate(lower = mean - qnorm(1 - (1 - ci) / 2) * sd,
+                      upper = mean +  qnorm(1 - (1 - ci) / 2) * sd) %>% 
+        dplyr::group_by(variable) %>% 
+        dplyr::mutate(year = seq_along(mean)) %>% 
+        ungroup()
+      
       
       logs <- out %>%
         dplyr::filter(stringr::str_detect(variable, "log_")) %>%
@@ -538,6 +611,9 @@ fit_sraplus <- function(driors,
       out <- list(results = out,
                   fit = fit)
       
+      out$results$year <- out$results$year - 1 + min(driors$years)
+      
+      
       rm(sra_model)
       
       rm(fit)
@@ -546,10 +622,9 @@ fit_sraplus <- function(driors,
     
     
   } # close tmb or stan else
-    
-
+  
+  
   if (cleanup == TRUE) {
-    
     model_path <-
       file.path(getwd(),
                 paste(model_name, utils::packageVersion("sraplus"), sep = '_v'))

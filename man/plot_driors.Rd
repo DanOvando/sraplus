@@ -4,12 +4,14 @@
 \alias{plot_driors}
 \title{Plot data and priors for sralpus}
 \usage{
-plot_driors(driors, fontsize = 10)
+plot_driors(driors, fontsize = 10, prob = 0.9)
 }
 \arguments{
 \item{driors}{a list of driors created by sraplus::format_driors}
 
 \item{fontsize}{font size for plots}
+
+\item{prob}{proportion of probabiltiy distribution to plot}
 }
 \value{
 a ggplot2 object
