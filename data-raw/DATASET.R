@@ -50,6 +50,13 @@ purrr::walk(functions, ~ source(here::here("R", .x)))
 
 load(here("data-raw","Return.Rdata"))
 
+readr::write_rds(here::here("data-raw","Return.rds"))
+
+rm(Return)
+
+Return <- readr::read_rds(here::here("data-raw","Return.rds"))
+
+
 FishLifeData<- Return[c("ParentChild_gz","beta_gv","Cov_gvv")]
 
 FishLifeData$metadata <- "emailed from Thorson, beta version with newparameters"
