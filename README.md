@@ -219,12 +219,12 @@ head(catch_only_fit$results)
 #> # A tibble: 6 x 6
 #>    year variable           mean           sd       lower       upper
 #>   <dbl> <chr>             <dbl>        <dbl>       <dbl>       <dbl>
-#> 1  1963 b_div_bmsy        0.619       0.145        0.438       0.853
-#> 2  1963 b           4922497.    1725709.     2477626.    7855181.   
-#> 3  1963 c_div_msy         0.354       0.195        0.172       0.599
+#> 1  1963 b_div_bmsy        0.624       0.151        0.437       0.863
+#> 2  1963 b           4824659.    1739814.     2377033.    7882042.   
+#> 3  1963 c_div_msy         0.350       0.159        0.168       0.586
 #> 4  1963 crashed           0           0            0           0    
-#> 5  1963 depletion         0.406       0.0821       0.290       0.545
-#> 6  1963 index_hat_t  236613.     169038.       23455.     551361.
+#> 5  1963 depletion         0.407       0.0814       0.291       0.551
+#> 6  1963 index_hat_t  240002.     170998.       24629.     565535.
 ```
 
 `results` is organized as a dataframe tracking different variables over
@@ -240,12 +240,12 @@ object is the output of the SIR algorithm.
 ``` r
 head(catch_only_fit$fit)
 #>   variable year draw   value
-#> 1      b_t 1963    1 4952024
-#> 2      b_t 1964    1 4298294
-#> 3      b_t 1965    1 4687710
-#> 4      b_t 1966    1 6970141
-#> 5      b_t 1967    1 6309046
-#> 6      b_t 1968    1 6810213
+#> 1      b_t 1963    1 3502577
+#> 2      b_t 1964    1 3469767
+#> 3      b_t 1965    1 3301170
+#> 4      b_t 1966    1 3497212
+#> 5      b_t 1967    1 3113823
+#> 6      b_t 1968    1 2936790
 ```
 
 From there, we can generate some standard plots of B/Bmsy

@@ -9,12 +9,15 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
-```{r setup, include = FALSE}
+```{r, echo = FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
-  comment = "#>"
+  comment = "#>",
+  message = FALSE,
+  warnings = FALSE,
+  eval = TRUE,
+  dev = "svg"
 )
-
 ```
 
 # sraplus
@@ -29,7 +32,7 @@ knitr::opts_chunk$set(
 
 ## Installing
 
-This is an in-development package hosted on github, so you will need to do a few things to install it. 
+This is an in-development package hosted on github, so you will need to do a few things to install it.
 
 1. open R
 
@@ -44,10 +47,10 @@ You'll need to be connected to the internet.
 3. Once `devtools` has been installed, you can then install `sraplus` by running
 
 ```{r, eval = FALSE}
-remotes::install_github("danovando/sraplus", build_vignettes = TRUE)
+remotes::install_github("danovando/sraplus")
 ```
 
-That's probably going to ask you to install many other packages, agree to the prompts. 
+That's probably going to ask you to install many other packages, agree to the prompts.
 
 ### Troubleshooting
 
@@ -59,7 +62,7 @@ If your version of R is lower than 3.5, you might want to consider updating R it
 
 From there...
 
-- On Windows, make sure you have the appropriate version of Rtools installed ([here](https://cran.r-project.org/bin/windows/Rtools/)), most likely Rtools35 if you have R version 3.3 or higher 
+- On Windows, make sure you have the appropriate version of Rtools installed ([here](https://cran.r-project.org/bin/windows/Rtools/)), most likely Rtools35 if you have R version 3.3 or higher
   - Make sure that you select the box that says something about adding Rtools to the PATH variable
 
 - On macOS, there might be some issues with the your compiler. If you get an error that says something like `clang: error: unsupported option '-fopenmp'`, follow the instructions [here](https://thecoatlessprofessor.com/programming/r-compiler-tools-for-rcpp-on-macos/)
@@ -86,6 +89,8 @@ library(tidyr)
 library(dplyr)
 library(sraplus)
 library(tmbstan)
+library(tmbstan)
+
 ```
 
 Once you've successfully installed `sraplus` you can take for a test drive with these examples. We'll now work through a couple examples, from simple to complex, of using `sraplus`
@@ -127,7 +132,7 @@ You can take a look at the information in the `catch_only_driors` object by usin
 
 ```{r c-msy-3}
 
-sraplus::plot_driors(catch_only_driors)
+plot_driors(catch_only_driors)
 
 ```
 
@@ -141,7 +146,9 @@ From there, we pass the `driors` object to `sraplus::fit_sraplus`, and plot the 
  catch_only_fit <- sraplus::fit_sraplus(driors = catch_only_driors,
                        engine = "sir",
                        draws = 1e6,
-                       n_keep = 2000)
+                       n_keep = 2000,
+                       estimate_proc_error = TRUE, 
+                       estimate_shape = TRUE)
 ```
 
 Running `fit_sraplus` always produces a list with two objects: `results` and `fit`. `results` is (mostly) standardized across engines set of summary outputs from the fitted model. This allows us to easily plot and compare outputs from models fit using `sir`, TMB, or stan. The `fit` object contains the actual fitted model, which will of course vary dramatically depending on what engine was used. 
@@ -190,10 +197,14 @@ fmi_sar_driors <- format_driors(
   catch = cod$catch,
   years = cod$year,
   initial_state = 1,
-  initial_state_cv = 0.2,
+  initial_state_cv = 0.25,
   use_heuristics = FALSE,
-  sar = 3,
-  fmi = c("research" = 0.85,"management" = 0.75, "enforcement" = 0.75, "socioeconomics" = 0.75))
+  sar = 17,
+  sar_cv = 0.1,
+  fmi = c("research" = 0.5, "management" = 0.5, "socioeconomics" = 0.5, 'enforcement' = 0.5),
+  use_b_reg = FALSE,
+  b_ref_type = "k",
+  sigma_r_prior_cv = 0.5)
 
 sraplus::plot_driors(fmi_sar_driors)
 ```
@@ -207,12 +218,16 @@ fmi_sar_fit <- fit_sraplus(
   driors = fmi_sar_driors,
   engine = "sir",
   draws = 1e6,
-  n_keep = 2000
+  n_keep = 2000,
+  estimate_shape = FALSE,
+  estimate_proc_error = TRUE
 )
 
 plot_sraplus(fmi_sar = fmi_sar_fit,
              catch_only = catch_only_fit,
              years = fmi_sar_driors$years)
+
+
 
 ```
 
@@ -287,7 +302,7 @@ sim <-
   sraplus_simulator(
     sigma_proc = 0.05,
     sigma_u = 0.05,
-    q_slope = 0.05,
+    q_slope = 0.025,
     r = 0.2,
     years = 25,
     q = 1e-3,
@@ -316,9 +331,8 @@ Just to explore functionality of `sraplus`, we'll fit the model using Bayesian e
 
 
 
-```{r, results="hide"}
+```{r, results="hide", message=FALSE, warning=FALSE}
 
-library(tmbstan)
 
 cpue_driors <- format_driors(taxa = example_taxa,
                            catch = sim$pop$catch,
@@ -328,26 +342,38 @@ cpue_driors <- format_driors(taxa = example_taxa,
                            growth_rate_prior = 0.4,
                            growth_rate_prior_cv = 0.1,
                            shape_prior = 1.01,
-                           q_slope_prior = 0.025,
-                           q_slope_prior_cv = 0.25)
+                           q_slope_prior = 0,
+                           q_slope_prior_cv = 0.2)
 
 
 cpue_fit <- fit_sraplus(driors = cpue_driors,
-                             engine = "stan",
+                             engine = "tmb",
                              model = "sraplus_tmb",
                              adapt_delta = 0.9,
                              max_treedepth = 10,
-                             n_keep = 4000,
+                             n_keep = 2000,
                              chains = 1, 
                              cores = 1,
                              estimate_qslope = FALSE)
 
-cpue_qslope_fit <- fit_sraplus(driors = cpue_driors,
+
+cpue_qslope_driors <- format_driors(taxa = example_taxa,
+                           catch = sim$pop$catch,
+                           years = sim$pop$year,
+                           effort = sim$pop$effort,
+                           effort_years = sim$pop$year,
+                           growth_rate_prior = 0.4,
+                           growth_rate_prior_cv = 0.1,
+                           shape_prior = 1.01,
+                           q_slope_prior = 0.025,
+                           q_slope_prior_cv = 0.05)
+
+cpue_qslope_fit <- fit_sraplus(driors = cpue_qslope_driors,
                              engine = "stan",
                              model = "sraplus_tmb",
                              adapt_delta = 0.9,
                              max_treedepth = 10,
-                             n_keep = 4000,
+                             n_keep = 1000,
                              chains = 1, 
                              cores = 1,
                              estimate_qslope = TRUE,
@@ -363,7 +389,7 @@ plot_sraplus(`CPUE fit no qslope` = cpue_fit, `CPUE fit with qslope` =  cpue_qsl
 
 As a final step, we can try adding in some fictional SAR data to our fake fishery, just to see how it works. We can weight the SAR data using the `sar_cv` input. Leaving `sar_cv = NA` uses the srandard deviation from the posterior predictive of the fitted relationahip between SAR and U/Umsy contained in the model. In other words, setting `sar_cv = NA` lets the data tell you how much weight to assign to the SAR data. You can however overwrite this if desired and pass a stronger weight to the SAR data if desired. 
 
-```{r, results = "hide"}
+```{r, results = "hide", message = "FALSE", warning = "FALSE"}
 cpue_sar_qslope_driors <- format_driors(taxa = example_taxa,
                            catch = sim$pop$catch,
                            years = sim$pop$year,
@@ -374,19 +400,22 @@ cpue_sar_qslope_driors <- format_driors(taxa = example_taxa,
                            shape_prior = 1.01,
                            q_slope_prior = 0.025,
                            q_slope_prior_cv = 0.25,
+                           f_ref_type = "f",
                            sar = 2,
-                           sar_cv = NA)
+                           sar_cv = 0.1)
 
 cpue_sar_qslope_fit <- fit_sraplus(driors = cpue_sar_qslope_driors,
-                             engine = "stan",
+                             engine = "tmb",
                              model = "sraplus_tmb",
                              adapt_delta = 0.9,
                              max_treedepth = 10,
-                             n_keep = 4000,
+                             n_keep = 2000,
                              chains = 1, 
                              cores = 1,
                              estimate_qslope = TRUE,
                              estimate_proc_error = FALSE)
+
+plot_sraplus(cpue_sar_qslope_fit, years = cpue_sar_qslope_driors$years)
 ```
 
 And for good measure one more with SAR data and process error instead of qslope
@@ -404,14 +433,15 @@ cpue_sar_proc_driors <- format_driors(taxa = example_taxa,
                            q_slope_prior = 0,
                            q_slope_prior_cv = 0.25,
                            sar = 4,
-                           sar_cv = .05)
+                           sar_cv = .05,
+                           f_ref_type = "f")
 
 cpue_sar_proc_fit <- fit_sraplus(driors = cpue_sar_proc_driors,
-                             engine = "stan",
+                             engine = "tmb",
                              model = "sraplus_tmb",
                              adapt_delta = 0.9,
                              max_treedepth = 10,
-                             n_keep = 4000,
+                             n_keep = 2000,
                              chains = 1, 
                              cores = 1,
                              estimate_qslope = FALSE,
@@ -426,5 +456,31 @@ plot_sraplus(`no rocess error and no qslope ` = cpue_fit,
              `process error and sar` = cpue_sar_proc_fit,
              years = cpue_driors$years)
 
+
 ```
 
+
+We can also use several built-in processing functions to display and store the results
+
+`plot_prior_posterior` displays the prior and posterior distributions for selected parameters
+
+```{r}
+
+plot_prior_posterior(cpue_sar_proc_fit, cpue_sar_proc_driors)
+
+```
+
+
+We can plot a summary of the most recent status estimates, along with key outcomes such as MSY
+
+
+```{r}
+summarize_sralpus(cpue_sar_proc_fit, output = "plot")
+```
+
+Or produce a summary table that can be saved to a .csv file. 
+
+```{r}
+summarize_sralpus(cpue_sar_proc_fit, output = "table") %>% 
+  knitr::kable()
+```
