@@ -247,7 +247,15 @@ fao_genus = fao_species %>%
 fao_taxa <- list(fao_species = fao_species,
                  fao_genus = fao_genus)
 
-usethis::use_data(fao_taxa,FishLifeData, overwrite = TRUE, internal = TRUE)
+# usethis::use_data(fao_taxa,FishLifeData, overwrite = TRUE, internal = TRUE)
+
+# usethis::use_data(fao_taxa,FishLifeData, overwrite = TRUE, internal = TRUE)
+
+usethis::use_data(fao_taxa, overwrite = TRUE)
+
+usethis::use_data(FishLifeData, overwrite = TRUE)
+
+
 
 fao$fao_country_name <-
   countrycode::countrycode(fao$country, "country.name", "fao.name")
