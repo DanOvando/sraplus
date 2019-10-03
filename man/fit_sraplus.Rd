@@ -9,7 +9,10 @@ fit_sraplus(driors, include_fit = TRUE, seed = 42, plim = 0.2,
   draws = 1e+06, n_keep = 2000, engine = "sir", cores = 4,
   chains = 1, cleanup = FALSE, max_treedepth = 10,
   adapt_delta = 0.8, estimate_shape = FALSE, estimate_qslope = FALSE,
-  estimate_proc_error = TRUE, marginalize_q = FALSE, ci = 0.89)
+  estimate_proc_error = TRUE, marginalize_q = FALSE,
+  use_baranov = TRUE, include_m = FALSE, ci = 0.89,
+  try_again = FALSE, eps = 1e-06, max_time = Inf, eval.max = 200,
+  iter.max = 150, rel.tol = 1e-10, loopnum = 1, newtonsteps = 1)
 }
 \arguments{
 \item{driors}{a list of driors passed from sraplus::format_driors}

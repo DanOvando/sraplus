@@ -4,20 +4,20 @@
 \alias{format_driors}
 \title{Format data and priors for sraplus}
 \usage{
-format_driors(taxa = "gadus morhua", initial_state = 1,
+format_driors(taxa = "lutjanus griseus", initial_state = 1,
   initial_state_cv = 0.1, terminal_state = NA,
-  terminal_state_cv = 0.1, u_v_umsy = NA, u_years = NA, u_cv = 0.1,
+  terminal_state_cv = 0.1, u_v_umsy = NA, u_years = NA, u_cv = 0.2,
   final_u = NA, final_u_cv = NA, catch = NA, years = NA,
   index = NA, effort = NA, b_ref_type = "k", f_ref_type = "fmsy",
   index_years = 1, effort_years = NA, use_heuristics = FALSE,
   use_b_reg = FALSE, growth_rate_prior = NA,
-  growth_rate_prior_cv = NA, fmi = c(research = NA, management = NA,
+  growth_rate_prior_cv = 0.1, fmi = c(research = NA, management = NA,
   enforcement = NA, socioeconomics = NA), fmi_cv = NA, sar = NA,
   sar_cv = NA, q_slope_prior = 0, q_slope_prior_cv = 0.1, m = NA,
-  k_prior = NA, k_prior_cv = 2, sigma_r_prior = 0.01,
-  sigma_r_prior_cv = 0.25, shape_prior = 1.01, shape_prior_cv = 0.05,
-  q_prior_cv = 1, sigma_obs_prior = 0.05, sigma_obs_prior_cv = 0.25,
-  isscaap_group = "Cods", prob = 0.9)
+  k_prior = NA, k_prior_cv = 2, sigma_r_prior = 0.05,
+  sigma_r_prior_cv = 0.5, shape_prior = 1.01, shape_prior_cv = 0.25,
+  q_prior_cv = 1, sigma_obs_prior = 0.05, sigma_obs_prior_cv = 2,
+  isscaap_group = NA, prob = 0.9)
 }
 \arguments{
 \item{taxa}{the genus and species of the species (case insensitive)}
