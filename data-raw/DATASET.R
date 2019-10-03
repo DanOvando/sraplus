@@ -525,7 +525,7 @@ ram_v_fmi %>%
 
 random_fmi_tests <- ram_v_fmi %>%
   nest(-metric) %>%
-  mutate(splits = map(data, ~ rsample:: vfold_cv(.x, v = 3, repeats = 5))) %>%
+  mutate(splits = map(data, ~ rsample:: vfold_cv(.x, v = 2, repeats = 1))) %>%
   select(-data) %>%
   unnest() %>%
   mutate(sampid  = 1:nrow(.))
@@ -646,7 +646,7 @@ ram_v_sar <- recipe(log_value ~ ., data = ram_v_sar) %>%
 
 random_sar_tests <- ram_v_sar %>%
   nest(-metric) %>%
-  mutate(splits = map(data, ~ rsample::vfold_cv(.x, v = 3, repeats = 5))) %>%
+  mutate(splits = map(data, ~ rsample::vfold_cv(.x, v = 2, repeats = 1))) %>%
   select(-data) %>%
   unnest() %>%
   mutate(sampid  = 1:nrow(.))
