@@ -135,10 +135,10 @@ format_driors <-
       
       if (f_ref_type == "fmsy"){
         
-        tempmod <- best_sar_models$fit[best_sar_models$metric == "mean_uumsy"][[1]]
+        tempmod <- sar_models$fit[sar_models$metric == "mean_uumsy"][[1]]
       } else if (f_ref_type == "f"){
         
-        tempmod <- best_sar_models$fit[best_sar_models$metric == "mean_f"][[1]]
+        tempmod <- sar_models$fit[sar_models$metric == "mean_f"][[1]]
       }
       
       
@@ -166,7 +166,7 @@ format_driors <-
       
       if (use_b_reg == TRUE){
         
-        tempmod <- best_sar_models$fit[best_sar_models$metric == "mean_bbmsy"][[1]]
+        tempmod <- sar_models$fit[sar_models$metric == "mean_bbmsy"][[1]]
         
         pp <-
           rstanarm::posterior_predict(tempmod, newdata = temp)
@@ -193,9 +193,9 @@ format_driors <-
       temp$isscaap_group = isscaap_group
       if (f_ref_type == "fmsy"){
       
-      tempmod <- best_fmi_models$fit[best_fmi_models$metric == "mean_uumsy"][[1]]
+      tempmod <- fmi_models$fit[fmi_models$metric == "mean_uumsy"][[1]]
       } else if (f_ref_type == "f"){
-        tempmod <- best_fmi_models$fit[best_fmi_models$metric == "mean_f"][[1]]
+        tempmod <- fmi_models$fit[fmi_models$metric == "mean_f"][[1]]
       }
     
     
@@ -211,7 +211,7 @@ format_driors <-
       
       if (use_b_reg == TRUE){
       
-      tempmod <- best_fmi_models$fit[best_fmi_models$metric == "mean_bbmsy"][[1]]
+      tempmod <- fmi_models$fit[fmi_models$metric == "mean_bbmsy"][[1]]
       
       pp <-
         rstanarm::posterior_predict(tempmod, newdata = temp)

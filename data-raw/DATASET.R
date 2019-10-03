@@ -50,7 +50,7 @@ purrr::walk(functions, ~ source(here::here("R", .x)))
 
 load(here("data-raw","Return.Rdata"))
 
-readr::write_rds(here::here("data-raw","Return.rds"))
+readr::write_rds(Return,here::here("data-raw","Return.rds"))
 
 rm(Return)
 
@@ -621,12 +621,12 @@ best_fmi_models <- best_fmi_models %>%
 
 
 
-best_fmi_models <- best_fmi_models %>%
+fmi_models <- best_fmi_models %>%
   mutate(fit = map(best_fmi_fit, "fit")) %>% 
-  mutate(prior_plot = map2(fit, splits, plot_prior_fit)) %>% 
+  # mutate(prior_plot = map2(fit, splits, plot_prior_fit)) %>% 
   select(-best_fmi_fit)
 
-usethis::use_data(best_fmi_models,overwrite = TRUE)
+usethis::use_data(fmi_models,overwrite = TRUE)
 
 
 # fit sar models --------------------------------------------------------------
@@ -747,10 +747,10 @@ sar_v_f_plot <- bayesplot::ppc_intervals(
     y = "log(U/Umsy)"
   )
 
-best_sar_models <- best_sar_models %>% 
+sar_models <- best_sar_models %>% 
   select(-best_fit, -prior_plot)
 
-usethis::use_data(best_sar_models,overwrite = TRUE)
+usethis::use_data(sar_models,overwrite = TRUE)
 
 # catch priors ------------------------------------------------------------
 
