@@ -260,7 +260,7 @@ fao_taxa <- list(fao_species = fao_species,
 
 usethis::use_data(fao_taxa, overwrite = TRUE)
 
-usethis::use_data(FishLifeData, overwrite = TRUE)
+usethis::use_data(FishLifeData, overwrite = TRUE, internal = TRUE)
 
 
 
