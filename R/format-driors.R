@@ -51,7 +51,7 @@ format_driors <-
            initial_state = 1,
            initial_state_cv = 0.1,
            terminal_state = NA,
-           terminal_state_cv = 0.1,
+           terminal_state_cv = 0.2,
            u_v_umsy = NA,
            u_years = NA,
            u_cv = 0.2,
@@ -344,7 +344,7 @@ format_driors <-
       initial_state <-  dplyr::case_when(b_ref_type == "k" ~ temp,
                                      TRUE ~ temp * 2.5)
       
-      initial_state_cv <- 0.2
+      initial_state_cv <- ifelse(is.na(initial_state_cv), 0.2, initial_state_cv)
       
       temp_terminal <-
         ifelse((dplyr::last(catch) / max(catch)) > 0.5, 0.6, 0.2)
@@ -353,7 +353,7 @@ format_driors <-
         dplyr::case_when(b_ref_type == "k" ~ temp_terminal,
                          TRUE ~ temp_terminal * 2.5)
       
-      terminal_state_cv <- 0.2
+      terminal_state_cv <- ifelse(is.na(terminal_state_cv), 0.2, terminal_state_cv)
       
     }
     

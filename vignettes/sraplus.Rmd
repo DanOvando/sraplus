@@ -149,6 +149,7 @@ From there, we pass the `driors` object to `sraplus::fit_sraplus`, and plot the 
                        n_keep = 2000,
                        estimate_proc_error = TRUE, 
                        estimate_shape = TRUE)
+
 ```
 
 Running `fit_sraplus` always produces a list with two objects: `results` and `fit`. `results` is (mostly) standardized across engines set of summary outputs from the fitted model. This allows us to easily plot and compare outputs from models fit using `sir`, TMB, or stan. The `fit` object contains the actual fitted model, which will of course vary dramatically depending on what engine was used. 
