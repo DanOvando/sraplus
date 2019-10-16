@@ -288,10 +288,10 @@ fit_sraplus <- function(driors,
           sra_data$log_init_dep_cv
         )
       ),
-      k = runif(
+      k = rlnorm(
         draws,
-        1.15 * max(sra_data$catch_t),
-        50 * max(sra_data$catch_t)
+        log(10* max(sra_data$catch_t)),
+        2
       ),
       sigma_procs = runif(draws, 0, ifelse(estimate_proc_error, 0.2, 0)),
       draws = draws,
