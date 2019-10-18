@@ -508,6 +508,10 @@ ram_v_fmi <- ram_data %>%
   mutate_at(c("research", "management", "enforcement", "socioeconomics"), ~ .x + 1e-6) %>% 
   filter(isscaap_group != "Tunas, bonitos, billfishes")
 
+ram_fmi <- ram_v_fmi
+
+usethis::use_data(ram_fmi, overwrite = TRUE)
+
 a = fmi %>% 
   filter(!is.na(lookup_code))
 

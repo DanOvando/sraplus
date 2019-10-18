@@ -1,10 +1,10 @@
 #' Format data and priors for sraplus
 #'
 #' @param taxa the genus and species of the species (case insensitive)
-#' @param initial_state reference point in the initial year, units of depletion or B/Bmsy (set ref_type accordingly). 
+#' @param initial_state reference point in the initial year, units of depletion or B/Bmsy (set ref_type accordingly).
 #' when \code{initial_state} is 1, implies either B/K = 1 or B/Bmsy = 1
 #' @param initial_state_cv CV associated with initial state reference point
-#' @param terminal_state reference point in the terminal year, units of depletion or B/Bmsy (set ref_type accordingly). 
+#' @param terminal_state reference point in the terminal year, units of depletion or B/Bmsy (set ref_type accordingly).
 #' when \code{initial_state} is 1, implies either B/K = 1 or B/Bmsy = 1
 #' @param terminal_state_cv CV associated with terminal state reference point
 #' @param u_v_umsy u/umsy data over time
@@ -36,12 +36,12 @@
 #' @param q_prior_cv CV of prior on q itself (prior on q set in \code{fit_sraplus})
 #' @param sigma_obs_prior prior on observation error
 #' @param sigma_obs_prior_cv cv of prior on observation error
-#' @param b_ref_type 
-#' @param f_ref_type 
-#' @param use_b_reg 
-#' @param q_slope_prior_cv 
-#' @param isscaap_group 
-#' @param prob 
+#' @param b_ref_type the units of the initial and final depletion. k means that units are relative to carrying capacity, b bmsy
+#' @param f_ref_type the units of the fishing mortality rates. fmsy means F/Fmsy, f means fishing mortality rate f
+#' @param use_b_reg logical marking whether to use the regression to put priors on biomass as well as fishing mortality
+#' @param q_slope_prior_cv the cv on the prior on q_slope
+#' @param isscaap_group the isscaap group of the stock. If NA will try and find
+#' @param prob the probability range of the posterior predictive to use in construction of the priors
 #'
 #' @return a list of data and priors
 #' @export
@@ -92,30 +92,26 @@ format_driors <-
            sigma_obs_prior_cv = 2,
            isscaap_group = NA,
            prob = 0.9) {
-    
-    if (use_b_reg == TRUE){
-      
+    if (use_b_reg == TRUE) {
       b_ref_type <-  "b"
       
     }
     
-    if (use_heuristics == TRUE){
-      
+    if (use_heuristics == TRUE) {
       warning("WARNING: You are using catch heursitics as your stock assessment")
       
     }
     
     genus <- tolower(strsplit(taxa, split = ' ')[[1]][1])
     
-    if (is.na(isscaap_group)){
-      
-      
-      if (any(grepl(tolower(taxa), tolower(fao_taxa$fao_species$scientific_name)))) {
-        
+    if (is.na(isscaap_group)) {
+      if (any(grepl(
+        tolower(taxa),
+        tolower(fao_taxa$fao_species$scientific_name)
+      ))) {
         isscaap_group = fao_taxa$fao_species$isscaap_group[tolower(fao_taxa$fao_species$scientific_name) == tolower(taxa)][1]
         
-      } else if (any(grepl(tolower(genus),tolower(fao_taxa$fao_genus$genus)))) {
-        
+      } else if (any(grepl(tolower(genus), tolower(fao_taxa$fao_genus$genus)))) {
         isscaap_group = fao_taxa$fao_genus$isscaap_group[tolower(fao_taxa$fao_genus$genus) == genus][1]
         
         
@@ -125,38 +121,29 @@ format_driors <-
       
       
     }
-
+    
     if (!is.na(sar)) {
-      
-
-      # isscaap_group = "Flounders, halibuts, soles"
-      
-      # tempmod <- best_sar_models$fit[best_sar_models$metric == "mean_uumsy"][[1]]
-      
-      if (f_ref_type == "fmsy"){
-        
+      if (f_ref_type == "fmsy") {
         tempmod <- sar_models$fit[sar_models$metric == "mean_uumsy"][[1]]
-      } else if (f_ref_type == "f"){
-        
+      } else if (f_ref_type == "f") {
         tempmod <- sar_models$fit[sar_models$metric == "mean_f"][[1]]
       }
       
       
-      temp <- dplyr::tibble(sar = sar,
-                            c_div_max_c = last(catch / max(catch)),
-                            c_div_mean_c = last(catch / mean(catch)),
-                            isscaap_group = isscaap_group,
-                            sar_2 = sar^2)
-      
-      # factor_levels <- levels(tempmod$data$isscaap_group)
-      
-      # levels(temp$isscaap_group) <- factor_levels
-      
+      temp <- dplyr::tibble(
+        sar = sar,
+        c_div_max_c = last(catch / max(catch)),
+        c_div_mean_c = last(catch / mean(catch)),
+        isscaap_group = isscaap_group,
+        sar_2 = sar ^ 2
+      )
       
       pp <-
         rstanarm::posterior_predict(tempmod, newdata = temp)
       
-      pp <- pp[pp > quantile(pp, (1 - prob)/2) & pp < quantile(pp, 1 - (1 - prob)/2)]
+      pp <-
+        pp[pp > quantile(pp, (1 - prob) / 2) &
+             pp < quantile(pp, 1 - (1 - prob) / 2)]
       
       final_u <- c(final_u, exp(mean(pp)))
       
@@ -164,14 +151,15 @@ format_driors <-
       
       final_u_cv <- c(final_u_cv, usd)
       
-      if (use_b_reg == TRUE){
-        
+      if (use_b_reg == TRUE) {
         tempmod <- sar_models$fit[sar_models$metric == "mean_bbmsy"][[1]]
         
         pp <-
           rstanarm::posterior_predict(tempmod, newdata = temp)
         
-        pp <- pp[pp > quantile(pp, (1 - prob)/2) & pp < quantile(pp, 1 - (1 - prob)/2)]
+        pp <-
+          pp[pp > quantile(pp, (1 - prob) / 2) &
+               pp < quantile(pp, 1 - (1 - prob) / 2)]
         
         terminal_state <- exp(mean(pp))
         
@@ -182,8 +170,6 @@ format_driors <-
     
     
     if (any(!is.na(fmi))) {
-      
-      
       temp <- purrr::map_df(fmi,  ~ . + 1e-6)
       
       temp$c_div_max_c = last(catch / max(catch))
@@ -191,36 +177,38 @@ format_driors <-
       temp$c_div_mean_c = last(catch / mean(catch))
       
       temp$isscaap_group = isscaap_group
-      if (f_ref_type == "fmsy"){
-      
-      tempmod <- fmi_models$fit[fmi_models$metric == "mean_uumsy"][[1]]
-      } else if (f_ref_type == "f"){
+      if (f_ref_type == "fmsy") {
+        tempmod <- fmi_models$fit[fmi_models$metric == "mean_uumsy"][[1]]
+      } else if (f_ref_type == "f") {
         tempmod <- fmi_models$fit[fmi_models$metric == "mean_f"][[1]]
       }
-    
-    
+      
+      
       pp <-
         rstanarm::posterior_predict(tempmod, newdata = temp)
       
-      pp <- pp[pp > quantile(pp, (1 - prob)/2) & pp < quantile(pp, 1 - (1 - prob)/2)]
+      pp <-
+        pp[pp > quantile(pp, (1 - prob) / 2) &
+             pp < quantile(pp, 1 - (1 - prob) / 2)]
       
       final_u <- c(final_u, exp(mean(pp)))
       
       final_u_cv <-
         c(final_u_cv, ifelse(is.na(fmi_cv), sd(pp), fmi_cv))
       
-      if (use_b_reg == TRUE){
-      
-      tempmod <- fmi_models$fit[fmi_models$metric == "mean_bbmsy"][[1]]
-      
-      pp <-
-        rstanarm::posterior_predict(tempmod, newdata = temp)
-      
-      pp <- pp[pp > quantile(pp, (1 - prob)/2) & pp < quantile(pp, 1 - (1 - prob)/2)]
-      
-      terminal_state <- exp(mean(pp))
-      
-      terminal_state_cv <- ifelse(is.na(fmi_cv), sd(pp), fmi_cv)
+      if (use_b_reg == TRUE) {
+        tempmod <- fmi_models$fit[fmi_models$metric == "mean_bbmsy"][[1]]
+        
+        pp <-
+          rstanarm::posterior_predict(tempmod, newdata = temp)
+        
+        pp <-
+          pp[pp > quantile(pp, (1 - prob) / 2) &
+               pp < quantile(pp, 1 - (1 - prob) / 2)]
+        
+        terminal_state <- exp(mean(pp))
+        
+        terminal_state_cv <- ifelse(is.na(fmi_cv), sd(pp), fmi_cv)
       }
       
     }
@@ -228,11 +216,13 @@ format_driors <-
     
     genus_species <-
       taxa %>% stringr::str_split(" ", simplify = TRUE)
+
+    safe <- purrr::safely(FishLife::Search_species)
     
-    shh <- purrr::safely(FishLife::Search_species)
+    shh <- purrr::quietly(safe)
     
     fish_search <-
-      shh(Genus = genus_species[1], Species = genus_species[2])
+      shh(Genus = genus_species[1], Species = genus_species[2])$result
     
     if (is.null(fish_search$error)) {
       taxon <- fish_search$result$match_taxonomy[1] %>%
@@ -240,17 +230,21 @@ format_driors <-
         unlist()
       
     } else{
-      shh <- purrr::safely(FishLife::Search_species)
-      
+    
       taxon <-
-        shh(Genus = genus_species[1])$result$match_taxonomy[1] %>%
+        shh(Genus = genus_species[1])$result$result$match_taxonomy[1] %>%
         stringr::str_split("_") %>%
         unlist()
       
     }
     
+    fishlife_taxa <-
+      ifelse(is.null(taxon),
+             "no_fishlife_match",
+             paste(taxon, collapse = "_"))
+    
     params_mvn <-
-      c("r", "ln_var","M")
+      c("r", "ln_var", "M")
     if (is.null(fish_search$error)) {
       taxon <-
         dplyr::tibble(
@@ -268,14 +262,14 @@ format_driors <-
         Genus = taxon["Genus"],
         Species = taxon["Species"],
         ParentChild_gz = FishLifeData$ParentChild_gz
-      )$result$match_taxonomy[1]
+      )$result$result$match_taxonomy[1]
       
       taxa_location <-
         grep(sp, FishLifeData$ParentChild_gz[, "ChildName"])[1]
       
-      mean_lh <- FishLifeData$beta_gv[taxa_location, ]
+      mean_lh <- FishLifeData$beta_gv[taxa_location,]
       
-      cov_lh <- FishLifeData$Cov_gvv[taxa_location, , ]
+      cov_lh <- FishLifeData$Cov_gvv[taxa_location, ,]
       
       mean_lh <- mean_lh[which(names(mean_lh) %in% params_mvn)]
       
@@ -311,20 +305,20 @@ format_driors <-
       log_final_u <- log(final_u[!is.na(final_u)])
       
       log_final_u_cv <- final_u_cv[!is.na(final_u)]
-      # 
+      #
       # if (is.na(terminal_state)){ # if no terminal b prior use approx from U/Umsy
-      #   
+      #
       #   terminal_state <- pmax(.05,2.5 - mean(final_u[!is.na(final_u)]))
-      #   
+      #
       #   terminal_state_cv <- 0.2
-      #   
+      #
       #   if (ref_type == "k"){
-      #     
+      #
       #     ref_type = "b"
-      #     
+      #
       #     initial_state <- initial_state * 2.5
       #   }
-      #   
+      #
       # }
       
     } else {
@@ -334,7 +328,6 @@ format_driors <-
     }
     
     if (use_heuristics == TRUE) {
-      
       temp <-
         if (catch[1] / max(catch, na.rm = TRUE) < 0.2)
           0.7
@@ -342,9 +335,10 @@ format_driors <-
         0.4
       
       initial_state <-  dplyr::case_when(b_ref_type == "k" ~ temp,
-                                     TRUE ~ temp * 2.5)
+                                         TRUE ~ temp * 2.5)
       
-      initial_state_cv <- ifelse(is.na(initial_state_cv), 0.2, initial_state_cv)
+      initial_state_cv <-
+        ifelse(is.na(initial_state_cv), 0.2, initial_state_cv)
       
       temp_terminal <-
         ifelse((dplyr::last(catch) / max(catch)) > 0.5, 0.6, 0.2)
@@ -353,25 +347,25 @@ format_driors <-
         dplyr::case_when(b_ref_type == "k" ~ temp_terminal,
                          TRUE ~ temp_terminal * 2.5)
       
-      terminal_state_cv <- ifelse(is.na(terminal_state_cv), 0.2, terminal_state_cv)
+      terminal_state_cv <-
+        ifelse(is.na(terminal_state_cv), 0.2, terminal_state_cv)
       
     }
     
-    if (!all(is.na(effort_years))){
-      
+    if (!all(is.na(effort_years))) {
       index_years = effort_years
       
     }
     
     # winkler life table translates one to the other
     # state space model one or the other variances goes to zero
-    # can stabilize in some ways 
+    # can stabilize in some ways
     
-  # see gausian prior on the sum of the variances and the raio of the variances
+    # see gausian prior on the sum of the variances and the raio of the variances
     # informative prior on the observation or process variance
-    # observation error of the index 
+    # observation error of the index
     # normally distributed on the log variance ratio, centered at zero
-    # thorson munch ono 2014 
+    # thorson munch ono 2014
     
     driors <-
       list(
@@ -390,11 +384,15 @@ format_driors <-
         u_cv = u_cv,
         index_years = index_years,
         effort_years = index_years,
-        growth_rate_prior = ifelse(is.na(growth_rate_prior), mean_lh["r"],growth_rate_prior),
-        growth_rate_prior_cv = ifelse(is.na(growth_rate_prior_cv),sqrt(cov_lh["r"]),growth_rate_prior_cv),
-        sigma_r_prior = ifelse(is.na(sigma_r_prior),exp(mean_lh["ln_var"]) / 2, sigma_r_prior),
+        growth_rate_prior = ifelse(is.na(growth_rate_prior), mean_lh["r"], growth_rate_prior),
+        growth_rate_prior_cv = ifelse(
+          is.na(growth_rate_prior_cv),
+          sqrt(cov_lh["r"]),
+          growth_rate_prior_cv
+        ),
+        sigma_r_prior = ifelse(is.na(sigma_r_prior), exp(mean_lh["ln_var"]) / 2, sigma_r_prior),
         sigma_r_prior_cv = ifelse(is.na(sigma_r_prior_cv), sqrt(cov_lh["ln_var"]), sigma_r_prior_cv),
-        m =  ifelse(is.na(m), exp(mean_lh["M"]),m),
+        m =  ifelse(is.na(m), exp(mean_lh["M"]), m),
         log_final_u = log_final_u,
         log_final_u_cv = log_final_u_cv,
         q_slope_prior = q_slope_prior + 1e-6,
@@ -403,7 +401,9 @@ format_driors <-
         shape_prior_cv = shape_prior_cv,
         q_prior_cv = q_prior_cv,
         sigma_obs_prior = sigma_obs_prior,
-        sigma_obs_prior_cv = sigma_obs_prior_cv
+        sigma_obs_prior_cv = sigma_obs_prior_cv,
+        fishlife_taxa = fishlife_taxa,
+        input_taxa = taxa
       )
     
     driors$b_ref_type <- b_ref_type

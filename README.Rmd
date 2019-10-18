@@ -193,7 +193,6 @@ fmi_sar_driors <- format_driors(
   initial_state_cv = 0.25,
   use_heuristics = FALSE,
   sar = 17,
-  sar_cv = 0.1,
   fmi = c("research" = 0.5, "management" = 0.5, "socioeconomics" = 0.5, 'enforcement' = 0.5),
   use_b_reg = FALSE,
   b_ref_type = "k",
@@ -210,7 +209,7 @@ We'll then fit and plot our model. Note that you can pass multiple `sraplus` fit
 fmi_sar_fit <- fit_sraplus(
   driors = fmi_sar_driors,
   engine = "sir",
-  draws = 1e6,
+  draws = 5e6,
   n_keep = 2000,
   estimate_shape = FALSE,
   estimate_proc_error = TRUE
@@ -223,6 +222,15 @@ plot_sraplus(fmi_sar = fmi_sar_fit,
 
 
 ```
+
+You can also use the function `sraplus::diagnose_sraplus` to look at some brief diagnostics of the model fit. Note that these diagnostics are not exhaustive, and users should carefully assess the quality of any model fits on their own as well. `diagnose_sraplus` will inform the user whether `FishLife` found an exact match for the species, and provide some summary diagnostics for each model type (SIR, TMB, or Stan). For the SIR case, the diagnostics include the number of unique samples in the posterior, and a plot of the mean terminal values as a function of the number of unique samples used. n
+
+```{r}
+
+sraplus::diagnose_sraplus(fit = fmi_sar_fit, driors = fmi_sar_driors )
+
+```
+
 
 
 ## Abundance Index via Maximum Likelihood

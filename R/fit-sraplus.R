@@ -256,7 +256,7 @@ fit_sraplus <- function(driors,
   if (sra_data$fit_index == 0 | engine == "sir") {
     if (engine != "sir") {
       warning("You tried to fit a model with nothing in the likelihood - using SIR instead")
-      
+      engine <- sir
     }
     
     if (sra_data$use_final_state == 0 &
@@ -332,6 +332,7 @@ fit_sraplus <- function(driors,
     outs <- stringr::str_detect(names(sra_fit), "_t")
     
     sra_fit$b_t[, keepers] -> a
+    
     tidy_fits <-
       purrr::map_df(
         purrr::keep(sra_fit, outs),
@@ -340,6 +341,11 @@ fit_sraplus <- function(driors,
         .id = "variable"
       ) %>%
       dplyr::mutate(draw = stringr::str_replace_all(draw, "\\D", "") %>% as.numeric())
+    
+    draw_names <- data.frame(draw = 1:length(keepers), draw_id = keepers)
+    
+    tidy_fits <- tidy_fits %>% 
+      left_join(draw_names, by = "draw")
     
     static_outs <- !stringr::str_detect(names(sra_fit), "_t") & names(sra_fit) != "keepers"
     
@@ -563,8 +569,16 @@ fit_sraplus <- function(driors,
       
       fit_report <- fit_save$report()
       
+      fit_diagnostics <- fit$diagnostics
+      
+      fit_diagnostic_message <- fit$Convergence_check
+      
       fit <-
         TMB::sdreport(fit_save, bias.correct = ifelse(is.null(randos), FALSE, TRUE))
+      
+      fit$diagnostics <- fit_diagnostics
+      
+      fit$fit_diagnostic_message <- fit_diagnostic_message
       
       out <-
         dplyr::tibble(
@@ -633,6 +647,8 @@ fit_sraplus <- function(driors,
     
     unlink(model_path, recursive = TRUE)
   }
+  
+  out$engine <- engine
   
   return(out)
   

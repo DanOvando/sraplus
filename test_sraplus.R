@@ -31,27 +31,31 @@ pop %>%
   geom_line(aes(year, scale(biomass * q), color = "index")) + 
   geom_line(aes(year, scale(catch / effort), color = "cpue"))
 
-example_taxa <- "gadus morhua"
+example_taxa <- "gadus sdfg"
 
 
 driors <- format_driors(
-  taxa = example_taxa,
+  taxa =
+    example_taxa,
   catch = pop$catch,
   years = pop$year,
   initial_state = pop$depletion[1],
   initial_state_cv = 0.05,
   terminal_state = dplyr::last(pop$depletion),
   terminal_state_cv = 0.01,
-  growth_rate = 0.4,
-  growth_rate_cv = 0.1,
-  use_heuristics = FALSE)
+  growth_rate_prior = 0.4,
+  growth_rate_prior_cv = 0.1,
+  use_heuristics = FALSE
+)
 
 
 plot_driors(driors)
 
 sir_fit <- fit_sraplus(driors = driors,
                        engine = 'sir',
-                       draws = 5e4)
+                       draws = 1e5)
+
+sir_diagnostics <- diagnose_sraplus(sir_fit, driors)
 
 ml_driors <- format_driors(taxa = example_taxa,
                         catch = pop$catch,
@@ -61,10 +65,10 @@ ml_driors <- format_driors(taxa = example_taxa,
                         initial_state = 1,
                         initial_state_cv = 0.05,
                         terminal_state = NA,
-                        growth_rate = 0.4,
-                        growth_rate_cv = 0.1,
-                        sigma_r = 0.05,
-                        sigma_r_cv = 0.05)
+                        growth_rate_prior = 0.4,
+                        growth_rate_prior_cv = 0.1,
+                        sigma_r_prior = 0.05,
+                        sigma_r_prior_cv = 0.05)
 
 plot_driors(ml_driors)
 
@@ -75,6 +79,8 @@ ml_fit <- fit_sraplus(driors = ml_driors,
                       estimate_shape = FALSE, 
                       estimate_proc_error = FALSE)
 
+diagnose_sraplus(ml_fit, ml_driors)
+
 plot_sraplus(ml_fit = ml_fit, years = ml_driors$years)
 
 
@@ -84,6 +90,8 @@ bayes_fit <- fit_sraplus(driors = ml_driors,
                       n_keep = 2000,
                       estimate_shape = TRUE,
                       estimate_proc_error = TRUE)
+
+diagnose_sraplus(bayes_fit, ml_driors)
 
 test <- names(bayes_fit$fit)
 

@@ -6,7 +6,7 @@
 \usage{
 format_driors(taxa = "lutjanus griseus", initial_state = 1,
   initial_state_cv = 0.1, terminal_state = NA,
-  terminal_state_cv = 0.1, u_v_umsy = NA, u_years = NA, u_cv = 0.2,
+  terminal_state_cv = 0.2, u_v_umsy = NA, u_years = NA, u_cv = 0.2,
   final_u = NA, final_u_cv = NA, catch = NA, years = NA,
   index = NA, effort = NA, b_ref_type = "k", f_ref_type = "fmsy",
   index_years = 1, effort_years = NA, use_heuristics = FALSE,
@@ -50,9 +50,9 @@ when \code{initial_state} is 1, implies either B/K = 1 or B/Bmsy = 1}
 
 \item{effort}{vector of an effort series}
 
-\item{b_ref_type}{}
+\item{b_ref_type}{the units of the initial and final depletion. k means that units are relative to carrying capacity, b bmsy}
 
-\item{f_ref_type}{}
+\item{f_ref_type}{the units of the fishing mortality rates. fmsy means F/Fmsy, f means fishing mortality rate f}
 
 \item{index_years}{the years in which abundance index data are available}
 
@@ -60,7 +60,7 @@ when \code{initial_state} is 1, implies either B/K = 1 or B/Bmsy = 1}
 
 \item{use_heuristics}{logical,TRUE uses catch-msy hueristics for priors, FALSE requires user to pass them}
 
-\item{use_b_reg}{}
+\item{use_b_reg}{logical marking whether to use the regression to put priors on biomass as well as fishing mortality}
 
 \item{growth_rate_prior}{manually pass prior on the growth rate r in the Pella-Tomlinson model}
 
@@ -76,7 +76,7 @@ when \code{initial_state} is 1, implies either B/K = 1 or B/Bmsy = 1}
 
 \item{q_slope_prior}{prior on the slope of catchability q}
 
-\item{q_slope_prior_cv}{}
+\item{q_slope_prior_cv}{the cv on the prior on q_slope}
 
 \item{m}{natural mortality}
 
@@ -98,9 +98,9 @@ when \code{initial_state} is 1, implies either B/K = 1 or B/Bmsy = 1}
 
 \item{sigma_obs_prior_cv}{cv of prior on observation error}
 
-\item{isscaap_group}{}
+\item{isscaap_group}{the isscaap group of the stock. If NA will try and find}
 
-\item{prob}{}
+\item{prob}{the probability range of the posterior predictive to use in construction of the priors}
 }
 \value{
 a list of data and priors
