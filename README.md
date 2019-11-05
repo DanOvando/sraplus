@@ -182,7 +182,7 @@ by using `sraplus::plot_driors`
 plot_driors(catch_only_driors)
 ```
 
-![](README_files/figure-gfm/c-msy-3-1.svg)<!-- -->
+![](README_files/figure-gfm/c-msy-3-1.png)<!-- -->
 
 From there, we pass the `driors` object to `sraplus::fit_sraplus`, and
 plot the results using `sraplus::plot_sraplus`. The `engine` argument
@@ -219,12 +219,12 @@ head(catch_only_fit$results)
 #> # A tibble: 6 x 6
 #>    year variable            mean            sd        lower        upper
 #>   <dbl> <chr>              <dbl>         <dbl>        <dbl>        <dbl>
-#> 1  1963 b_div_bmsy         0.609        0.0743       0.507         0.736
-#> 2  1963 b           11076195.    44030928.     2163041.     24705025.   
-#> 3  1963 c_div_msy          0.326        0.200        0.0688        0.589
+#> 1  1963 b_div_bmsy         0.616        0.0919       0.501         0.762
+#> 2  1963 b           12199445.    31174712.     2150607.     34855121.   
+#> 3  1963 c_div_msy          0.328        0.206        0.0550        0.591
 #> 4  1963 crashed            0            0            0             0    
-#> 5  1963 depletion          0.402        0.0414       0.340         0.472
-#> 6  1963 index_hat_t   504218.     1431535.       22037.      1308100.
+#> 5  1963 depletion          0.403        0.0430       0.338         0.476
+#> 6  1963 index_hat_t   554866.     1514050.       26743.      1800673.
 ```
 
 `results` is organized as a dataframe tracking different variables over
@@ -239,13 +239,13 @@ object is the output of the SIR algorithm.
 
 ``` r
 head(catch_only_fit$fit)
-#>   variable year draw   value draw_id
-#> 1      b_t 1963    1 5828036  766552
-#> 2      b_t 1964    1 4754155  766552
-#> 3      b_t 1965    1 6323122  766552
-#> 4      b_t 1966    1 7713910  766552
-#> 5      b_t 1967    1 5939448  766552
-#> 6      b_t 1968    1 7973409  766552
+#>   variable year draw    value draw_id
+#> 1      b_t 1963    1  5601272  202493
+#> 2      b_t 1964    1  6042798  202493
+#> 3      b_t 1965    1  6166636  202493
+#> 4      b_t 1966    1  7129507  202493
+#> 5      b_t 1967    1 10176243  202493
+#> 6      b_t 1968    1 13438744  202493
 ```
 
 From there, we can generate some standard plots of B/Bmsy
@@ -257,7 +257,7 @@ From there, we can generate some standard plots of B/Bmsy
 sraplus::plot_sraplus(catch_only = catch_only_fit, years = catch_only_driors$years)
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-9-1.svg)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-9-1.png)<!-- -->
 
 ## Fisheries Management Index and Swept Area Ratio
 
@@ -296,7 +296,7 @@ fmi_sar_driors <- format_driors(
 sraplus::plot_driors(fmi_sar_driors)
 ```
 
-![](README_files/figure-gfm/fmi-sar-1-1.svg)<!-- -->
+![](README_files/figure-gfm/fmi-sar-1-1.png)<!-- -->
 
 We’ll then fit and plot our model. Note that you can pass multiple
 `sraplus` fits, and can name each run whatever you would like.
@@ -316,7 +316,7 @@ plot_sraplus(fmi_sar = fmi_sar_fit,
              years = fmi_sar_driors$years)
 ```
 
-![](README_files/figure-gfm/fmi-sar-2-1.svg)<!-- -->
+![](README_files/figure-gfm/fmi-sar-2-1.png)<!-- -->
 
 You can also use the function `sraplus::diagnose_sraplus` to look at
 some brief diagnostics of the model fit. Note that these diagnostics are
@@ -335,12 +335,12 @@ sraplus::diagnose_sraplus(fit = fmi_sar_fit, driors = fmi_sar_driors )
 #> [1] "fishlife matched supplied species"
 #> 
 #> $distinct_sir_draws
-#> [1] 596
+#> [1] 562
 #> 
 #> $sir_convergence_plot
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-10-1.svg)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-10-1.png)<!-- -->
 
 ## Abundance Index via Maximum Likelihood
 
@@ -375,7 +375,7 @@ sim$pop %>%
   sraplus::theme_sraplus()
 ```
 
-![](README_files/figure-gfm/sim-index-1-1.svg)<!-- -->
+![](README_files/figure-gfm/sim-index-1-1.png)<!-- -->
 
 Now, let’s pretend that we have a perfect index of abundance, which is
 just `biomass * 1e-3`. We pass indices to `srplus` inside
@@ -402,7 +402,7 @@ index_driors <- format_driors(
 plot_driors(index_driors)
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-11-1.svg)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-11-1.png)<!-- -->
 
 ``` r
 
@@ -413,7 +413,7 @@ index_fit <- fit_sraplus(driors = index_driors,
 plot_sraplus(index = index_fit,years = index_driors$years)
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-11-2.svg)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-11-2.png)<!-- -->
 
 Looks good, now let’s try something a bit trickier.
 
@@ -448,7 +448,7 @@ sim$pop %>%
   sraplus::theme_sraplus()
 ```
 
-![](README_files/figure-gfm/cpue-fit-1-1.svg)<!-- -->
+![](README_files/figure-gfm/cpue-fit-1-1.png)<!-- -->
 
 Now suppose we no longer have a perfect index of abundance, but instead
 data on the catch and effort (CPUE\!). But, there are a few problems
@@ -539,7 +539,7 @@ cpue_qslope_fit <- fit_sraplus(driors = cpue_qslope_driors,
 plot_sraplus(`CPUE fit no qslope` = cpue_fit, `CPUE fit with qslope` =  cpue_qslope_fit, years = cpue_driors$years)
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-13-1.svg)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-13-1.png)<!-- -->
 
 As a final step, we can try adding in some fictional SAR data to our
 fake fishery, just to see how it works. We can weight the SAR data using
@@ -579,7 +579,7 @@ cpue_sar_qslope_fit <- fit_sraplus(driors = cpue_sar_qslope_driors,
 plot_sraplus(cpue_sar_qslope_fit, years = cpue_sar_qslope_driors$years)
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-14-1.svg)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-14-1.png)<!-- -->
 
 And for good measure one more with SAR data and process error instead of
 qslope
@@ -621,7 +621,7 @@ plot_sraplus(`no rocess error and no qslope ` = cpue_fit,
              years = cpue_driors$years)
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-16-1.svg)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-16-1.png)<!-- -->
 
 We can also use several built-in processing functions to display and
 store the results
@@ -635,7 +635,7 @@ plot_prior_posterior(cpue_sar_proc_fit, cpue_sar_proc_driors)
 #> Warning: Removed 50 rows containing missing values (geom_pointrange).
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-17-1.svg)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-17-1.png)<!-- -->
 
 We can plot a summary of the most recent status estimates, along with
 key outcomes such as MSY
@@ -644,7 +644,7 @@ key outcomes such as MSY
 summarize_sralpus(cpue_sar_proc_fit, output = "plot")
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-18-1.svg)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-18-1.png)<!-- -->
 
 Or produce a summary table that can be saved to a .csv file.
 

@@ -82,7 +82,7 @@ summarize_sralpus <- function(fit, output = "table"){
     #                                              estimate_proc_error = FALSE)
     # 
 
-    result_summary <- cpue_fit$results %>% 
+    result_summary <- fit$results %>% 
       dplyr::group_by(variable) %>% 
       filter(year == max(year)) 
     

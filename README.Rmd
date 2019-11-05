@@ -8,8 +8,8 @@ knitr::opts_chunk$set(
   comment = "#>",
   message = FALSE,
   warnings = FALSE,
-  eval = TRUE,
-  dev = "svg"
+  eval = TRUE
+  # dev = "svg"
 )
 ```
 

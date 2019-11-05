@@ -168,7 +168,7 @@
 <p>You can take a look at the information in the <code>catch_only_driors</code> object by using <code><a href="reference/plot_driors.html">sraplus::plot_driors</a></code></p>
 <div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb7-1" data-line-number="1"></a>
 <a class="sourceLine" id="cb7-2" data-line-number="2"><span class="kw"><a href="reference/plot_driors.html">plot_driors</a></span>(catch_only_driors)</a></code></pre></div>
-<p><img src="README_files/figure-gfm/c-msy-3-1.svg"><!-- --></p>
+<p><img src="README_files/figure-gfm/c-msy-3-1.png"><!-- --></p>
 <p>From there, we pass the <code>driors</code> object to <code><a href="reference/fit_sraplus.html">sraplus::fit_sraplus</a></code>, and plot the results using <code><a href="reference/plot_sraplus.html">sraplus::plot_sraplus</a></code>. The <code>engine</code> argument specifies how the model will be fit. When not actually “fitting” to anything (rather simply sampling from priors that don’t crash the population), we recommend setting engine to “sir”. The <code>draws</code> argument tells <code>sraplus</code> how many draws from the SIR algorithm to generate, and <code>n_keep</code> how many draws to sample from the total <code>draws</code> iterations. So in this case the SIR algorithm will run 1 million iterations, and sample 2000 entries from those million in proportion to their likelihood.</p>
 <div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb8-1" data-line-number="1"></a>
 <a class="sourceLine" id="cb8-2" data-line-number="2"> catch_only_fit &lt;-<span class="st"> </span>sraplus<span class="op">::</span><span class="kw"><a href="https://rdrr.io/pkg/sraplus/man/fit_sraplus.html">fit_sraplus</a></span>(<span class="dt">driors =</span> catch_only_driors,</a>
@@ -184,26 +184,26 @@
 <a class="sourceLine" id="cb9-3" data-line-number="3"><span class="co">#&gt; # A tibble: 6 x 6</span></a>
 <a class="sourceLine" id="cb9-4" data-line-number="4"><span class="co">#&gt;    year variable            mean            sd        lower        upper</span></a>
 <a class="sourceLine" id="cb9-5" data-line-number="5"><span class="co">#&gt;   &lt;dbl&gt; &lt;chr&gt;              &lt;dbl&gt;         &lt;dbl&gt;        &lt;dbl&gt;        &lt;dbl&gt;</span></a>
-<a class="sourceLine" id="cb9-6" data-line-number="6"><span class="co">#&gt; 1  1963 b_div_bmsy         0.609        0.0743       0.507         0.736</span></a>
-<a class="sourceLine" id="cb9-7" data-line-number="7"><span class="co">#&gt; 2  1963 b           11076195.    44030928.     2163041.     24705025.   </span></a>
-<a class="sourceLine" id="cb9-8" data-line-number="8"><span class="co">#&gt; 3  1963 c_div_msy          0.326        0.200        0.0688        0.589</span></a>
+<a class="sourceLine" id="cb9-6" data-line-number="6"><span class="co">#&gt; 1  1963 b_div_bmsy         0.616        0.0919       0.501         0.762</span></a>
+<a class="sourceLine" id="cb9-7" data-line-number="7"><span class="co">#&gt; 2  1963 b           12199445.    31174712.     2150607.     34855121.   </span></a>
+<a class="sourceLine" id="cb9-8" data-line-number="8"><span class="co">#&gt; 3  1963 c_div_msy          0.328        0.206        0.0550        0.591</span></a>
 <a class="sourceLine" id="cb9-9" data-line-number="9"><span class="co">#&gt; 4  1963 crashed            0            0            0             0    </span></a>
-<a class="sourceLine" id="cb9-10" data-line-number="10"><span class="co">#&gt; 5  1963 depletion          0.402        0.0414       0.340         0.472</span></a>
-<a class="sourceLine" id="cb9-11" data-line-number="11"><span class="co">#&gt; 6  1963 index_hat_t   504218.     1431535.       22037.      1308100.</span></a></code></pre></div>
+<a class="sourceLine" id="cb9-10" data-line-number="10"><span class="co">#&gt; 5  1963 depletion          0.403        0.0430       0.338         0.476</span></a>
+<a class="sourceLine" id="cb9-11" data-line-number="11"><span class="co">#&gt; 6  1963 index_hat_t   554866.     1514050.       26743.      1800673.</span></a></code></pre></div>
 <p><code>results</code> is organized as a dataframe tracking different variables over years. <code>mean</code> is the mean value for a given variable, <code>sd</code> the estimated standard deviation around the mean, and <code>lower</code> and <code>upper</code> being the 10th and 90th percentiles of the estimates.</p>
 <p>You can access other variables from the raw <code>fit</code> object, though this is not standardized by engine and so requires knowing how to for example get outputs out of <code>stanfit</code> objects. In the <code>catch_only_fit</code>, the <code>fit</code> object is the output of the SIR algorithm.</p>
 <div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb10-1" data-line-number="1"><span class="kw"><a href="https://rdrr.io/r/utils/head.html">head</a></span>(catch_only_fit<span class="op">$</span>fit)</a>
-<a class="sourceLine" id="cb10-2" data-line-number="2"><span class="co">#&gt;   variable year draw   value draw_id</span></a>
-<a class="sourceLine" id="cb10-3" data-line-number="3"><span class="co">#&gt; 1      b_t 1963    1 5828036  766552</span></a>
-<a class="sourceLine" id="cb10-4" data-line-number="4"><span class="co">#&gt; 2      b_t 1964    1 4754155  766552</span></a>
-<a class="sourceLine" id="cb10-5" data-line-number="5"><span class="co">#&gt; 3      b_t 1965    1 6323122  766552</span></a>
-<a class="sourceLine" id="cb10-6" data-line-number="6"><span class="co">#&gt; 4      b_t 1966    1 7713910  766552</span></a>
-<a class="sourceLine" id="cb10-7" data-line-number="7"><span class="co">#&gt; 5      b_t 1967    1 5939448  766552</span></a>
-<a class="sourceLine" id="cb10-8" data-line-number="8"><span class="co">#&gt; 6      b_t 1968    1 7973409  766552</span></a></code></pre></div>
+<a class="sourceLine" id="cb10-2" data-line-number="2"><span class="co">#&gt;   variable year draw    value draw_id</span></a>
+<a class="sourceLine" id="cb10-3" data-line-number="3"><span class="co">#&gt; 1      b_t 1963    1  5601272  202493</span></a>
+<a class="sourceLine" id="cb10-4" data-line-number="4"><span class="co">#&gt; 2      b_t 1964    1  6042798  202493</span></a>
+<a class="sourceLine" id="cb10-5" data-line-number="5"><span class="co">#&gt; 3      b_t 1965    1  6166636  202493</span></a>
+<a class="sourceLine" id="cb10-6" data-line-number="6"><span class="co">#&gt; 4      b_t 1966    1  7129507  202493</span></a>
+<a class="sourceLine" id="cb10-7" data-line-number="7"><span class="co">#&gt; 5      b_t 1967    1 10176243  202493</span></a>
+<a class="sourceLine" id="cb10-8" data-line-number="8"><span class="co">#&gt; 6      b_t 1968    1 13438744  202493</span></a></code></pre></div>
 <p>From there, we can generate some standard plots of B/Bmsy (b_div_bmsy), Catch/MSY, U/Umsy, and depletion over time using <code>plot_sraplus</code>.</p>
 <div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb11-1" data-line-number="1"></a>
 <a class="sourceLine" id="cb11-2" data-line-number="2">sraplus<span class="op">::</span><span class="kw"><a href="https://rdrr.io/pkg/sraplus/man/plot_sraplus.html">plot_sraplus</a></span>(<span class="dt">catch_only =</span> catch_only_fit, <span class="dt">years =</span> catch_only_driors<span class="op">$</span>years)</a></code></pre></div>
-<p><img src="README_files/figure-gfm/unnamed-chunk-9-1.svg"><!-- --></p>
+<p><img src="README_files/figure-gfm/unnamed-chunk-9-1.png"><!-- --></p>
 </div>
 <div id="fisheries-management-index-and-swept-area-ratio" class="section level2">
 <h2 class="hasAnchor">
@@ -225,7 +225,7 @@
 <a class="sourceLine" id="cb12-13" data-line-number="13">  <span class="dt">sigma_r_prior_cv =</span> <span class="fl">0.5</span>)</a>
 <a class="sourceLine" id="cb12-14" data-line-number="14"></a>
 <a class="sourceLine" id="cb12-15" data-line-number="15">sraplus<span class="op">::</span><span class="kw"><a href="https://rdrr.io/pkg/sraplus/man/plot_driors.html">plot_driors</a></span>(fmi_sar_driors)</a></code></pre></div>
-<p><img src="README_files/figure-gfm/fmi-sar-1-1.svg"><!-- --></p>
+<p><img src="README_files/figure-gfm/fmi-sar-1-1.png"><!-- --></p>
 <p>We’ll then fit and plot our model. Note that you can pass multiple <code>sraplus</code> fits, and can name each run whatever you would like.</p>
 <div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb13-1" data-line-number="1">fmi_sar_fit &lt;-<span class="st"> </span><span class="kw"><a href="reference/fit_sraplus.html">fit_sraplus</a></span>(</a>
 <a class="sourceLine" id="cb13-2" data-line-number="2">  <span class="dt">driors =</span> fmi_sar_driors,</a>
@@ -239,7 +239,7 @@
 <a class="sourceLine" id="cb13-10" data-line-number="10"><span class="kw"><a href="reference/plot_sraplus.html">plot_sraplus</a></span>(<span class="dt">fmi_sar =</span> fmi_sar_fit,</a>
 <a class="sourceLine" id="cb13-11" data-line-number="11">             <span class="dt">catch_only =</span> catch_only_fit,</a>
 <a class="sourceLine" id="cb13-12" data-line-number="12">             <span class="dt">years =</span> fmi_sar_driors<span class="op">$</span>years)</a></code></pre></div>
-<p><img src="README_files/figure-gfm/fmi-sar-2-1.svg"><!-- --></p>
+<p><img src="README_files/figure-gfm/fmi-sar-2-1.png"><!-- --></p>
 <p>You can also use the function <code><a href="reference/diagnose_sraplus.html">sraplus::diagnose_sraplus</a></code> to look at some brief diagnostics of the model fit. Note that these diagnostics are not exhaustive, and users should carefully assess the quality of any model fits on their own as well. <code>diagnose_sraplus</code> will inform the user whether <code>FishLife</code> found an exact match for the species, and provide some summary diagnostics for each model type (SIR, TMB, or Stan). For the SIR case, the diagnostics include the number of unique samples in the posterior, and a plot of the mean terminal values as a function of the number of unique samples used. n</p>
 <div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb14-1" data-line-number="1"></a>
 <a class="sourceLine" id="cb14-2" data-line-number="2">sraplus<span class="op">::</span><span class="kw"><a href="https://rdrr.io/pkg/sraplus/man/diagnose_sraplus.html">diagnose_sraplus</a></span>(<span class="dt">fit =</span> fmi_sar_fit, <span class="dt">driors =</span> fmi_sar_driors )</a>
@@ -247,10 +247,10 @@
 <a class="sourceLine" id="cb14-4" data-line-number="4"><span class="co">#&gt; [1] "fishlife matched supplied species"</span></a>
 <a class="sourceLine" id="cb14-5" data-line-number="5"><span class="co">#&gt; </span></a>
 <a class="sourceLine" id="cb14-6" data-line-number="6"><span class="co">#&gt; $distinct_sir_draws</span></a>
-<a class="sourceLine" id="cb14-7" data-line-number="7"><span class="co">#&gt; [1] 596</span></a>
+<a class="sourceLine" id="cb14-7" data-line-number="7"><span class="co">#&gt; [1] 562</span></a>
 <a class="sourceLine" id="cb14-8" data-line-number="8"><span class="co">#&gt; </span></a>
 <a class="sourceLine" id="cb14-9" data-line-number="9"><span class="co">#&gt; $sir_convergence_plot</span></a></code></pre></div>
-<p><img src="README_files/figure-gfm/unnamed-chunk-10-1.svg"><!-- --></p>
+<p><img src="README_files/figure-gfm/unnamed-chunk-10-1.png"><!-- --></p>
 </div>
 <div id="abundance-index-via-maximum-likelihood" class="section level2">
 <h2 class="hasAnchor">
@@ -278,7 +278,7 @@
 <a class="sourceLine" id="cb15-20" data-line-number="20"><span class="st">  </span><span class="kw"><a href="https://ggplot2.tidyverse.org/reference/facet_wrap.html">facet_wrap</a></span>(<span class="op">~</span>metric, <span class="dt">scales =</span> <span class="st">"free_y"</span>) <span class="op">+</span><span class="st"> </span></a>
 <a class="sourceLine" id="cb15-21" data-line-number="21"><span class="st">  </span><span class="kw"><a href="https://ggplot2.tidyverse.org/reference/labs.html">labs</a></span>(<span class="dt">y =</span> <span class="st">"Value"</span>, <span class="dt">x =</span> <span class="st">"Year"</span>) <span class="op">+</span><span class="st"> </span></a>
 <a class="sourceLine" id="cb15-22" data-line-number="22"><span class="st">  </span>sraplus<span class="op">::</span><span class="kw"><a href="https://rdrr.io/pkg/sraplus/man/theme_sraplus.html">theme_sraplus</a></span>()</a></code></pre></div>
-<p><img src="README_files/figure-gfm/sim-index-1-1.svg"><!-- --></p>
+<p><img src="README_files/figure-gfm/sim-index-1-1.png"><!-- --></p>
 <p>Now, let’s pretend that we have a perfect index of abundance, which is just <code>biomass * 1e-3</code>. We pass indices to <code>srplus</code> inside <code>format_driors</code> as <code>index</code> and <code>index_years</code>, where <code>index_years</code> is a vector of the same length of <code>index</code> specifying which years index data are available. Well now use Template Model Builder (TMB) to estimate stock status based on this index of abundance. We’ll add in some priors on the growth rate and the shape of the Pella-Tomlinson model (1.01 roughly corresponds to a Fox model, where Bmsy/K ~= 0.4). Note that we now set <code>engine = "tmb"</code> to fit the model via maximum likelihood using TMB.</p>
 <div class="sourceCode" id="cb16"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb16-1" data-line-number="1">index_driors &lt;-<span class="st"> </span><span class="kw"><a href="reference/format_driors.html">format_driors</a></span>(</a>
 <a class="sourceLine" id="cb16-2" data-line-number="2">  <span class="dt">catch =</span> sim<span class="op">$</span>pop<span class="op">$</span>catch,</a>
@@ -291,14 +291,14 @@
 <a class="sourceLine" id="cb16-9" data-line-number="9">  <span class="dt">shape_prior_cv =</span> <span class="fl">0.1</span>)</a>
 <a class="sourceLine" id="cb16-10" data-line-number="10"></a>
 <a class="sourceLine" id="cb16-11" data-line-number="11"><span class="kw"><a href="reference/plot_driors.html">plot_driors</a></span>(index_driors)</a></code></pre></div>
-<p><img src="README_files/figure-gfm/unnamed-chunk-11-1.svg"><!-- --></p>
+<p><img src="README_files/figure-gfm/unnamed-chunk-11-1.png"><!-- --></p>
 <div class="sourceCode" id="cb17"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb17-1" data-line-number="1"></a>
 <a class="sourceLine" id="cb17-2" data-line-number="2">index_fit &lt;-<span class="st"> </span><span class="kw"><a href="reference/fit_sraplus.html">fit_sraplus</a></span>(<span class="dt">driors =</span> index_driors,</a>
 <a class="sourceLine" id="cb17-3" data-line-number="3">                      <span class="dt">engine =</span> <span class="st">"tmb"</span>,</a>
 <a class="sourceLine" id="cb17-4" data-line-number="4">                      <span class="dt">model =</span> <span class="st">"sraplus_tmb"</span>)</a>
 <a class="sourceLine" id="cb17-5" data-line-number="5"></a>
 <a class="sourceLine" id="cb17-6" data-line-number="6"><span class="kw"><a href="reference/plot_sraplus.html">plot_sraplus</a></span>(<span class="dt">index =</span> index_fit,<span class="dt">years =</span> index_driors<span class="op">$</span>years)</a></code></pre></div>
-<p><img src="README_files/figure-gfm/unnamed-chunk-11-2.svg"><!-- --></p>
+<p><img src="README_files/figure-gfm/unnamed-chunk-11-2.png"><!-- --></p>
 <p>Looks good, now let’s try something a bit trickier.</p>
 </div>
 <div id="fit-bayesian-cpue-model-with-stan" class="section level2">
@@ -329,7 +329,7 @@
 <a class="sourceLine" id="cb18-21" data-line-number="21"><span class="st">  </span><span class="kw"><a href="https://ggplot2.tidyverse.org/reference/facet_wrap.html">facet_wrap</a></span>(<span class="op">~</span>metric, <span class="dt">scales =</span> <span class="st">"free_y"</span>) <span class="op">+</span><span class="st"> </span></a>
 <a class="sourceLine" id="cb18-22" data-line-number="22"><span class="st">  </span><span class="kw"><a href="https://ggplot2.tidyverse.org/reference/labs.html">labs</a></span>(<span class="dt">y =</span> <span class="st">"Value"</span>, <span class="dt">x =</span> <span class="st">"Year"</span>) <span class="op">+</span><span class="st"> </span></a>
 <a class="sourceLine" id="cb18-23" data-line-number="23"><span class="st">  </span>sraplus<span class="op">::</span><span class="kw"><a href="https://rdrr.io/pkg/sraplus/man/theme_sraplus.html">theme_sraplus</a></span>()</a></code></pre></div>
-<p><img src="README_files/figure-gfm/cpue-fit-1-1.svg"><!-- --></p>
+<p><img src="README_files/figure-gfm/cpue-fit-1-1.png"><!-- --></p>
 <p>Now suppose we no longer have a perfect index of abundance, but instead data on the catch and effort (CPUE!). But, there are a few problems with these CPUE data. First, we know from the simulation that q is increasing over time, so simply treating Catch/Effort as an index of abundance will be biased (since a unit of effort in the past is not the same as a unit of effort in the present). Second, we need to account for diminishing returns from increasing amounts of effort, and in-season losses to natural mortality. <code>sraplus</code> provides some support to these problems. <code>sraplus</code> will estimate a q. If desired it allows the user to either specify an assumed slope in catchability (where (q_t = q_{t-1} \times qslope)), or to attempt to estimate <code>qslope</code> directly. Second, given values of q and qslope (and estimates of natural mortality either supplied by the user or drawn from <code>FishLife</code>), <code>sraplus</code> uses the Baranov equation to translate effort into an effective fishing mortality rate.</p>
 <p><strong>One important note</strong>. By default, <code>sraplus</code> includes estimation of process error. When running a simplified CPUE like this, the model can’t really handle estimating both process error and a q_slope_prior (since the persistent trend in the CPUE values caused by the qslope can be soaked into the process error or the qslope). So, you need to provide a VERY imformative prior on the q_slope_prior parameter if you’re going to try and estimate (i.e. fix the q_slope_prior parameter), or turn off process error (inside <code>fit_sraplus</code> set <code>estimate_proc_error = FALSE</code>) (the recommended option in this case).</p>
 <p>By now the order of operations should be pretty familiar: pass things to driors, then driors to fit_sraplus. In this case, instead of passing an index, we pass effort data, and effort years.</p>
@@ -382,7 +382,7 @@
 <a class="sourceLine" id="cb19-46" data-line-number="46">                             <span class="dt">estimate_proc_error =</span> <span class="ot">FALSE</span>)</a></code></pre></div>
 <div class="sourceCode" id="cb20"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb20-1" data-line-number="1"></a>
 <a class="sourceLine" id="cb20-2" data-line-number="2"><span class="kw"><a href="reference/plot_sraplus.html">plot_sraplus</a></span>(<span class="st">`</span><span class="dt">CPUE fit no qslope</span><span class="st">`</span> =<span class="st"> </span>cpue_fit, <span class="st">`</span><span class="dt">CPUE fit with qslope</span><span class="st">`</span> =<span class="st">  </span>cpue_qslope_fit, <span class="dt">years =</span> cpue_driors<span class="op">$</span>years)</a></code></pre></div>
-<p><img src="README_files/figure-gfm/unnamed-chunk-13-1.svg"><!-- --></p>
+<p><img src="README_files/figure-gfm/unnamed-chunk-13-1.png"><!-- --></p>
 <p>As a final step, we can try adding in some fictional SAR data to our fake fishery, just to see how it works. We can weight the SAR data using the <code>sar_cv</code> input. Leaving <code>sar_cv = NA</code> uses the srandard deviation from the posterior predictive of the fitted relationahip between SAR and U/Umsy contained in the model. In other words, setting <code>sar_cv = NA</code> lets the data tell you how much weight to assign to the SAR data. You can however overwrite this if desired and pass a stronger weight to the SAR data if desired.</p>
 <div class="sourceCode" id="cb21"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb21-1" data-line-number="1">cpue_sar_qslope_driors &lt;-<span class="st"> </span><span class="kw"><a href="reference/format_driors.html">format_driors</a></span>(<span class="dt">taxa =</span> example_taxa,</a>
 <a class="sourceLine" id="cb21-2" data-line-number="2">                           <span class="dt">catch =</span> sim<span class="op">$</span>pop<span class="op">$</span>catch,</a>
@@ -410,7 +410,7 @@
 <a class="sourceLine" id="cb21-24" data-line-number="24">                             <span class="dt">estimate_proc_error =</span> <span class="ot">FALSE</span>)</a>
 <a class="sourceLine" id="cb21-25" data-line-number="25"></a>
 <a class="sourceLine" id="cb21-26" data-line-number="26"><span class="kw"><a href="reference/plot_sraplus.html">plot_sraplus</a></span>(cpue_sar_qslope_fit, <span class="dt">years =</span> cpue_sar_qslope_driors<span class="op">$</span>years)</a></code></pre></div>
-<p><img src="README_files/figure-gfm/unnamed-chunk-14-1.svg"><!-- --></p>
+<p><img src="README_files/figure-gfm/unnamed-chunk-14-1.png"><!-- --></p>
 <p>And for good measure one more with SAR data and process error instead of qslope</p>
 <div class="sourceCode" id="cb22"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb22-1" data-line-number="1"></a>
 <a class="sourceLine" id="cb22-2" data-line-number="2">cpue_sar_proc_driors &lt;-<span class="st"> </span><span class="kw"><a href="reference/format_driors.html">format_driors</a></span>(<span class="dt">taxa =</span> example_taxa,</a>
@@ -443,16 +443,16 @@
 <a class="sourceLine" id="cb23-4" data-line-number="4">             <span class="st">`</span><span class="dt">no process error with qslope and sar</span><span class="st">`</span> =<span class="st"> </span>cpue_sar_qslope_fit,</a>
 <a class="sourceLine" id="cb23-5" data-line-number="5">             <span class="st">`</span><span class="dt">process error and sar</span><span class="st">`</span> =<span class="st"> </span>cpue_sar_proc_fit,</a>
 <a class="sourceLine" id="cb23-6" data-line-number="6">             <span class="dt">years =</span> cpue_driors<span class="op">$</span>years)</a></code></pre></div>
-<p><img src="README_files/figure-gfm/unnamed-chunk-16-1.svg"><!-- --></p>
+<p><img src="README_files/figure-gfm/unnamed-chunk-16-1.png"><!-- --></p>
 <p>We can also use several built-in processing functions to display and store the results</p>
 <p><code>plot_prior_posterior</code> displays the prior and posterior distributions for selected parameters</p>
 <div class="sourceCode" id="cb24"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb24-1" data-line-number="1"></a>
 <a class="sourceLine" id="cb24-2" data-line-number="2"><span class="kw">plot_prior_posterior</span>(cpue_sar_proc_fit, cpue_sar_proc_driors)</a>
 <a class="sourceLine" id="cb24-3" data-line-number="3"><span class="co">#&gt; Warning: Removed 50 rows containing missing values (geom_pointrange).</span></a></code></pre></div>
-<p><img src="README_files/figure-gfm/unnamed-chunk-17-1.svg"><!-- --></p>
+<p><img src="README_files/figure-gfm/unnamed-chunk-17-1.png"><!-- --></p>
 <p>We can plot a summary of the most recent status estimates, along with key outcomes such as MSY</p>
 <div class="sourceCode" id="cb25"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb25-1" data-line-number="1"><span class="kw">summarize_sralpus</span>(cpue_sar_proc_fit, <span class="dt">output =</span> <span class="st">"plot"</span>)</a></code></pre></div>
-<p><img src="README_files/figure-gfm/unnamed-chunk-18-1.svg"><!-- --></p>
+<p><img src="README_files/figure-gfm/unnamed-chunk-18-1.png"><!-- --></p>
 <p>Or produce a summary table that can be saved to a .csv file.</p>
 <div class="sourceCode" id="cb26"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb26-1" data-line-number="1"><span class="kw">summarize_sralpus</span>(cpue_sar_proc_fit, <span class="dt">output =</span> <span class="st">"table"</span>) <span class="op">%&gt;%</span><span class="st"> </span></a>
 <a class="sourceLine" id="cb26-2" data-line-number="2"><span class="st">  </span>knitr<span class="op">::</span><span class="kw"><a href="https://rdrr.io/pkg/knitr/man/kable.html">kable</a></span>()</a></code></pre></div>

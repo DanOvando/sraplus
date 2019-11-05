@@ -196,22 +196,22 @@
 <a class="sourceLine" id="cb9-3" data-line-number="3"><span class="co">#&gt; # A tibble: 6 x 6</span></a>
 <a class="sourceLine" id="cb9-4" data-line-number="4"><span class="co">#&gt;    year variable           mean            sd        lower        upper</span></a>
 <a class="sourceLine" id="cb9-5" data-line-number="5"><span class="co">#&gt;   &lt;dbl&gt; &lt;chr&gt;             &lt;dbl&gt;         &lt;dbl&gt;        &lt;dbl&gt;        &lt;dbl&gt;</span></a>
-<a class="sourceLine" id="cb9-6" data-line-number="6"><span class="co">#&gt; 1  1963 b_div_bmsy        0.617        0.0874       0.506         0.749</span></a>
-<a class="sourceLine" id="cb9-7" data-line-number="7"><span class="co">#&gt; 2  1963 b           9236915.    26978942.     2174616.     24545363.   </span></a>
-<a class="sourceLine" id="cb9-8" data-line-number="8"><span class="co">#&gt; 3  1963 c_div_msy         0.322        0.160        0.0764        0.583</span></a>
+<a class="sourceLine" id="cb9-6" data-line-number="6"><span class="co">#&gt; 1  1963 b_div_bmsy        0.618        0.0849       0.512         0.750</span></a>
+<a class="sourceLine" id="cb9-7" data-line-number="7"><span class="co">#&gt; 2  1963 b           9903477.    32721087.     2078469.     26298995.   </span></a>
+<a class="sourceLine" id="cb9-8" data-line-number="8"><span class="co">#&gt; 3  1963 c_div_msy         0.331        0.206        0.0630        0.607</span></a>
 <a class="sourceLine" id="cb9-9" data-line-number="9"><span class="co">#&gt; 4  1963 crashed           0            0            0             0    </span></a>
-<a class="sourceLine" id="cb9-10" data-line-number="10"><span class="co">#&gt; 5  1963 depletion         0.402        0.0419       0.339         0.477</span></a>
-<a class="sourceLine" id="cb9-11" data-line-number="11"><span class="co">#&gt; 6  1963 index_hat_t  495832.     1985178.       23145.      1259693.</span></a></code></pre></div>
+<a class="sourceLine" id="cb9-10" data-line-number="10"><span class="co">#&gt; 5  1963 depletion         0.404        0.0402       0.343         0.469</span></a>
+<a class="sourceLine" id="cb9-11" data-line-number="11"><span class="co">#&gt; 6  1963 index_hat_t  522663.     1997499.       20248.      1462832.</span></a></code></pre></div>
 <p><code>results</code> is organized as a dataframe tracking different variables over years. <code>mean</code> is the mean value for a given variable, <code>sd</code> the estimated standard deviation around the mean, and <code>lower</code> and <code>upper</code> being the 10th and 90th percentiles of the estimates.</p>
 <p>You can access other variables from the raw <code>fit</code> object, though this is not standardized by engine and so requires knowing how to for example get outputs out of <code>stanfit</code> objects. In the <code>catch_only_fit</code>, the <code>fit</code> object is the output of the SIR algorithm.</p>
 <div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb10-1" data-line-number="1"><span class="kw"><a href="https://rdrr.io/r/utils/head.html">head</a></span>(catch_only_fit<span class="op">$</span>fit)</a>
 <a class="sourceLine" id="cb10-2" data-line-number="2"><span class="co">#&gt;   variable year draw   value draw_id</span></a>
-<a class="sourceLine" id="cb10-3" data-line-number="3"><span class="co">#&gt; 1      b_t 1963    1 5614688  242396</span></a>
-<a class="sourceLine" id="cb10-4" data-line-number="4"><span class="co">#&gt; 2      b_t 1964    1 7025140  242396</span></a>
-<a class="sourceLine" id="cb10-5" data-line-number="5"><span class="co">#&gt; 3      b_t 1965    1 7253053  242396</span></a>
-<a class="sourceLine" id="cb10-6" data-line-number="6"><span class="co">#&gt; 4      b_t 1966    1 8498896  242396</span></a>
-<a class="sourceLine" id="cb10-7" data-line-number="7"><span class="co">#&gt; 5      b_t 1967    1 6420338  242396</span></a>
-<a class="sourceLine" id="cb10-8" data-line-number="8"><span class="co">#&gt; 6      b_t 1968    1 5612282  242396</span></a></code></pre></div>
+<a class="sourceLine" id="cb10-3" data-line-number="3"><span class="co">#&gt; 1      b_t 1963    1 8227248  275819</span></a>
+<a class="sourceLine" id="cb10-4" data-line-number="4"><span class="co">#&gt; 2      b_t 1964    1 7219376  275819</span></a>
+<a class="sourceLine" id="cb10-5" data-line-number="5"><span class="co">#&gt; 3      b_t 1965    1 7106250  275819</span></a>
+<a class="sourceLine" id="cb10-6" data-line-number="6"><span class="co">#&gt; 4      b_t 1966    1 6907269  275819</span></a>
+<a class="sourceLine" id="cb10-7" data-line-number="7"><span class="co">#&gt; 5      b_t 1967    1 6557207  275819</span></a>
+<a class="sourceLine" id="cb10-8" data-line-number="8"><span class="co">#&gt; 6      b_t 1968    1 6800461  275819</span></a></code></pre></div>
 <p>From there, we can generate some standard plots of B/Bmsy (b_div_bmsy), Catch/MSY, U/Umsy, and depletion over time using <code>plot_sraplus</code>.</p>
 <div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb11-1" data-line-number="1"></a>
 <a class="sourceLine" id="cb11-2" data-line-number="2">sraplus<span class="op">::</span><span class="kw"><a href="https://rdrr.io/pkg/sraplus/man/plot_sraplus.html">plot_sraplus</a></span>(<span class="dt">catch_only =</span> catch_only_fit, <span class="dt">years =</span> catch_only_driors<span class="op">$</span>years)</a></code></pre></div>
