@@ -119,7 +119,7 @@ plot_prior_posterior <- function(fit, driors,
       dplyr::filter(variable == "u_div_umsy") %>% 
       dplyr::select(mean,lower, upper) %>% 
       dplyr::mutate(metric = "u_v_umsy",
-                    year = 1:nrow(.)) %>% 
+                    year = driors$u_years) %>% 
       dplyr::filter(year %in% driors$u_years) %>% 
       dplyr::mutate(
                     meanmean = mean(mean),
@@ -144,7 +144,7 @@ plot_prior_posterior <- function(fit, driors,
       dplyr::filter(variable == "index_hat_t") %>% 
       dplyr::select(mean,lower, upper) %>% 
       dplyr::mutate(metric = "cpue",
-                    year = 1:nrow(.),
+                    year =driors$index_years,
                     meanmean = mean(mean),
                     sdmean = sd(mean)) %>% 
       dplyr::mutate(mean = (mean - meanmean) / sdmean,
