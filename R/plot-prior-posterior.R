@@ -107,6 +107,21 @@ plot_prior_posterior <- function(fit, driors,
     timeseries <- timeseries %>%
       dplyr::left_join(index_frame, by = "year")
     
+    index_fit <- fit$results %>% 
+      dplyr::filter(variable == "index_hat_t") %>% 
+      dplyr::select(mean,lower, upper) %>% 
+      dplyr::mutate(metric = "index",
+                    year =driors$index_years,
+                    meanmean = mean(mean),
+                    sdmean = sd(mean)) %>% 
+      dplyr::mutate(mean = (mean - meanmean) / sdmean,
+                    lower = (lower - meanmean) / sdmean,
+                    upper = (upper - meanmean) / sdmean) %>% 
+      dplyr::select(metric, year, mean, lower, upper)
+    
+    
+    fitseries <- rbind(fitseries, index_fit)
+    
   }
   
   if (any(!is.na(driors$u_v_umsy))) {
@@ -166,8 +181,6 @@ plot_prior_posterior <- function(fit, driors,
     colnames(fitseries) <- c("mean", 'lower','upper')
     
   }
-  
-  
   
   timeseries_plot <- timeseries %>%
     tidyr::gather(metric, value,-year) %>% 
