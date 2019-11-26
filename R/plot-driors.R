@@ -41,7 +41,7 @@ plot_driors <- function(driors, fontsize = 10, prob = 0.9) {
     ggplot2::geom_line(size = 1, show.legend = FALSE) +
     ggplot2::geom_point(size = 2, show.legend = FALSE) +
     ggplot2::facet_grid(metric ~ ., scales = "free_y") +
-    ggplot2::scale_y_continuous(labels = scales::comma, name = "") +
+    ggplot2::scale_y_continuous(name = "") +
     ggplot2::labs(x = "Year")  +
     theme_sraplus(base_size = 12)
   

@@ -202,7 +202,7 @@ plot_prior_posterior <- function(fit, driors,
     ggplot2::geom_point(aes(year, value, color = metric),size = 2, show.legend = FALSE) +
     ggplot2::geom_pointrange(aes(year, mean, ymin = lower, ymax = upper, color = "Fit"),alpha = 0.5) +
     ggplot2::facet_grid(metric ~ ., scales = "free_y") +
-    ggplot2::scale_y_continuous(labels = scales::comma, name = "") +
+    ggplot2::scale_y_continuous(name = "") +
     ggplot2::labs(x = "Year")  +
     theme_sraplus(base_size = 12)  +
     theme(legend.position = "top")
@@ -213,7 +213,7 @@ plot_prior_posterior <- function(fit, driors,
       ggplot2::geom_line(aes(year, value, color = metric),size = 1, show.legend = FALSE) +
       ggplot2::geom_point(aes(year, value, color = metric),size = 2, show.legend = FALSE) +
       ggplot2::facet_grid(metric ~ ., scales = "free_y") +
-      ggplot2::scale_y_continuous(labels = scales::comma, name = "") +
+      ggplot2::scale_y_continuous(name = "") +
       ggplot2::labs(x = "Year")  +
       theme_sraplus(base_size = 12)  +
       theme(legend.position = "top")
