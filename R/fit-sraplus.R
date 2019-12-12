@@ -345,7 +345,7 @@ fit_sraplus <- function(driors,
     draw_names <- data.frame(draw = 1:length(keepers), draw_id = keepers)
     
     tidy_fits <- tidy_fits %>% 
-      left_join(draw_names, by = "draw")
+      dplyr::left_join(draw_names, by = "draw")
     
     static_outs <- !stringr::str_detect(names(sra_fit), "_t") & names(sra_fit) != "keepers"
     
