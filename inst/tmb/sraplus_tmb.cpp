@@ -11,7 +11,7 @@ Type growfoo(Type r, Type m, Type b, Type plim)
 } // close function
 
 template<class Type>
-vector<Type> popmodel(Type r, Type m, Type k, Type b0, vector<Type> catches, vector<Type> proc_error, int time)
+vector<Type> popmodel(Type r, Type m, Type k, Type b0, vector<Type> catches, vector<Type> proc_error, int time, Type eps)
   {
   
   vector<Type> b(time);
@@ -20,7 +20,7 @@ vector<Type> popmodel(Type r, Type m, Type k, Type b0, vector<Type> catches, vec
   
   for (int t = 0; t < time; t++){
     
-    b(t) = (b(t - 1) + (r  / (m - 1)) * b(t - 1) * (1 - pow(b(t - 1),m - 1)) - catches(t - 1)) * proc_error(t - 1);
+    b(t) = no_pen_posfun((b(t - 1) + (r  / (m - 1)) * b(t - 1) * (1 - pow(b(t - 1),m - 1)) - catches(t - 1)) * proc_error(t - 1));
     
   }
   
@@ -34,6 +34,13 @@ Type posfun(Type x, Type eps, Type &pen)
 {
   
   pen += CppAD::CondExpLt(x, eps, Type(0.01) * pow(x-eps,2), Type(0));
+  return CppAD::CondExpGe(x, eps, x, eps/(Type(2)-x/eps));
+}
+
+template<class Type>
+Type no_pen_posfun(Type x, Type eps)
+{
+  
   return CppAD::CondExpGe(x, eps, x, eps/(Type(2)-x/eps));
 }
 
@@ -205,28 +212,6 @@ Type objective_function<Type>::operator() ()
     
   }
   
-  
-  Type init_dep = exp(log_init_dep);
-  
-  Type newk = 0;
-  
-  if (est_k == 1){
-  
-    Type k = exp(log_anchor);
-    
-  } else {
-    
-    // back out k form terminal status
-    
-    Type final_status = exp(log_anchor);
-    
-    Type lower = log(max(catch_t));
-    
-    Type upper = log(max(catch_t) * 20);
-    
-    Type delta = 100;
-    
-    Type counter = 0;
     
     Type golden =(sqrt(5)-1)/2;
     
@@ -244,9 +229,9 @@ Type objective_function<Type>::operator() ()
         
       bhigh = popmodel(r,m,exp(upper), init_dep, catch_t, proc_errors, time);
         
-      Type low_error = pow(blow(time - 1) - final_status,2);
+      Type low_error = pow(blow(time - 1) / lower - final_status,2);
       
-      Type high_error = pow(bhigh(time - 1) - final_status,2);
+      Type high_error = pow(bhigh(time - 1) / upper - final_status,2);
       
       if (low_error < high_error){
         
