@@ -11,8 +11,28 @@ Type growfoo(Type r, Type m, Type b, Type plim)
 } // close function
 
 template<class Type>
+vector<Type> popmodel(Type r, Type m, Type k, Type b0, vector<Type> catches, vector<Type> proc_error, int time)
+  {
+  
+  vector<Type> b(time);
+  
+  b(0) = b0 * k;
+  
+  for (int t = 0; t < time; t++){
+    
+    b(t) = (b(t - 1) + (r  / (m - 1)) * b(t - 1) * (1 - pow(b(t - 1),m - 1)) - catches(t - 1)) * proc_error(t - 1);
+    
+  }
+  
+  return b;
+  
+  
+}
+
+template<class Type>
 Type posfun(Type x, Type eps, Type &pen)
 {
+  
   pen += CppAD::CondExpLt(x, eps, Type(0.01) * pow(x-eps,2), Type(0));
   return CppAD::CondExpGe(x, eps, x, eps/(Type(2)-x/eps));
 }
@@ -45,6 +65,8 @@ Type objective_function<Type>::operator() ()
   DATA_INTEGER(b_ref_type); //0 means that initial and final are relative to K, 1 to Bmsy
   
   DATA_INTEGER(f_ref_type); //0 means f, 1 f/fmsy
+  
+  DATA_INTEGER(est_k); // 1 means estiamte k, 0 means estimate final depletion
   
   // DATA_INTEGER(use_init); // use initial reference point
   
@@ -102,13 +124,14 @@ Type objective_function<Type>::operator() ()
   
   DATA_SCALAR(sigma_obs_prior_cv);
   
+  
   //// parameters ////
   
   PARAMETER(log_init_dep);
   
   PARAMETER(log_r);
   
-  PARAMETER(log_k);
+  PARAMETER(log_anchor);
   
   PARAMETER(log_q);
   
@@ -163,8 +186,7 @@ Type objective_function<Type>::operator() ()
   // proc_errors = exp(log_proc_errors * sigma_proc - pow(sigma_proc,2)/2);
   
   
-  Type k = exp(log_k);
-  
+
   catch_t = catch_t + Type(1e-3);
   
   Type r = exp(log_r);
@@ -172,6 +194,8 @@ Type objective_function<Type>::operator() ()
   Type q = exp(log_q);
   
   Type m = exp(log_shape);
+  
+  Type k = 0;
   
   Type b_to_k = pow(m, (-1 / (m - 1)));
   
@@ -183,6 +207,74 @@ Type objective_function<Type>::operator() ()
   
   
   Type init_dep = exp(log_init_dep);
+  
+  Type newk = 0;
+  
+  if (est_k == 1){
+  
+    Type k = exp(log_anchor);
+    
+  } else {
+    
+    // back out k form terminal status
+    
+    Type final_status = exp(log_anchor);
+    
+    Type lower = log(max(catch_t));
+    
+    Type upper = log(max(catch_t) * 20);
+    
+    Type delta = 100;
+    
+    Type counter = 0;
+    
+    Type golden =(sqrt(5)-1)/2;
+    
+    while(delta > 1e-3){
+      
+      vector<Type> blow(time);
+      
+      vector<Type> bhigh(time);
+      
+      Type new_lower = lower  + (1 - golden) * (upper - lower);
+      
+      Type new_upper = upper  - (1 - golden) * (upper - lower);
+      
+      blow = popmodel(r,m,exp(lower), init_dep, catch_t, proc_errors, time);
+        
+      bhigh = popmodel(r,m,exp(upper), init_dep, catch_t, proc_errors, time);
+        
+      Type low_error = pow(blow(time - 1) - final_status,2);
+      
+      Type high_error = pow(bhigh(time - 1) - final_status,2);
+      
+      if (low_error < high_error){
+        
+        upper = new_upper;
+        
+        
+      } else {
+        
+        lower = new_lower;
+        
+      }   
+      
+      delta = (low_error + high_error) / 2;
+      
+      counter = counter + 1;
+      
+      if (counter > 100){
+        delta = 0;
+      }
+      
+      
+    }
+    
+   newk = (lower + upper)/2;
+    
+  }
+  
+  std::cout<< newk << std::endl;
   
   Type bmsy = k*pow(m, -1/(m - 1));
   
@@ -346,7 +438,6 @@ Type objective_function<Type>::operator() ()
       
       nll -= dnorm(log(u_t(time - 1)), log_final_u(i),log_final_u_cv(i), true);
       
-        
       }
     } // cluse use final u loops
     
@@ -360,7 +451,9 @@ Type objective_function<Type>::operator() ()
   
   nll -= dnorm(log_sigma_proc,log(sigma_proc_prior), sigma_proc_prior_cv, true);
   
-  nll -= dnorm(log_k,log(k_prior),Type(k_prior_cv), true);
+  if (est_k == 1){
+    nll -= dnorm(log_anchor,log(k_prior),Type(k_prior_cv), true);
+  }
   
   nll -= dnorm(log_shape,log(shape_prior),shape_cv, true);
   
