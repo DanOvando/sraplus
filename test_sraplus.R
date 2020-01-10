@@ -22,6 +22,9 @@ sim <-
 sim$pop %>% 
   ggplot(aes(year, u)) + 
   geom_point()
+sim$pop %>% 
+  ggplot(aes(year, biomass / 1000)) + 
+  geom_point()
 
 pop <- sim$pop
 
@@ -53,22 +56,23 @@ plot_driors(driors)
 
 sir_fit <- fit_sraplus(driors = driors,
                        engine = 'sir',
-                       draws = 1e5)
+                       draws = 1e5,
+                       estimate_k = FALSE)
 
 sir_diagnostics <- diagnose_sraplus(sir_fit, driors)
 
 ml_driors <- format_driors(taxa = example_taxa,
                         catch = pop$catch,
                         years = pop$year,
-                        index = pop$biomass * 1e-3 * exp(rnorm(length(pop$biomass),0,.2)),
+                        index = pop$biomass * 1e-3 * exp(rnorm(length(pop$biomass),0,.4)),
                         index_years = pop$year,
                         initial_state = 1,
                         initial_state_cv = 0.05,
                         terminal_state = NA,
                         growth_rate_prior = 0.4,
-                        growth_rate_prior_cv = 0.1,
+                        growth_rate_prior_cv = 0.5,
                         sigma_r_prior = 0.05,
-                        sigma_r_prior_cv = 0.05)
+                        sigma_r_prior_cv = 0.1)
 
 plot_driors(ml_driors)
 
@@ -77,11 +81,16 @@ ml_fit <- fit_sraplus(driors = ml_driors,
                       engine = "tmb",
                       model = "sraplus_tmb",
                       estimate_shape = FALSE, 
-                      estimate_proc_error = FALSE)
+                      estimate_proc_error = FALSE,
+                      estimate_k = FALSE,
+                      eps = 1e-6)
 
 diagnose_sraplus(ml_fit, ml_driors)
 
 plot_sraplus(ml_fit = ml_fit, years = ml_driors$years)
+
+plot_prior_posterior(ml_fit, ml_driors)
+
 
 
 bayes_fit <- fit_sraplus(driors = ml_driors,

@@ -60,6 +60,8 @@ fit_sraplus <- function(driors,
                         estimate_shape = FALSE,
                         estimate_qslope = FALSE,
                         estimate_proc_error = TRUE,
+                        estimate_k = FALSE,
+                        learn_rate = 1e-3,
                         marginalize_q = FALSE,
                         use_baranov = TRUE,
                         include_m = FALSE,
@@ -138,7 +140,9 @@ fit_sraplus <- function(driors,
     shape_cv = driors$shape_prior_cv,
     sigma_obs_prior = driors$sigma_obs_prior,
     sigma_obs_prior_cv = driors$sigma_obs_prior_cv,
-    marginalize_q = marginalize_q
+    marginalize_q = marginalize_q,
+    est_k = estimate_k,
+    learn_rate = learn_rate
   )
   
   
@@ -166,9 +170,8 @@ fit_sraplus <- function(driors,
   
   sra_data$q_prior_cv = driors$q_prior_cv
   
-  
   inits <- list(
-    log_k = log(driors$k_prior),
+    log_anchor = log(0.25),
     log_r = log(driors$growth_rate_prior),
     # q = q_guess,
     log_q = log(q_prior),
@@ -321,7 +324,6 @@ fit_sraplus <- function(driors,
       plim = plim,
       use_final_u = sra_data$use_final_u,
       use_final_state = sra_data$use_final_state,
-      
       log_final_u = sra_data$log_final_u,
       log_final_u_cv =  sra_data$log_final_u_cv
     )
@@ -394,9 +396,16 @@ fit_sraplus <- function(driors,
       
     }
     
-    lower_k <- log(1.25 * max(driors$catch))
+    if (estimate_k){
+    lower_anchor <- log(1.25 * max(driors$catch))
     
-    upper_k <- log(50 * max(driors$catch))
+    upper_anchor <- log(50 * max(driors$catch))
+    } else {
+      lower_anchor = log(1e-6)
+      
+      upper_anchor = log(1.5);
+      
+    }
     
     sraplus::get_tmb_model(model_name = model_name)
     sra_model <-
@@ -416,12 +425,12 @@ fit_sraplus <- function(driors,
       purrr::set_names(names(sra_model$par))
     
     # lower['q'] <- 1e-10
-    lower['log_k'] <- lower_k
+    lower['log_anchor'] <- lower_anchor
     
     upper = rep(Inf, length(sra_model$par)) %>%
       purrr::set_names(names(sra_model$par))
     
-    upper['log_k'] <- upper_k
+    upper['log_anchor'] <- upper_anchor
     
     upper["log_init_dep"] <- log(1.5)
     

@@ -10,7 +10,24 @@ Type growfoo(Type r, Type m, Type b, Type plim)
 
 } // close function
 
-
+template<class Type>
+vector<Type> popmodel(Type r, Type m, Type k, Type b0, vector<Type> catches, vector<Type> proc_error, int time)
+  {
+  
+  vector<Type> b(time);
+  
+  b(0) = b0 * k;
+  
+  for (int t = 0; t < time; t++){
+    
+    b(t) = (b(t - 1) + (r  / (m - 1)) * b(t - 1) * (1 - pow(b(t - 1),m - 1)) - catches(t - 1)) * proc_error(t - 1);
+    
+  }
+  
+  return b;
+  
+  
+}
 
 template<class Type>
 Type posfun(Type x, Type eps, Type &pen)
@@ -20,26 +37,6 @@ Type posfun(Type x, Type eps, Type &pen)
   return CppAD::CondExpGe(x, eps, x, eps/(Type(2)-x/eps));
 }
 
-
-template<class Type>
-vector<Type> popmodel(Type r, Type m, Type k, Type b0, vector<Type> catches, vector<Type> proc_error, int time, Type eps)
-{
-  
-  vector<Type> b(time);
-  
-  b(0) = b0;
-  
-  for (int t = 1; t < time; t++){
-    
-   Type temp = k * ((b(t - 1) + (r  / (m - 1)) * b(t - 1) * (1 - pow(b(t - 1),m - 1)) - catches(t - 1) / k) * proc_error(t - 1));
-    
-    b(t) = CppAD::CondExpGe(temp, eps, temp, eps/(Type(2)-temp/eps));
-  }
-  
-  return b;
-  
-  
-}
 
 template<class Type>
 Type objective_function<Type>::operator() ()
@@ -106,8 +103,6 @@ Type objective_function<Type>::operator() ()
   DATA_SCALAR(sigma_proc_prior_cv);
   
   DATA_SCALAR(eps);
-  
-  DATA_SCALAR(learn_rate);
   
   DATA_SCALAR(log_r_cv);
   
@@ -204,8 +199,6 @@ Type objective_function<Type>::operator() ()
   
   Type b_to_k = pow(m, (-1 / (m - 1)));
   
-  Type final_state = 0;
-  
   if (plim > b_to_k){
     
     plim = b_to_k;
@@ -215,62 +208,73 @@ Type objective_function<Type>::operator() ()
   
   Type init_dep = exp(log_init_dep);
   
-  Type delta = 100;
-  
-  Type counter = 0;
-
-  Type new_proposal = 0;
+  Type newk = 0;
   
   if (est_k == 1){
   
-    k = exp(log_anchor);
+    Type k = exp(log_anchor);
     
   } else {
     
     // back out k form terminal status
     
-    vector<Type> proposal_result(time);
+    Type final_status = exp(log_anchor);
     
-    final_state = exp(log_anchor);
+    Type lower = log(max(catch_t));
     
-    Type last_proposal =   log(max(catch_t) * 100);
+    Type upper = log(max(catch_t) * 20);
     
-    proposal_result = popmodel(r,m,exp(last_proposal), init_dep, catch_t, proc_errors, time, eps);
+    Type delta = 100;
     
-    Type prop_error =  log(proposal_result[time - 1] / exp(last_proposal)) - log(final_state);
-  
+    Type counter = 0;
+    
+    Type golden =(sqrt(5)-1)/2;
+    
     while(delta > 1e-3){
       
-    new_proposal = last_proposal -  learn_rate * prop_error;
-    
-    std::cout << "new proposal is" << new_proposal << std::endl;
+      vector<Type> blow(time);
       
-     proposal_result = popmodel(r,m,exp(new_proposal), init_dep, catch_t, proc_errors, time, eps);
+      vector<Type> bhigh(time);
       
-     prop_error =  log(proposal_result[time - 1] / exp(new_proposal)) - log(final_state);
-     
-     std::cout << "prop error is" << prop_error << std::endl;
-     
-    last_proposal = new_proposal;
-    
-    delta = sqrt(pow(proposal_result[time - 1] / exp(new_proposal) - final_state,2));
+      Type new_lower = lower  + (1 - golden) * (upper - lower);
       
-          // std::cout<< delta << std::endl;
+      Type new_upper = upper  - (1 - golden) * (upper - lower);
+      
+      blow = popmodel(r,m,exp(lower), init_dep, catch_t, proc_errors, time);
+        
+      bhigh = popmodel(r,m,exp(upper), init_dep, catch_t, proc_errors, time);
+        
+      Type low_error = pow(blow(time - 1) - final_status,2);
+      
+      Type high_error = pow(bhigh(time - 1) - final_status,2);
+      
+      if (low_error < high_error){
+        
+        upper = new_upper;
+        
+        
+      } else {
+        
+        lower = new_lower;
+        
+      }   
+      
+      delta = (low_error + high_error) / 2;
       
       counter = counter + 1;
       
-      if (counter > 10){
-        delta = -999;
-      } // close escape hatch
+      if (counter > 100){
+        delta = 0;
+      }
       
       
-    } // close while looop for gradient descnet
+    }
     
-   k = exp(new_proposal);
+   newk = (lower + upper)/2;
     
-  } // close estimate_k
+  }
   
-  std::cout<< k << std::endl;
+  std::cout<< newk << std::endl;
   
   Type bmsy = k*pow(m, -1/(m - 1));
   
