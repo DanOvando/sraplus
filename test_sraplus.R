@@ -13,9 +13,9 @@ sim <-
     sigma_u = 0,
     q_slope = 0,
     r = 0.4,
-    years = 25,
+    years = 15,
     q = 1e-3,
-    m = 1.01,
+    m = 2,
     init_u_umsy = 1
   )
 
@@ -48,7 +48,8 @@ driors <- format_driors(
   terminal_state_cv = 0.01,
   growth_rate_prior = 0.4,
   growth_rate_prior_cv = 0.1,
-  use_heuristics = FALSE
+  use_heuristics = FALSE,
+  shape_prior = 2
 )
 
 
@@ -64,26 +65,29 @@ sir_diagnostics <- diagnose_sraplus(sir_fit, driors)
 ml_driors <- format_driors(taxa = example_taxa,
                         catch = pop$catch,
                         years = pop$year,
-                        index = pop$biomass * 1e-3 * exp(rnorm(length(pop$biomass),0,.4)),
+                        index = pop$biomass * 1e-3 * exp(rnorm(length(pop$biomass),0,.01)),
                         index_years = pop$year,
-                        initial_state = 1,
-                        initial_state_cv = 0.05,
+                        initial_state = 0.5,
+                        initial_state_cv = 0.5,
                         terminal_state = NA,
                         growth_rate_prior = 0.4,
                         growth_rate_prior_cv = 0.5,
                         sigma_r_prior = 0.05,
+                        shape_prior = 2,
                         sigma_r_prior_cv = 0.1)
 
 plot_driors(ml_driors)
 
 
 ml_fit <- fit_sraplus(driors = ml_driors,
-                      engine = "tmb",
+                      engine = "stan",
                       model = "sraplus_tmb",
                       estimate_shape = FALSE, 
                       estimate_proc_error = FALSE,
-                      estimate_k = FALSE,
-                      eps = 1e-6)
+                      estimate_k = TRUE,
+                      learn_rate = 2e-1,
+                      n_keep = 10000,
+                      eps = 1e-12)
 
 diagnose_sraplus(ml_fit, ml_driors)
 
@@ -91,10 +95,12 @@ plot_sraplus(ml_fit = ml_fit, years = ml_driors$years)
 
 plot_prior_posterior(ml_fit, ml_driors)
 
+sraplus::summarize_sralpus(ml_fit) %>% View()
+
 
 
 bayes_fit <- fit_sraplus(driors = ml_driors,
-                      engine = "stan",
+                      engine = "tmb",
                       model = "sraplus_tmb",
                       n_keep = 2000,
                       estimate_shape = TRUE,

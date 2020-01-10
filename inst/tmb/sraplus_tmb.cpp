@@ -6,7 +6,9 @@ Type growfoo(Type r, Type m, Type b, Type plim)
 
   Type growth = (r  / (m - 1)) * b * (1 - pow(b,m - 1));
   
-  return growth;
+  Type plim_growth = (r  / (m - 1)) * b * (1 - pow(b,m - 1)) * (b / (plim));
+  
+  return  CppAD::CondExpGe(b, plim, growth, plim_growth);
 
 } // close function
 
@@ -22,7 +24,7 @@ Type posfun(Type x, Type eps, Type &pen)
 
 
 template<class Type>
-vector<Type> popmodel(Type r, Type m, Type k, Type b0, vector<Type> catches, vector<Type> proc_error, int time, Type eps)
+vector<Type> popmodel(Type r, Type m, Type k, Type b0, vector<Type> catches, vector<Type> proc_error, int time, Type eps, Type plim)
 {
   
   vector<Type> b(time);
@@ -30,11 +32,16 @@ vector<Type> popmodel(Type r, Type m, Type k, Type b0, vector<Type> catches, vec
   b(0) = b0;
   
   for (int t = 1; t < time; t++){
+   
+   
+   Type growth = growfoo(r, m, b(t - 1),plim);
+
+   Type temp = ((b(t - 1) + growth - catches(t - 1) / k) * proc_error(t - 1));
     
-   Type temp = k * ((b(t - 1) + (r  / (m - 1)) * b(t - 1) * (1 - pow(b(t - 1),m - 1)) - catches(t - 1) / k) * proc_error(t - 1));
     
-    b(t) = CppAD::CondExpGe(temp, eps, temp, eps/(Type(2)-temp/eps));
+    b(t) = CppAD::CondExpGe(temp * k, eps, temp, (eps/(Type(2)-(temp * k)/eps)) / k);
   }
+  b = b * k;
   
   return b;
   
@@ -201,18 +208,7 @@ Type objective_function<Type>::operator() ()
   Type m = exp(log_shape);
   
   Type k = 0;
-  
-  Type b_to_k = pow(m, (-1 / (m - 1)));
-  
-  Type final_state = 0;
-  
-  if (plim > b_to_k){
-    
-    plim = b_to_k;
-    
-  }
-  
-  
+
   Type init_dep = exp(log_init_dep);
   
   Type delta = 100;
@@ -220,6 +216,12 @@ Type objective_function<Type>::operator() ()
   Type counter = 0;
 
   Type new_proposal = 0;
+  
+  Type conv_error = 0;
+  
+  Type final_state = 0;
+  
+  Type grad_dep = 0;
   
   if (est_k == 1){
   
@@ -233,9 +235,9 @@ Type objective_function<Type>::operator() ()
     
     final_state = exp(log_anchor);
     
-    Type last_proposal =   log(max(catch_t) * 100);
+    Type last_proposal =   log(max(catch_t) * 10);
     
-    proposal_result = popmodel(r,m,exp(last_proposal), init_dep, catch_t, proc_errors, time, eps);
+    proposal_result = popmodel(r,m,exp(last_proposal), init_dep, catch_t, proc_errors, time, eps,plim);
     
     Type prop_error =  log(proposal_result[time - 1] / exp(last_proposal)) - log(final_state);
   
@@ -243,23 +245,28 @@ Type objective_function<Type>::operator() ()
       
     new_proposal = last_proposal -  learn_rate * prop_error;
     
-    std::cout << "new proposal is" << new_proposal << std::endl;
+    // std::cout << "new proposal is" << new_proposal << std::endl;
       
-     proposal_result = popmodel(r,m,exp(new_proposal), init_dep, catch_t, proc_errors, time, eps);
+     proposal_result = popmodel(r,m,exp(new_proposal), init_dep, catch_t, proc_errors, time, eps,plim);
       
-     prop_error =  log(proposal_result[time - 1] / exp(new_proposal)) - log(final_state);
+      grad_dep = proposal_result[time - 1] / exp(new_proposal);
+      
+     prop_error =  log(grad_dep) - log(final_state);
      
-     std::cout << "prop error is" << prop_error << std::endl;
+     // std::cout << "prop dep is" << proposal_result[time - 1] / exp(new_proposal) << std::endl;
      
     last_proposal = new_proposal;
     
-    delta = sqrt(pow(proposal_result[time - 1] / exp(new_proposal) - final_state,2));
+    delta = sqrt(pow(grad_dep - final_state,2));
+      
+    conv_error = delta;
+      
       
           // std::cout<< delta << std::endl;
       
       counter = counter + 1;
       
-      if (counter > 10){
+      if (counter > 5000){
         delta = -999;
       } // close escape hatch
       
@@ -268,9 +275,19 @@ Type objective_function<Type>::operator() ()
     
    k = exp(new_proposal);
     
+    nll += conv_error;  
   } // close estimate_k
   
-  std::cout<< k << std::endl;
+  // std::cout<< counter << std::endl;
+  
+  Type b_to_k = pow(m, (-1 / (m - 1)));
+  
+  if (plim > b_to_k){
+    
+    plim = b_to_k;
+    
+  }
+  
   
   Type bmsy = k*pow(m, -1/(m - 1));
   
@@ -309,6 +326,8 @@ Type objective_function<Type>::operator() ()
   u_v_umsy = u_t / umsy;
   
   dep_t = b_t / k;
+  
+  // std::cout << "grad dep is" << grad_dep << "pop dep is" << dep_t(time - 1) << std::endl;
   
   if (calc_cpue == 0){
     index_hat_t = q_t * b_t;
@@ -439,7 +458,7 @@ Type objective_function<Type>::operator() ()
     
   } // close use final u
   
-  nll -= dnorm(log(init_ref), log_init_dep_prior, log_init_dep_cv, true);
+  nll -= dnorm(log_init_dep, log_init_dep_prior, log_init_dep_cv, true);
   
   nll -= dnorm(log_sigma_obs,log(sigma_obs_prior),sigma_obs_prior_cv, true);
   
@@ -542,6 +561,8 @@ Type objective_function<Type>::operator() ()
   REPORT(m);
   
   REPORT(pen);
+  
+  REPORT(delta);
   
   ADREPORT(q_slope);
   
