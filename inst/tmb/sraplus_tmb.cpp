@@ -31,10 +31,13 @@ vector<Type> popmodel(Type r, Type m, Type k, Type b0, vector<Type> catches, vec
   
   for (int t = 1; t < time; t++){
     
-   Type temp = k * ((b(t - 1) + (r  / (m - 1)) * b(t - 1) * (1 - pow(b(t - 1),m - 1)) - catches(t - 1) / k) * proc_error(t - 1));
+   Type temp = ((b(t - 1) + (r  / (m - 1)) * b(t - 1) * (1 - pow(b(t - 1),m - 1)) - catches(t - 1) / k) * proc_error(t - 1));
     
-    b(t) = CppAD::CondExpGe(temp, eps, temp, eps/(Type(2)-temp/eps));
+    b(t) = std::max(Type(1e-6),temp);
+    
+    //b(t) = CppAD::CondExpGe(temp, eps, temp, eps/(Type(2)-temp/eps));
   }
+  b = b * k;
   
   return b;
   
@@ -221,6 +224,8 @@ Type objective_function<Type>::operator() ()
 
   Type new_proposal = 0;
   
+  Type conv_error = 0;
+  
   if (est_k == 1){
   
     k = exp(log_anchor);
@@ -249,17 +254,20 @@ Type objective_function<Type>::operator() ()
       
      prop_error =  log(proposal_result[time - 1] / exp(new_proposal)) - log(final_state);
      
-     std::cout << "prop error is" << prop_error << std::endl;
+     std::cout << "prop dep is" << proposal_result[time - 1] / exp(new_proposal) << std::endl;
      
     last_proposal = new_proposal;
     
     delta = sqrt(pow(proposal_result[time - 1] / exp(new_proposal) - final_state,2));
       
+    conv_error = delta;
+      
+      
           // std::cout<< delta << std::endl;
       
       counter = counter + 1;
       
-      if (counter > 10){
+      if (counter > 10000){
         delta = -999;
       } // close escape hatch
       
@@ -268,6 +276,7 @@ Type objective_function<Type>::operator() ()
     
    k = exp(new_proposal);
     
+    nll += conv_error;  
   } // close estimate_k
   
   std::cout<< k << std::endl;

@@ -15,7 +15,7 @@ sim <-
     r = 0.4,
     years = 25,
     q = 1e-3,
-    m = 1.01,
+    m = 2,
     init_u_umsy = 1
   )
 
@@ -78,11 +78,12 @@ plot_driors(ml_driors)
 
 
 ml_fit <- fit_sraplus(driors = ml_driors,
-                      engine = "tmb",
+                      engine = "stan",
                       model = "sraplus_tmb",
                       estimate_shape = FALSE, 
                       estimate_proc_error = FALSE,
                       estimate_k = FALSE,
+                      learn_rate = 0.02,
                       eps = 1e-6)
 
 diagnose_sraplus(ml_fit, ml_driors)

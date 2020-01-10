@@ -171,7 +171,7 @@ fit_sraplus <- function(driors,
   sra_data$q_prior_cv = driors$q_prior_cv
   
   inits <- list(
-    log_anchor = log(0.25),
+    log_anchor = log(0.5),
     log_r = log(driors$growth_rate_prior),
     # q = q_guess,
     log_q = log(q_prior),
