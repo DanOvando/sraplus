@@ -9,7 +9,7 @@ rstan_options(auto_write = TRUE)
 set.seed(42)
 sim <-
   sraplus_simulator(
-    sigma_proc = 0.5,
+    sigma_proc = 0,
     sigma_u = 0,
     q_slope = 0,
     r = 0.4,
@@ -65,7 +65,7 @@ sir_diagnostics <- diagnose_sraplus(sir_fit, driors)
 ml_driors <- format_driors(taxa = example_taxa,
                         catch = pop$catch,
                         years = pop$year,
-                        index = pop$biomass * 1e-3 * exp(rnorm(length(pop$biomass),-0.05^2/2,0.05)),
+                        index = pop$biomass * 1e-3 * exp(rnorm(length(pop$biomass),-0.525^2/2,0.525)),
                         index_years = pop$year,
                         initial_state = 1,
                         initial_state_cv = 0.05,
@@ -86,7 +86,7 @@ ml_fit <- fit_sraplus(driors = ml_driors,
                       engine = "tmb",
                       model = "sraplus_tmb",
                       estimate_shape = FALSE, 
-                      estimate_proc_error = TRUE,
+                      estimate_proc_error = FALSE,
                       estimate_k = TRUE,
                       learn_rate = 2e-1,
                       n_keep = 2000,
@@ -105,10 +105,10 @@ sraplus::summarize_sralpus(ml_fit) %>% View()
 
 
 bayes_fit <- fit_sraplus(driors = ml_driors,
-                      engine = "tmb",
+                      engine = "stan",
                       model = "sraplus_tmb",
                       n_keep = 2000,
-                      estimate_shape = TRUE,
+                      estimate_shape = FALSE,
                       estimate_proc_error = TRUE)
 
 diagnose_sraplus(bayes_fit, ml_driors)
@@ -242,10 +242,10 @@ effort_ml_driors <- format_driors(taxa = example_taxa,
                            initial_state = 1,
                            initial_state_cv = 0.05,
                            terminal_state = NA,
-                           growth_rate = 0.4,
-                           growth_rate_cv = 0.1,
-                           q_slope = 0.025,
-                           q_slope_cv = 0.01)
+                           growth_rate_prior = 0.4,
+                           growth_rate_prior_cv = 0.1,
+                           q_slope_prior = 0.025,
+                           q_slope_prior_cv = 0.01)
 
 index_ml_driors <- format_driors(taxa = example_taxa,
                                   catch = pop$catch,
@@ -282,6 +282,8 @@ effort_ml_fit <- fit_sraplus(driors = effort_ml_driors,
                       engine = "tmb",
                       model = "sraplus_tmb",
                       estimate_qslope = TRUE)
+
+plot_sraplus(effort_ml_fit)
 
 
 effort_bayes_fit <- fit_sraplus(driors = effort_ml_driors,
