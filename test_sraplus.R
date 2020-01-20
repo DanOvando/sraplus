@@ -9,7 +9,7 @@ rstan_options(auto_write = TRUE)
 set.seed(42)
 sim <-
   sraplus_simulator(
-    sigma_proc = 0,
+    sigma_proc = 0.5,
     sigma_u = 0,
     q_slope = 0,
     r = 0.4,
@@ -65,29 +65,34 @@ sir_diagnostics <- diagnose_sraplus(sir_fit, driors)
 ml_driors <- format_driors(taxa = example_taxa,
                         catch = pop$catch,
                         years = pop$year,
-                        index = pop$biomass * 1e-3 * exp(rnorm(length(pop$biomass),0,.01)),
+                        index = pop$biomass * 1e-3 * exp(rnorm(length(pop$biomass),-0.05^2/2,0.05)),
                         index_years = pop$year,
                         initial_state = 1,
                         initial_state_cv = 0.05,
                         terminal_state = NA,
+                        shape_prior = 2,
                         growth_rate_prior = 0.4,
                         growth_rate_prior_cv = 0.5,
-                        sigma_r_prior = 0.05,
-                        shape_prior = 2,
-                        sigma_r_prior_cv = 0.1)
+                        sigma_r_prior = 1,
+                        sigma_r_prior_cv = 0.5,
+                        sigma_obs_prior = 0.05,
+                        sigma_obs_prior_cv = 1
+                        )
 
 plot_driors(ml_driors)
 
 
 ml_fit <- fit_sraplus(driors = ml_driors,
-                      engine = "stan",
+                      engine = "tmb",
                       model = "sraplus_tmb",
                       estimate_shape = FALSE, 
-                      estimate_proc_error = FALSE,
+                      estimate_proc_error = TRUE,
                       estimate_k = TRUE,
                       learn_rate = 2e-1,
-                      n_keep = 10000,
-                      eps = 1e-12)
+                      n_keep = 2000,
+                      eps = 1e-12,
+                      adapt_delta = 0.95,
+                      max_treedepth = 12)
 
 diagnose_sraplus(ml_fit, ml_driors)
 

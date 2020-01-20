@@ -118,8 +118,8 @@ fit_sraplus <- function(driors,
     u_priors = driors$u_v_umsy,
     u_cv = driors$u_cv,
     plim = plim,
-    sigma_proc_prior = driors$sigma_r_prior,
-    sigma_proc_prior_cv = driors$sigma_r_prior_cv,
+    sigma_ratio_prior = driors$sigma_r_prior,
+    sigma_ratio_prior_cv = driors$sigma_r_prior_cv,
     b_ref_type = ifelse(driors$b_ref_type == "k", 0, 1),
     f_ref_type = ifelse(driors$f_ref_type == "f", 0, 1),
     use_final_state = !is.na(driors$terminal_state),
@@ -175,9 +175,10 @@ fit_sraplus <- function(driors,
     log_r = log(driors$growth_rate_prior),
     # q = q_guess,
     log_q = log(q_prior),
-    log_sigma_obs = log(0.2),
+    sigma_obs = (driors$sigma_obs_prior),
+    # log_sigma_obs = log(0.2),
     log_init_dep = log(1),
-    log_sigma_proc = log(0.01),
+    log_sigma_ratio = log(driors$sigma_r_prior + 1e-6),
     log_proc_errors = rep(0, time - 1),
     log_shape = log(driors$shape_prior),
     log_q_slope = log(
@@ -195,7 +196,9 @@ fit_sraplus <- function(driors,
     knockout$log_q <- NA
     # knockout$q <- NA
     
-    knockout$log_sigma_obs <- NA
+    # knockout$log_sigma_obs <- NA
+    
+    knockout$sigma_obs <- NA
     
     
   }
@@ -203,11 +206,11 @@ fit_sraplus <- function(driors,
   # knockout$log_init_dep = NA
   
   if (sra_data$fit_index == 0 & sra_data$use_u_prior == 0) {
-    knockout$log_sigma_proc <- NA
+    knockout$log_sigma_ratio <- NA
     
     knockout$log_proc_errors <- rep(NA, time - 1)
     
-    inits$log_sigma_proc <- log(1e-6)
+    inits$log_sigma_ratio <- log(1e-6)
     
     inits$log_proc_errors <- rep(0, time - 1)
     
@@ -245,9 +248,9 @@ fit_sraplus <- function(driors,
   if (estimate_proc_error == FALSE) {
     knockout$log_proc_errors <- rep(NA, time - 1)
     
-    knockout$log_sigma_proc <- NA
+    knockout$log_sigma_ratio <- log(1e-6)
     
-    inits$log_sigma_proc <- log(1e-6)
+    inits$log_sigma_ratio <- log(1e-6)
     
     randos <- NULL
     
@@ -406,7 +409,6 @@ fit_sraplus <- function(driors,
       upper_anchor = log(0.9);
       
     }
-    
     sraplus::get_tmb_model(model_name = model_name)
     sra_model <-
       TMB::MakeADFun(
@@ -433,6 +435,11 @@ fit_sraplus <- function(driors,
     upper['log_anchor'] <- upper_anchor
     
     upper["log_init_dep"] <- log(1.5)
+    
+    if (sra_data$fit_index == 1){
+      
+      lower["sigma_obs"] <- 0
+    }
     
     if (marginalize_q == 0 & sra_data$fit_index == 1) {
       upper['log_q'] <- log(1)
@@ -539,7 +546,6 @@ fit_sraplus <- function(driors,
       
     } else if (engine == "tmb") {
       set.seed(seed)
-      
       fit <- TMBhelper::fit_tmb(
         sra_model,
         fn = sra_model$fn,
