@@ -84,10 +84,16 @@ ml_fit <- fit_sraplus(driors = ml_driors,
                       model = "sraplus_tmb",
                       estimate_shape = FALSE, 
                       estimate_proc_error = FALSE,
+<<<<<<< HEAD
                       estimate_k = TRUE,
                       learn_rate = 2e-1,
                       n_keep = 10000,
                       eps = 1e-12)
+=======
+                      estimate_k = FALSE,
+                      learn_rate = 0.02,
+                      eps = 1e-6)
+>>>>>>> 3bfb35eb1e0918555455dd47a24f859db3d9b150
 
 diagnose_sraplus(ml_fit, ml_driors)
 

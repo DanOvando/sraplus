@@ -38,8 +38,16 @@ vector<Type> popmodel(Type r, Type m, Type k, Type b0, vector<Type> catches, vec
 
    Type temp = ((b(t - 1) + growth - catches(t - 1) / k) * proc_error(t - 1));
     
+<<<<<<< HEAD
     
     b(t) = CppAD::CondExpGe(temp * k, eps, temp, (eps/(Type(2)-(temp * k)/eps)) / k);
+=======
+   Type temp = ((b(t - 1) + (r  / (m - 1)) * b(t - 1) * (1 - pow(b(t - 1),m - 1)) - catches(t - 1) / k) * proc_error(t - 1));
+    
+    b(t) = std::max(Type(1e-6),temp);
+    
+    //b(t) = CppAD::CondExpGe(temp, eps, temp, eps/(Type(2)-temp/eps));
+>>>>>>> 3bfb35eb1e0918555455dd47a24f859db3d9b150
   }
   b = b * k;
   
@@ -219,10 +227,13 @@ Type objective_function<Type>::operator() ()
   
   Type conv_error = 0;
   
+<<<<<<< HEAD
   Type final_state = 0;
   
   Type grad_dep = 0;
   
+=======
+>>>>>>> 3bfb35eb1e0918555455dd47a24f859db3d9b150
   if (est_k == 1){
   
     k = exp(log_anchor);
@@ -253,7 +264,11 @@ Type objective_function<Type>::operator() ()
       
      prop_error =  log(grad_dep) - log(final_state);
      
+<<<<<<< HEAD
      // std::cout << "prop dep is" << proposal_result[time - 1] / exp(new_proposal) << std::endl;
+=======
+     std::cout << "prop dep is" << proposal_result[time - 1] / exp(new_proposal) << std::endl;
+>>>>>>> 3bfb35eb1e0918555455dd47a24f859db3d9b150
      
     last_proposal = new_proposal;
     
@@ -262,11 +277,18 @@ Type objective_function<Type>::operator() ()
     conv_error = delta;
       
       
+    conv_error = delta;
+      
+      
           // std::cout<< delta << std::endl;
       
       counter = counter + 1;
       
+<<<<<<< HEAD
       if (counter > 5000){
+=======
+      if (counter > 10000){
+>>>>>>> 3bfb35eb1e0918555455dd47a24f859db3d9b150
         delta = -999;
       } // close escape hatch
       
