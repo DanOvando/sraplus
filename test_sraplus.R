@@ -13,7 +13,7 @@ sim <-
     sigma_u = 0,
     q_slope = 0,
     r = 0.4,
-    years = 15,
+    years = 20,
     q = 1e-3,
     m = 2,
     init_u_umsy = 1
@@ -67,8 +67,8 @@ ml_driors <- format_driors(taxa = example_taxa,
                         years = pop$year,
                         index = pop$biomass * 1e-3 * exp(rnorm(length(pop$biomass),0,.01)),
                         index_years = pop$year,
-                        initial_state = 0.5,
-                        initial_state_cv = 0.5,
+                        initial_state = 1,
+                        initial_state_cv = 0.05,
                         terminal_state = NA,
                         growth_rate_prior = 0.4,
                         growth_rate_prior_cv = 0.5,
@@ -84,16 +84,10 @@ ml_fit <- fit_sraplus(driors = ml_driors,
                       model = "sraplus_tmb",
                       estimate_shape = FALSE, 
                       estimate_proc_error = FALSE,
-<<<<<<< HEAD
                       estimate_k = TRUE,
                       learn_rate = 2e-1,
                       n_keep = 10000,
                       eps = 1e-12)
-=======
-                      estimate_k = FALSE,
-                      learn_rate = 0.02,
-                      eps = 1e-6)
->>>>>>> 3bfb35eb1e0918555455dd47a24f859db3d9b150
 
 diagnose_sraplus(ml_fit, ml_driors)
 
