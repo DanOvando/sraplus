@@ -10,7 +10,7 @@ set.seed(42)
 
 sigma_obs = 0.2
 
-sigma_proc_ratio = 1
+sigma_proc_ratio = 0.1
 
 q = 0.0067
 
@@ -99,6 +99,7 @@ ml_fit <- fit_sraplus(driors = ml_driors,
                       n_keep = 2000,
                       eps = 1e-12,
                       adapt_delta = 0.95,
+                      marginalize_q = FALSE,
                       max_treedepth = 12)
 
 diagnose_sraplus(ml_fit, ml_driors)
@@ -117,9 +118,9 @@ bayes_fit <- fit_sraplus(driors = ml_driors,
                       estimate_proc_error = TRUE,
                       estimate_k = TRUE,
                       learn_rate = 2e-1,
-                      n_keep = 2000,
-                      eps = 1e-3,
-                      adapt_delta = 0.95,
+                      n_keep = 5000,
+                      eps = 1e-2,
+                      adapt_delta = 0.8,
                       marginalize_q = FALSE,
                       max_treedepth = 12)
 
@@ -149,6 +150,11 @@ plot_sraplus(ml_fit = ml_fit, bayes_fit = bayes_fit,years = ml_driors$years)
 
 r_hat <- bayesplot::mcmc_hist(as.matrix(bayes_fit$fit), "log_r",transformations = "exp") + 
   geom_vline(aes(xintercept = sim$params$r), color = "red")
+
+r_hat <- bayesplot::mcmc_hist(as.matrix(bayes_fit$fit), "log_anchor",transformations = "identity") + 
+  geom_vline(aes(xintercept = sim$params$r), color = "red")
+
+r_hat <- rstan::extract(bayes_fit$fit, "log_anchor")  
 
 
 # m_hat <- bayesplot::mcmc_hist(as.matrix(bayes_fit$fit), "log_m",transformations = "exp") +
