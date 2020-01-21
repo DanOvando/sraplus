@@ -118,8 +118,8 @@ fit_sraplus <- function(driors,
     u_priors = driors$u_v_umsy,
     u_cv = driors$u_cv,
     plim = plim,
-    sigma_ratio_prior = driors$sigma_r_prior,
-    sigma_ratio_prior_cv = driors$sigma_r_prior_cv,
+    sigma_ratio_prior = driors$sigma_ratio_prior,
+    sigma_ratio_prior_cv = driors$sigma_ratio_prior_cv,
     b_ref_type = ifelse(driors$b_ref_type == "k", 0, 1),
     f_ref_type = ifelse(driors$f_ref_type == "f", 0, 1),
     use_final_state = !is.na(driors$terminal_state),
@@ -143,6 +143,8 @@ fit_sraplus <- function(driors,
     marginalize_q = marginalize_q,
     est_k = estimate_k,
     estimate_proc_error = estimate_proc_error,
+    estimate_shape = estimate_shape,
+    estimate_qslope = estimate_qslope,
     learn_rate = learn_rate
   )
   
@@ -176,10 +178,10 @@ fit_sraplus <- function(driors,
     log_r = log(driors$growth_rate_prior),
     # q = q_guess,
     log_q = log(q_prior),
-    sigma_obs = (driors$sigma_obs_prior),
-    # log_sigma_obs = log(0.2),
-    log_init_dep = log(1),
-    log_sigma_ratio = log(driors$sigma_r_prior + 1e-6),
+    # sigma_obs = (driors$sigma_obs_prior),
+    log_sigma_obs = log(driors$sigma_obs_prior),
+    log_init_dep = log(0.99),
+    log_sigma_ratio = log(driors$sigma_ratio_prior + 1e-6),
     log_proc_errors = rep(0, time - 1),
     log_shape = log(driors$shape_prior),
     log_q_slope = log(
@@ -197,9 +199,9 @@ fit_sraplus <- function(driors,
     knockout$log_q <- NA
     # knockout$q <- NA
     
-    # knockout$log_sigma_obs <- NA
+    knockout$log_sigma_obs <- NA
     
-    knockout$sigma_obs <- NA
+    # knockout$sigma_obs <- NA
     
     
   }
@@ -404,6 +406,10 @@ fit_sraplus <- function(driors,
     lower_anchor <- log(1.25 * max(driors$catch))
     
     upper_anchor <- log(50 * max(driors$catch))
+    
+    # lower_anchor <- -Inf
+    # 
+    # upper_anchor <- Inf
     } else {
       lower_anchor = log(1e-3)
       
@@ -435,11 +441,17 @@ fit_sraplus <- function(driors,
     
     upper['log_anchor'] <- upper_anchor
     
-    upper["log_init_dep"] <- log(1.5)
+    # upper["log_init_dep"] <- log(1.5)
+    
+    if (estimate_proc_error == FALSE){
+      
+      upper["log_init_dep"] <- log(1)
+      
+    }
     
     if (sra_data$fit_index == 1){
       
-      lower["sigma_obs"] <- 0
+      # lower["sigma_obs"] <- 0
     }
     
     if (marginalize_q == 0 & sra_data$fit_index == 1) {

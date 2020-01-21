@@ -8,7 +8,7 @@ rstan_options(auto_write = TRUE)
 
 set.seed(42)
 
-sigma_obs = 0.2
+sigma_obs = .1
 
 sigma_proc_ratio = 1
 
@@ -80,8 +80,8 @@ ml_driors <- format_driors(taxa = example_taxa,
                         shape_prior = 1.01,
                         growth_rate_prior = 0.4,
                         growth_rate_prior_cv = 0.5,
-                        sigma_r_prior = 1,
-                        sigma_r_prior_cv = 1,
+                        sigma_ratio_prior = 1,
+                        sigma_ratio_prior_cv = .1,
                         sigma_obs_prior = 0.1,
                         sigma_obs_prior_cv = 1
                         )
@@ -272,8 +272,8 @@ index_ml_driors <- format_driors(taxa = example_taxa,
                                   terminal_state = NA,
                                   growth_rate = 0.4,
                                   growth_rate_cv = 0.1,
-                                 sigma_r = 0.05,
-                                 sigma_r_cv = 0.05)
+                                 sigma_ratio_prior = 1,
+                                 sigma_ratio_prior_cv = 0.5)
 
 
 index_bayes_fit <- fit_sraplus(driors = index_ml_driors,

@@ -29,8 +29,6 @@
 #' @param m natural mortality
 #' @param k_prior prior on carrying capacity
 #' @param k_prior_cv CV of prior on carrying capacity
-#' @param sigma_r_prior prior on process error
-#' @param sigma_r_prior_cv CV of prior on process error
 #' @param shape_prior prior on shape parameter of Pella-Tomlinson model
 #' @param shape_prior_cv CV of prior on shape parameter of Pella-Tomlinson model
 #' @param q_prior_cv CV of prior on q itself (prior on q set in \code{fit_sraplus})
@@ -42,6 +40,8 @@
 #' @param q_slope_prior_cv the cv on the prior on q_slope
 #' @param isscaap_group the isscaap group of the stock. If NA will try and find
 #' @param prob the probability range of the posterior predictive to use in construction of the priors
+#' @param sigma_ratio_prior 
+#' @param sigma_ratio_prior_cv 
 #'
 #' @return a list of data and priors
 #' @export
@@ -83,8 +83,8 @@ format_driors <-
            m = NA,
            k_prior = NA,
            k_prior_cv = 2,
-           sigma_r_prior = 0.05,
-           sigma_r_prior_cv = 0.5,
+           sigma_ratio_prior = 1,
+           sigma_ratio_prior_cv = 0.5,
            shape_prior = 1.01,
            shape_prior_cv = 0.25,
            q_prior_cv = 1,
@@ -371,7 +371,7 @@ format_driors <-
       list(
         catch = catch,
         years = years,
-        k_prior = ifelse(is.na(k_prior), 5 * max(catch), k_prior),
+        k_prior = ifelse(is.na(k_prior), 10 * max(catch), k_prior),
         k_prior_cv = k_prior_cv,
         terminal_state = terminal_state,
         terminal_state_cv = terminal_state_cv,
@@ -390,8 +390,10 @@ format_driors <-
           sqrt(cov_lh["r"]),
           growth_rate_prior_cv
         ),
-        sigma_r_prior = ifelse(is.na(sigma_r_prior), exp(mean_lh["ln_var"]) / 2, sigma_r_prior),
-        sigma_r_prior_cv = ifelse(is.na(sigma_r_prior_cv), sqrt(cov_lh["ln_var"]), sigma_r_prior_cv),
+        sigma_ratio_prior = sigma_ratio_prior ,
+        sigma_ratio_prior_cv = sigma_ratio_prior_cv,
+        # sigma_r_prior = ifelse(is.na(sigma_r_prior), exp(mean_lh["ln_var"]) / 2, sigma_r_prior),
+        # sigma_r_prior_cv = ifelse(is.na(sigma_r_prior_cv), sqrt(cov_lh["ln_var"]), sigma_r_prior_cv),
         m =  ifelse(is.na(m), exp(mean_lh["M"]), m),
         log_final_u = log_final_u,
         log_final_u_cv = log_final_u_cv,

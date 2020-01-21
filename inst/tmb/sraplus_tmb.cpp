@@ -80,6 +80,10 @@ Type objective_function<Type>::operator() ()
   
   DATA_INTEGER(estimate_proc_error); // 1 to estimate process error, 0 to not
   
+  DATA_INTEGER(estimate_shape); 
+  
+  DATA_INTEGER(estimate_qslope);
+  
   // DATA_INTEGER(use_init); // use initial reference point
   
   DATA_INTEGER(use_final_state); // use final reference point
@@ -151,9 +155,9 @@ Type objective_function<Type>::operator() ()
   
   PARAMETER(log_q_slope);
   
-  // PARAMETER(log_sigma_obs);
+  PARAMETER(log_sigma_obs);
   
-  PARAMETER(sigma_obs);
+  // PARAMETER(sigma_obs);
   
   
   PARAMETER(log_sigma_ratio);
@@ -190,9 +194,15 @@ Type objective_function<Type>::operator() ()
   
   vector<Type> short_u_t(time - 1);
   
-  Type q_slope = exp(log_q_slope);
+  Type q_slope = 0;
   
-  // Type sigma_obs = exp(log_sigma_obs);
+  if (estimate_qslope == 1){
+  
+   q_slope = exp(log_q_slope);
+  
+  } 
+  
+  Type sigma_obs = exp(log_sigma_obs);
   
   // Type sigma_proc = exp(log_sigma_obs) * exp(log_sigma_ratio);
   
@@ -323,7 +333,10 @@ Type objective_function<Type>::operator() ()
     
     b_t(t) = (b_t(t - 1) +  growth_t(t - 1) - catch_t(t - 1) / k) * proc_errors(t - 1);
     
-    b_t(t) = posfun(b_t(t) * k,eps,pen) / k;
+    // b_t(t) = posfun(b_t(t) * k,eps,pen) / k;
+    
+    b_t(t) = posfun(b_t(t),eps,pen);
+    
     
     
   } // close population model
@@ -476,9 +489,13 @@ Type objective_function<Type>::operator() ()
   
   nll -= dnorm(log_init_dep, log_init_dep_prior, log_init_dep_cv, true);
   
-  nll -= dnorm(sigma_obs,sigma_obs_prior,sigma_obs_prior * sigma_obs_prior_cv, true);
+  nll -= dnorm(log_sigma_obs,log(sigma_obs_prior), sigma_obs_prior_cv, true);
+  
+  if (estimate_qslope == 1){
   
   nll -= dnorm(log_q_slope,log(q_slope_prior),q_slope_cv, true);
+    
+  }
   
   if (estimate_proc_error == 1){
   
@@ -491,7 +508,11 @@ Type objective_function<Type>::operator() ()
     nll -= dnorm(log_anchor,log(k_prior),k_prior_cv, true);
   }
   
+  if (estimate_shape == 1){
+  
   nll -= dnorm(log_shape,log(shape_prior),shape_cv, true);
+    
+  }
   
   vector<Type> log_bt = log(b_t);
   
