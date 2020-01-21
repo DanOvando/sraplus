@@ -78,6 +78,8 @@ Type objective_function<Type>::operator() ()
   
   DATA_INTEGER(est_k); // 1 means estiamte k, 0 means estimate final depletion
   
+  DATA_INTEGER(estimate_proc_error); // 1 to estimate process error, 0 to not
+  
   // DATA_INTEGER(use_init); // use initial reference point
   
   DATA_INTEGER(use_final_state); // use final reference point
@@ -198,13 +200,15 @@ Type objective_function<Type>::operator() ()
   
   vector<Type> proc_errors(time - 1);
   
-  proc_errors = exp(log_proc_errors - pow(sigma_proc,2)/2);
+  proc_errors = exp(log_proc_errors);
+  
+  // proc_errors = exp(log_proc_errors - pow(sigma_proc,2)/2);
   
   // proc_errors = exp(log_proc_errors * sigma_proc - pow(sigma_proc,2)/2);
   
   
 
-  catch_t = catch_t + Type(1e-3);
+  catch_t = catch_t;
   
   Type r = exp(log_r);
   
@@ -384,7 +388,7 @@ Type objective_function<Type>::operator() ()
       if (marginalize_q == 0){ // standard estimation of q
         
           // test bias correction on the sigma_obs
-        nll -= dnorm(log(index_t(t) + 1e-3), log(index_hat_t(index_years(t) - 1) + 1e-3), sigma_obs, true);
+        nll -= dnorm(log(index_t(t)), log(index_hat_t(index_years(t) - 1)), sigma_obs, true);
         
       } else { // marginalized q 
         
@@ -407,6 +411,8 @@ Type objective_function<Type>::operator() ()
     
   }
   
+  if (estimate_proc_error == 1){
+  
   for (int t = 0; t < (time - 1); t++){
     
     nll -= dnorm(log_proc_errors(t), -pow(sigma_proc,2)/2, sigma_proc, true);
@@ -415,7 +421,7 @@ Type objective_function<Type>::operator() ()
     
     
   }
-  
+  }
   
   nll -= dnorm(log_r, log_r_prior, log_r_cv, true);
   
@@ -470,16 +476,19 @@ Type objective_function<Type>::operator() ()
   
   nll -= dnorm(log_init_dep, log_init_dep_prior, log_init_dep_cv, true);
   
-  // nll -= dnorm(log_sigma_obs,log(sigma_obs_prior),sigma_obs_prior_cv, true);
+  nll -= dnorm(sigma_obs,sigma_obs_prior,sigma_obs_prior * sigma_obs_prior_cv, true);
   
   nll -= dnorm(log_q_slope,log(q_slope_prior),q_slope_cv, true);
   
+  if (estimate_proc_error == 1){
+  
   nll -= dnorm(log_sigma_ratio, log(sigma_ratio_prior), sigma_ratio_prior_cv, true);
   
+  }
   // nll -= dnorm(log_sigma_proc,log(sigma_proc_prior), sigma_proc_prior_cv, true);
   
   if (est_k == 1){
-    nll -= dnorm(log_anchor,log(k_prior),Type(k_prior_cv), true);
+    nll -= dnorm(log_anchor,log(k_prior),k_prior_cv, true);
   }
   
   nll -= dnorm(log_shape,log(shape_prior),shape_cv, true);

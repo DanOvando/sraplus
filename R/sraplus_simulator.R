@@ -51,7 +51,7 @@ sraplus_simulator <-
     
     for (t in 2:years) {
       pop$biomass[t] =   (pop$biomass[t - 1] + (r  / (m - 1)) * pop$biomass[t - 1] * (1 - (pop$biomass[t - 1] / k) ^
-                                                                                       (m - 1)) -   pop$catch[t - 1]) * exp(rnorm(1,0,sigma_proc) - sigma_proc^2/2)
+                                                                                       (m - 1)) -   pop$catch[t - 1]) * exp(rnorm(1,- sigma_proc^2/2,sigma_proc))
       pop$q[t] =  pmin(1,pop$q[t - 1] * (1 + q_slope))
       
       pop$effort[t] = pmax(1e-2,pop$effort[t - 1] + (rnorm(1,0, sigma_u * pop$effort[1])))

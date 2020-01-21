@@ -142,6 +142,7 @@ fit_sraplus <- function(driors,
     sigma_obs_prior_cv = driors$sigma_obs_prior_cv,
     marginalize_q = marginalize_q,
     est_k = estimate_k,
+    estimate_proc_error = estimate_proc_error,
     learn_rate = learn_rate
   )
   
@@ -248,7 +249,7 @@ fit_sraplus <- function(driors,
   if (estimate_proc_error == FALSE) {
     knockout$log_proc_errors <- rep(NA, time - 1)
     
-    knockout$log_sigma_ratio <- log(1e-6)
+    knockout$log_sigma_ratio <- NA
     
     inits$log_sigma_ratio <- log(1e-6)
     

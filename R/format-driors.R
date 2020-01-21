@@ -89,7 +89,7 @@ format_driors <-
            shape_prior_cv = 0.25,
            q_prior_cv = 1,
            sigma_obs_prior = 0.05,
-           sigma_obs_prior_cv = 2,
+           sigma_obs_prior_cv = 1,
            isscaap_group = NA,
            prob = 0.9) {
     if (use_b_reg == TRUE) {
@@ -371,7 +371,7 @@ format_driors <-
       list(
         catch = catch,
         years = years,
-        k_prior = ifelse(is.na(k_prior), 10 * max(catch), k_prior),
+        k_prior = ifelse(is.na(k_prior), 5 * max(catch), k_prior),
         k_prior_cv = k_prior_cv,
         terminal_state = terminal_state,
         terminal_state_cv = terminal_state_cv,

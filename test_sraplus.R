@@ -7,15 +7,22 @@ library(tmbstan)
 rstan_options(auto_write = TRUE)
 
 set.seed(42)
+
+sigma_obs = 0.2
+
+sigma_proc_ratio = 1
+
+q = 0.0067
+
 sim <-
   sraplus_simulator(
-    sigma_proc = 0,
+    sigma_proc = sigma_obs * sigma_proc_ratio,
     sigma_u = 0,
     q_slope = 0,
-    r = 0.4,
+    r = 0.2,
     years = 20,
-    q = 1e-3,
-    m = 2,
+    q = q,
+    m = 1.01,
     init_u_umsy = 1
   )
 
@@ -37,45 +44,45 @@ pop %>%
 example_taxa <- "gadus sdfg"
 
 
-driors <- format_driors(
-  taxa =
-    example_taxa,
-  catch = pop$catch,
-  years = pop$year,
-  initial_state = pop$depletion[1],
-  initial_state_cv = 0.05,
-  terminal_state = dplyr::last(pop$depletion),
-  terminal_state_cv = 0.01,
-  growth_rate_prior = 0.4,
-  growth_rate_prior_cv = 0.1,
-  use_heuristics = FALSE,
-  shape_prior = 2
-)
-
-
-plot_driors(driors)
-
-sir_fit <- fit_sraplus(driors = driors,
-                       engine = 'sir',
-                       draws = 1e5,
-                       estimate_k = FALSE)
-
-sir_diagnostics <- diagnose_sraplus(sir_fit, driors)
+# driors <- format_driors(
+#   taxa =
+#     example_taxa,
+#   catch = pop$catch,
+#   years = pop$year,
+#   initial_state = pop$depletion[1],
+#   initial_state_cv = 0.05,
+#   terminal_state = dplyr::last(pop$depletion),
+#   terminal_state_cv = 0.01,
+#   growth_rate_prior = 0.4,
+#   growth_rate_prior_cv = 0.1,
+#   use_heuristics = FALSE,
+#   shape_prior = 2
+# )
+# 
+# 
+# plot_driors(driors)
+# 
+# sir_fit <- fit_sraplus(driors = driors,
+#                        engine = 'sir',
+#                        draws = 1e5,
+#                        estimate_k = FALSE)
+# 
+# sir_diagnostics <- diagnose_sraplus(sir_fit, driors)
 
 ml_driors <- format_driors(taxa = example_taxa,
                         catch = pop$catch,
                         years = pop$year,
-                        index = pop$biomass * 1e-3 * exp(rnorm(length(pop$biomass),-0.525^2/2,0.525)),
+                        index = pop$biomass * q * exp(rnorm(length(pop$biomass),-sigma_obs^2/2,sigma_obs)),
                         index_years = pop$year,
                         initial_state = 1,
-                        initial_state_cv = 0.05,
+                        initial_state_cv = 0.025,
                         terminal_state = NA,
-                        shape_prior = 2,
+                        shape_prior = 1.01,
                         growth_rate_prior = 0.4,
                         growth_rate_prior_cv = 0.5,
                         sigma_r_prior = 1,
-                        sigma_r_prior_cv = 0.5,
-                        sigma_obs_prior = 0.05,
+                        sigma_r_prior_cv = 1,
+                        sigma_obs_prior = 0.1,
                         sigma_obs_prior_cv = 1
                         )
 
@@ -86,7 +93,7 @@ ml_fit <- fit_sraplus(driors = ml_driors,
                       engine = "tmb",
                       model = "sraplus_tmb",
                       estimate_shape = FALSE, 
-                      estimate_proc_error = FALSE,
+                      estimate_proc_error = TRUE,
                       estimate_k = TRUE,
                       learn_rate = 2e-1,
                       n_keep = 2000,
@@ -100,18 +107,26 @@ plot_sraplus(ml_fit = ml_fit, years = ml_driors$years)
 
 plot_prior_posterior(ml_fit, ml_driors)
 
-sraplus::summarize_sralpus(ml_fit) %>% View()
-
+sraplus::summarize_sralpus(ml_fit)
 
 
 bayes_fit <- fit_sraplus(driors = ml_driors,
                       engine = "stan",
                       model = "sraplus_tmb",
+                      estimate_shape = FALSE, 
+                      estimate_proc_error = TRUE,
+                      estimate_k = TRUE,
+                      learn_rate = 2e-1,
                       n_keep = 2000,
-                      estimate_shape = FALSE,
-                      estimate_proc_error = TRUE)
+                      eps = 1e-3,
+                      adapt_delta = 0.95,
+                      marginalize_q = FALSE,
+                      max_treedepth = 12)
 
 diagnose_sraplus(bayes_fit, ml_driors)
+
+plot_prior_posterior(bayes_fit, ml_driors)
+
 
 test <- names(bayes_fit$fit)
 
