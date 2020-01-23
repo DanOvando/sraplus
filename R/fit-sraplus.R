@@ -402,16 +402,18 @@ fit_sraplus <- function(driors,
       
     }
     
+    sraplus::get_tmb_model(model_name = model_name)
+    
     if (estimate_k){
     
       
       lks <- seq(1, log(10 * max(driors$catch)), length.out = 50)
-      
+
       pens <- NA
       for ( i in 1:length(lks)){
-        
+
         inits$log_anchor <- lks[i]
-        
+
         sra_model <-
           TMB::MakeADFun(
             data = sra_data,
@@ -423,19 +425,19 @@ fit_sraplus <- function(driors,
             hessian = FALSE,
             map = knockout
           )
-        
+
         sra_model$report() -> a
-        
+
         pens[i] <- a$pen
-        
-      }  
-      
+
+      }
+
     # lower_anchor <- log(1.25 * max(driors$catch))
-    
+
     lower_anchor <-  lks[which(pens == 0)[1]]
-    
+
     inits$log_anchor <- log(2 * exp(lower_anchor))
-    
+
     upper_anchor <- log(50 * max(driors$catch))
     
     # lower_anchor <- -Inf
@@ -447,7 +449,6 @@ fit_sraplus <- function(driors,
       upper_anchor = log(0.9);
       
     }
-    sraplus::get_tmb_model(model_name = model_name)
     sra_model <-
       TMB::MakeADFun(
         data = sra_data,
