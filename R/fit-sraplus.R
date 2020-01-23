@@ -403,7 +403,38 @@ fit_sraplus <- function(driors,
     }
     
     if (estimate_k){
-    lower_anchor <- log(1.25 * max(driors$catch))
+    
+      
+      lks <- seq(1, log(10 * max(driors$catch)), length.out = 50)
+      
+      pens <- NA
+      for ( i in 1:length(lks)){
+        
+        inits$log_anchor <- lks[i]
+        
+        sra_model <-
+          TMB::MakeADFun(
+            data = sra_data,
+            parameters = inits,
+            DLL = model_name,
+            random = randos,
+            silent = TRUE,
+            inner.control = list(maxit = 1e6),
+            hessian = FALSE,
+            map = knockout
+          )
+        
+        sra_model$report() -> a
+        
+        pens[i] <- a$pen
+        
+      }  
+      
+    # lower_anchor <- log(1.25 * max(driors$catch))
+    
+    lower_anchor <-  lks[which(pens == 0)[1]]
+    
+    inits$log_anchor <- log(2 * exp(lower_anchor))
     
     upper_anchor <- log(50 * max(driors$catch))
     
@@ -521,15 +552,15 @@ fit_sraplus <- function(driors,
         )
       
       
-      logs <- draws %>%
-        dplyr::ungroup() %>%
-        dplyr::filter(stringr::str_detect(variable, "log_")) %>%
-        dplyr::mutate(value = exp(value)) %>%
-        dplyr::mutate(variable = stringr::str_remove_all(variable, "log_"))
-      
-      draws <- draws %>%
-        dplyr::filter(!stringr::str_detect(variable, "log_")) %>%
-        dplyr::bind_rows(logs)
+      # logs <- draws %>%
+      #   dplyr::ungroup() %>%
+      #   dplyr::filter(stringr::str_detect(variable, "log_")) %>%
+      #   dplyr::mutate(value = exp(value)) %>%
+      #   dplyr::mutate(variable = stringr::str_remove_all(variable, "log_"))
+      # 
+      # draws <- draws %>%
+      #   dplyr::filter(!stringr::str_detect(variable, "log_")) %>%
+      #   dplyr::bind_rows(logs)
       
       out <- draws %>%
         dplyr::group_by(variable, year) %>%
@@ -540,6 +571,19 @@ fit_sraplus <- function(driors,
           upper = quantile(value, 1 - (1 - ci) / 2)
         ) %>%
         dplyr::ungroup()
+      
+      logs <- out %>%
+        dplyr::filter(stringr::str_detect(variable, "log_")) %>%
+        dplyr::mutate(
+          mean = exp(mean),
+          lower = exp(lower),
+          upper = exp(upper),
+          variable = stringr::str_remove_all(variable, "log_")
+        )
+      
+      out <- out %>%
+        dplyr::bind_rows(logs)
+      
       
       if (include_fit == FALSE) {
         fit = NA
