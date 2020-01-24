@@ -37,8 +37,7 @@ plot_sraplus <- function(..., fontsize = 14,
     u_div_umsy = "U/Umsy"
   )
   
-  
- fitframe %>% 
+  fitframe %>% 
    dplyr::filter(variable %in% plotvars) %>% 
    dplyr::group_by(variable,fit) %>% {
    # dplyr::mutate(year = seq_along(mean)) %>% {

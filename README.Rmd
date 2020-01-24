@@ -66,7 +66,7 @@ Once you've tried those, restart your computer and try running
 
 install.packages("devtools")
 
-remotes::install_github("danovando/sraplus", ref = 'v2.0')
+remotes::install_github("danovando/sraplus")
 
 
 ```
@@ -81,8 +81,6 @@ library(ggplot2)
 library(tidyr)
 library(dplyr)
 library(sraplus)
-library(tmbstan)
-library(tmbstan)
 
 ```
 
@@ -136,12 +134,21 @@ From there, we pass the `driors` object to `sraplus::fit_sraplus`, and plot the 
 
 ```{r}
 
- catch_only_fit <- sraplus::fit_sraplus(driors = catch_only_driors,
+ catch_only_fit <- fit_sraplus(driors = catch_only_driors,
                        engine = "sir",
-                       draws = 1e6,
+                       draws = 1e5,
                        n_keep = 2000,
-                       estimate_proc_error = TRUE, 
+                       estimate_proc_error = FALSE, 
                        estimate_shape = TRUE)
+# 
+#  catch_only_fit <- fit_sraplus(driors = catch_only_driors,
+#                        engine = "sir",
+#                        draws = 1e4,
+#                        n_keep = 2000,
+#                        estimate_proc_error = FALSE, 
+#                        estimate_shape = FALSE,
+#                        estimate_k = FALSE,
+#                        learn_rate = .05)
 ```
 
 Running `fit_sraplus` always produces a list with two objects: `results` and `fit`. `results` is (mostly) standardized across engines set of summary outputs from the fitted model. This allows us to easily plot and compare outputs from models fit using `sir`, TMB, or stan. The `fit` object contains the actual fitted model, which will of course vary dramatically depending on what engine was used. 
@@ -192,11 +199,11 @@ fmi_sar_driors <- format_driors(
   initial_state = 1,
   initial_state_cv = 0.25,
   use_heuristics = FALSE,
-  sar = 17,
+  sar = 20,
   fmi = c("research" = 0.5, "management" = 0.5, "socioeconomics" = 0.5, 'enforcement' = 0.5),
+  sar_cv = 0.1,
   use_b_reg = FALSE,
-  b_ref_type = "k",
-  sigma_r_prior_cv = 0.5)
+  b_ref_type = "k")
 
 sraplus::plot_driors(fmi_sar_driors)
 ```
@@ -209,7 +216,7 @@ We'll then fit and plot our model. Note that you can pass multiple `sraplus` fit
 fmi_sar_fit <- fit_sraplus(
   driors = fmi_sar_driors,
   engine = "sir",
-  draws = 5e6,
+  draws = 1e6,
   n_keep = 2000,
   estimate_shape = FALSE,
   estimate_proc_error = TRUE

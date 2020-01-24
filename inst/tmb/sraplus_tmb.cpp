@@ -6,17 +6,47 @@ Type growfoo(Type r, Type m, Type b, Type plim)
 
   Type growth = (r  / (m - 1)) * b * (1 - pow(b,m - 1));
   
-  return growth;
+  Type plim_growth = (r  / (m - 1)) * b * (1 - pow(b,m - 1)) * (b / (plim));
+  
+  return  CppAD::CondExpGe(b, plim, growth, plim_growth);
 
 } // close function
+
+
 
 template<class Type>
 Type posfun(Type x, Type eps, Type &pen)
 {
+  
   pen += CppAD::CondExpLt(x, eps, Type(0.01) * pow(x-eps,2), Type(0));
   return CppAD::CondExpGe(x, eps, x, eps/(Type(2)-x/eps));
 }
 
+
+template<class Type>
+vector<Type> popmodel(Type r, Type m, Type k, Type b0, vector<Type> catches, vector<Type> proc_error, int time, Type eps, Type plim)
+{
+  
+  vector<Type> b(time);
+  
+  b(0) = b0;
+  
+  for (int t = 1; t < time; t++){
+   
+   
+   Type growth = growfoo(r, m, b(t - 1),plim);
+
+   Type temp = ((b(t - 1) + growth - catches(t - 1) / k) * proc_error(t - 1));
+    
+    b(t) = CppAD::CondExpGe(temp * k, eps, temp, (eps/(Type(2)-(temp * k)/eps)) / k);
+
+  }
+  b = b * k;
+  
+  return b;
+  
+  
+}
 
 template<class Type>
 Type objective_function<Type>::operator() ()
@@ -45,6 +75,14 @@ Type objective_function<Type>::operator() ()
   DATA_INTEGER(b_ref_type); //0 means that initial and final are relative to K, 1 to Bmsy
   
   DATA_INTEGER(f_ref_type); //0 means f, 1 f/fmsy
+  
+  DATA_INTEGER(est_k); // 1 means estiamte k, 0 means estimate final depletion
+  
+  DATA_INTEGER(estimate_proc_error); // 1 to estimate process error, 0 to not
+  
+  DATA_INTEGER(estimate_shape); 
+  
+  DATA_INTEGER(estimate_qslope);
   
   // DATA_INTEGER(use_init); // use initial reference point
   
@@ -76,11 +114,13 @@ Type objective_function<Type>::operator() ()
   
   DATA_SCALAR(log_r_prior);
   
-  DATA_SCALAR(sigma_proc_prior);
+  DATA_SCALAR(sigma_ratio_prior);
   
-  DATA_SCALAR(sigma_proc_prior_cv);
+  DATA_SCALAR(sigma_ratio_prior_cv);
   
   DATA_SCALAR(eps);
+  
+  DATA_SCALAR(learn_rate);
   
   DATA_SCALAR(log_r_cv);
   
@@ -102,23 +142,27 @@ Type objective_function<Type>::operator() ()
   
   DATA_SCALAR(sigma_obs_prior_cv);
   
+  
   //// parameters ////
   
   PARAMETER(log_init_dep);
   
   PARAMETER(log_r);
   
-  PARAMETER(log_k);
+  PARAMETER(log_anchor);
   
   PARAMETER(log_q);
   
   PARAMETER(log_q_slope);
   
-  PARAMETER(log_sigma_proc);
+  PARAMETER(log_sigma_obs);
+  
+  // PARAMETER(sigma_obs);
+  
+  
+  PARAMETER(log_sigma_ratio);
   
   PARAMETER_VECTOR(log_proc_errors);
-  
-  PARAMETER(log_sigma_obs);
   
   PARAMETER(log_shape);
   
@@ -150,28 +194,115 @@ Type objective_function<Type>::operator() ()
   
   vector<Type> short_u_t(time - 1);
   
-  Type q_slope = exp(log_q_slope);
+  Type q_slope = 0;
+  
+  if (estimate_qslope == 1){
+  
+   q_slope = exp(log_q_slope);
+  
+  } 
   
   Type sigma_obs = exp(log_sigma_obs);
   
-  Type sigma_proc = exp(log_sigma_proc);
+  // Type sigma_proc = exp(log_sigma_obs) * exp(log_sigma_ratio);
+  
+  Type sigma_proc = sigma_obs * exp(log_sigma_ratio);
   
   vector<Type> proc_errors(time - 1);
   
-  proc_errors = exp(log_proc_errors - pow(sigma_proc,2)/2);
+  proc_errors = exp(log_proc_errors);
+  
+  // proc_errors = exp(log_proc_errors - pow(sigma_proc,2)/2);
   
   // proc_errors = exp(log_proc_errors * sigma_proc - pow(sigma_proc,2)/2);
   
   
-  Type k = exp(log_k);
-  
-  catch_t = catch_t + Type(1e-3);
+
+  catch_t = catch_t;
   
   Type r = exp(log_r);
   
   Type q = exp(log_q);
   
   Type m = exp(log_shape);
+  
+  Type k = 0;
+
+  Type init_dep = exp(log_init_dep);
+  
+  Type delta = 100;
+  
+  Type counter = 0;
+
+  Type new_proposal = 0;
+  
+  Type conv_error = 0;
+  
+  Type final_state = 0;
+  
+  Type grad_dep = 0;
+  
+  if (est_k == 1){
+  
+    k = exp(log_anchor);
+    
+  } else {
+    
+    // back out k form terminal status
+    
+    vector<Type> proposal_result(time);
+    
+    final_state = exp(log_anchor);
+    
+    Type last_proposal =   log(max(catch_t) * 10);
+    
+    proposal_result = popmodel(r,m,exp(last_proposal), init_dep, catch_t, proc_errors, time, eps,plim);
+    
+    Type prop_error =  log(proposal_result[time - 1] / exp(last_proposal)) - log(final_state);
+  
+    while(delta > 1e-3){
+      
+    new_proposal = last_proposal -  learn_rate * prop_error;
+    
+    // std::cout << "new proposal is" << new_proposal << std::endl;
+      
+     proposal_result = popmodel(r,m,exp(new_proposal), init_dep, catch_t, proc_errors, time, eps,plim);
+      
+      grad_dep = proposal_result[time - 1] / exp(new_proposal);
+      
+     prop_error =  log(grad_dep) - log(final_state);
+     
+     // std::cout << "prop dep is" << proposal_result[time - 1] / exp(new_proposal) << std::endl;
+
+     
+    last_proposal = new_proposal;
+    
+    delta = sqrt(pow(grad_dep - final_state,2));
+      
+    conv_error = delta;
+      
+      
+    conv_error = delta;
+      
+      
+          // std::cout<< delta << std::endl;
+      
+      counter = counter + 1;
+      
+      if (counter > 5000){
+
+        delta = -999;
+      } // close escape hatch
+      
+      
+    } // close while looop for gradient descnet
+    
+   k = exp(new_proposal);
+    
+    nll += conv_error;  
+  } // close estimate_k
+  
+  // std::cout<< counter << std::endl;
   
   Type b_to_k = pow(m, (-1 / (m - 1)));
   
@@ -181,8 +312,6 @@ Type objective_function<Type>::operator() ()
     
   }
   
-  
-  Type init_dep = exp(log_init_dep);
   
   Type bmsy = k*pow(m, -1/(m - 1));
   
@@ -204,7 +333,10 @@ Type objective_function<Type>::operator() ()
     
     b_t(t) = (b_t(t - 1) +  growth_t(t - 1) - catch_t(t - 1) / k) * proc_errors(t - 1);
     
-    b_t(t) = posfun(b_t(t) * k,eps,pen) / k;
+    // b_t(t) = posfun(b_t(t) * k,eps,pen) / k;
+    
+    b_t(t) = posfun(b_t(t),eps,pen);
+    
     
     
   } // close population model
@@ -221,6 +353,8 @@ Type objective_function<Type>::operator() ()
   u_v_umsy = u_t / umsy;
   
   dep_t = b_t / k;
+  
+  // std::cout << "grad dep is" << grad_dep << "pop dep is" << dep_t(time - 1) << std::endl;
   
   if (calc_cpue == 0){
     index_hat_t = q_t * b_t;
@@ -267,7 +401,7 @@ Type objective_function<Type>::operator() ()
       if (marginalize_q == 0){ // standard estimation of q
         
           // test bias correction on the sigma_obs
-        nll -= dnorm(log(index_t(t) + 1e-3), log(index_hat_t(index_years(t) - 1) + 1e-3), sigma_obs, true);
+        nll -= dnorm(log(index_t(t)), log(index_hat_t(index_years(t) - 1)), sigma_obs, true);
         
       } else { // marginalized q 
         
@@ -290,6 +424,8 @@ Type objective_function<Type>::operator() ()
     
   }
   
+  if (estimate_proc_error == 1){
+  
   for (int t = 0; t < (time - 1); t++){
     
     nll -= dnorm(log_proc_errors(t), -pow(sigma_proc,2)/2, sigma_proc, true);
@@ -298,7 +434,7 @@ Type objective_function<Type>::operator() ()
     
     
   }
-  
+  }
   
   nll -= dnorm(log_r, log_r_prior, log_r_cv, true);
   
@@ -346,23 +482,37 @@ Type objective_function<Type>::operator() ()
       
       nll -= dnorm(log(u_t(time - 1)), log_final_u(i),log_final_u_cv(i), true);
       
-        
       }
     } // cluse use final u loops
     
   } // close use final u
   
-  nll -= dnorm(log(init_ref), log_init_dep_prior, log_init_dep_cv, true);
+  nll -= dnorm(log_init_dep, log_init_dep_prior, log_init_dep_cv, true);
   
-  nll -= dnorm(log_sigma_obs,log(sigma_obs_prior),sigma_obs_prior_cv, true);
+  nll -= dnorm(log_sigma_obs,log(sigma_obs_prior), sigma_obs_prior_cv, true);
+  
+  if (estimate_qslope == 1){
   
   nll -= dnorm(log_q_slope,log(q_slope_prior),q_slope_cv, true);
+    
+  }
   
-  nll -= dnorm(log_sigma_proc,log(sigma_proc_prior), sigma_proc_prior_cv, true);
+  if (estimate_proc_error == 1){
   
-  nll -= dnorm(log_k,log(k_prior),Type(k_prior_cv), true);
+  nll -= dnorm(log_sigma_ratio, log(sigma_ratio_prior), sigma_ratio_prior_cv, true);
+  
+  }
+  // nll -= dnorm(log_sigma_proc,log(sigma_proc_prior), sigma_proc_prior_cv, true);
+  
+  if (est_k == 1){
+    nll -= dnorm(log_anchor,log(k_prior),k_prior_cv, true);
+  }
+  
+  if (estimate_shape == 1){
   
   nll -= dnorm(log_shape,log(shape_prior),shape_cv, true);
+    
+  }
   
   vector<Type> log_bt = log(b_t);
   
@@ -377,6 +527,10 @@ Type objective_function<Type>::operator() ()
   vector<Type> log_ihat = log(index_hat_t);
   
   vector<Type> ck = catch_t / k;
+  
+  REPORT(sigma_proc);
+  
+  ADREPORT(sigma_proc);
   
   REPORT(umsy);
   
@@ -453,6 +607,8 @@ Type objective_function<Type>::operator() ()
   REPORT(m);
   
   REPORT(pen);
+  
+  REPORT(delta);
   
   ADREPORT(q_slope);
   
