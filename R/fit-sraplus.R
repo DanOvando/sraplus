@@ -46,7 +46,7 @@
 fit_sraplus <- function(driors,
                         include_fit = TRUE,
                         seed = 42,
-                        plim = 0.2,
+                        plim = 0.05,
                         model_name = "sraplus_tmb",
                         randos = "log_proc_errors",
                         draws = 1e6,
@@ -275,9 +275,47 @@ fit_sraplus <- function(driors,
         "Trying to run SIR without priors on final status or fishing mortality! Specify one or both of these"
       )
     }
+    
+    if (estimate_k == TRUE){
+    anchors <- rlnorm(
+      draws,
+      log(10* max(sra_data$catch_t)),
+      2
+    )
+    
+
+    
+    } else {
+      
+      anchors <- rlnorm(
+        draws,
+        log(0.5),
+        0.5
+      )
+      
+      if (estimate_proc_error == FALSE){
+        anchors = pmin(anchors, 1)
+      }
+      
+    }
+    
+    init_dep <- exp(
+      rnorm(
+        draws,
+        sra_data$log_init_dep_prior,
+        sra_data$log_init_dep_cv
+      )
+    )
+    
+    if (estimate_proc_error == FALSE){
+      
+      init_dep = pmin(init_dep, 1)
+      
+    }
+    
     sra_fit <- sraplus::sraplus(
       catches = sra_data$catch_t,
-      r = pmax(
+      rs = pmax(
         0.01,
         rnorm(
           draws,
@@ -285,23 +323,13 @@ fit_sraplus <- function(driors,
           driors$growth_rate_prior_cv
         )
       ),
-      m = runif(
+      ms = runif(
         draws,
         ifelse(estimate_shape, 0.2, sra_data$shape_prior),
         ifelse(estimate_shape, 6, sra_data$shape_prior)
       ),
-      init_dep = exp(
-        rnorm(
-          draws,
-          sra_data$log_init_dep_prior,
-          sra_data$log_init_dep_cv
-        )
-      ),
-      k = rlnorm(
-        draws,
-        log(10* max(sra_data$catch_t)),
-        2
-      ),
+      init_dep = init_dep,
+      anchors = anchors,
       sigma_procs = runif(draws, 0, ifelse(estimate_proc_error, 0.2, 0)),
       draws = draws,
       log_final_ref = ifelse(
@@ -331,7 +359,8 @@ fit_sraplus <- function(driors,
       use_final_u = sra_data$use_final_u,
       use_final_state = sra_data$use_final_state,
       log_final_u = sra_data$log_final_u,
-      log_final_u_cv =  sra_data$log_final_u_cv
+      log_final_u_cv =  sra_data$log_final_u_cv,
+      estimate_k = estimate_k
     )
     
     
