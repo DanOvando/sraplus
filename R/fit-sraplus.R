@@ -360,7 +360,8 @@ fit_sraplus <- function(driors,
       use_final_state = sra_data$use_final_state,
       log_final_u = sra_data$log_final_u,
       log_final_u_cv =  sra_data$log_final_u_cv,
-      estimate_k = estimate_k
+      estimate_k = estimate_k,
+      learn_rate = learn_rate
     )
     
     

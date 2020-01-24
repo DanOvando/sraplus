@@ -5,7 +5,9 @@ NumericVector popmodel(double r, double k, double m,double b0,double plim,int ye
   
   double growth_mult;
   
-  NumericVector b_t(years);
+  NumericVector b_t(years,0.0);
+  
+  // std::vector<double> b_t(years, 0.0);
   
   b_t(0) = b0;
   
@@ -22,6 +24,7 @@ NumericVector popmodel(double r, double k, double m,double b0,double plim,int ye
     b_t(t) = (b_t(t - 1) +  growth_mult * ((r  / (m - 1)) * b_t(t - 1) * (1 - pow(b_t(t - 1) / k,m - 1)))
                 - catches(t - 1)) *  exp(R::rnorm(-pow(sigma_proc,2)/2, sigma_proc));
     
+    b_t(t) = std::max(0.0,b_t(t));
     
     // if ((b_t(t,i) / ks(i)) > 1.2){
     //   
@@ -71,7 +74,8 @@ double sigma_dep,
 double plim,
 int use_u_prior,
 NumericVector u_priors,
-double sigma_u
+double sigma_u,
+double learn_rate
 ) {
 
   int years = catches.size();
@@ -92,7 +96,7 @@ double sigma_u
 
   NumericMatrix proc_error_t(years, draws);
 
-  NumericVector crashed(draws);
+  IntegerVector crashed(draws);
 
   NumericVector log_like(draws);
 
@@ -104,7 +108,6 @@ double sigma_u
   
   NumericVector ks(draws);
   
-
   for (int i = 0; i < draws; i++) {
 
   double final_ref;
@@ -122,14 +125,123 @@ double sigma_u
     
   } else {
     
+    double growth_mult;
+    
     double delta;
     
-    delta = 1000;
+    double last_proposal;
+    
+    double prop_error;
+    
+    double new_proposal;
+    
+    double grad_dep;
+    
+    double conv_error;
+    
+    double log_like;
+    
+    double k;
+    
+    double final_state;
+    
+    int counter;
+    
+    int crashed;
+    
+    counter = 0;
+    
+    delta = 100;
+    
+    final_state = anchors(i);
+    
+    NumericVector proposal_result(years);
+    
+    last_proposal = log(1000 * max(catches));
+    
+    // proposal_result = popmodel(r,m,exp(last_proposal), init_dep, catch_t, proc_errors, time, eps,plim);
+    
+    
+    proposal_result = popmodel(rs(i), exp(last_proposal), ms(i), exp(last_proposal) * init_deps(i), plim, years, sigma_procs(i), catches);
+    
+    
+    // std::cout <<  "counter is" << proposal_result(years - 1)  << std::endl;
+    
+    prop_error =  log(proposal_result(years - 1) / exp(last_proposal)) - log(final_state);
     
     
     
+    while(delta > 1e-3){
+      
+      new_proposal = last_proposal -  learn_rate * prop_error;
+      
+      // std::cout << "new proposal is" << new_proposal << std::endl;
+      
+      // proposal_result = popmodel(r,m,exp(new_proposal), init_dep, catch_t, proc_errors, time, eps,plim);
+      
+  
+      proposal_result = popmodel(rs(i), exp(new_proposal), ms(i), exp(new_proposal) * init_deps(i), plim, years, sigma_procs(i), catches);
+      
+      // std::cout <<  "initial proposal is " << proposal_result << std::endl;
+      
+      
+      for (int t = 0; t< years; t++){
+        
+        // std::cout << proposal_result(t) << std::endl;
+        
+        if (proposal_result(t) <= 0){
+          
+          crashed = 1;
+          
+          log_like = -1e9;
+          
+          break;
+        }
+        
+      }
+      
+      
+      grad_dep = proposal_result(years - 1) / exp(new_proposal);
+      
+      
+      prop_error =  log(grad_dep + 1e-6) - log(final_state);
+      
+      // std::cout << "prop dep is" << proposal_result[time - 1] / exp(new_proposal) << std::endl;
+      
+      last_proposal = new_proposal;
+      
+      delta = sqrt(pow(grad_dep - final_state,2));
+      
+      // std::cout <<  "new proposal is  is" << new_proposal  << std::endl;
+      
+      conv_error = delta;
+      
+      std::cout<< delta << std::endl;
+      
+      counter += 1;
+      
+      if (counter > 1000){
+        
+        delta = -999;
+        
+        // crashed = 1;
+      } // close escape hatch
+      
+      // std::cout <<  "delta is" << delta  << std::endl;
+      
+      
+    } // close while looop for gradient descnet
     
-  }
+    // std::cout <<  "counter is" << counter << std::endl;
+    
+    
+    
+    // std::cout <<  "delta is" << delta << std::endl;
+    
+    k = exp(new_proposal);
+    
+  
+  } // close estimate_k if statement
   
   bmsy(i) = ks(i)*pow(ms(i), -1/(ms(i)- 1));
 

@@ -2,9 +2,9 @@ library(tidyverse)
 
 library(sraplus)
 
-library(tmbstan)
-
-rstan_options(auto_write = TRUE)
+# library(tmbstan)
+# library(rstan)
+# rstan_options(auto_write = TRUE)
 
 set.seed(42)
 

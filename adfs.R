@@ -18,5 +18,19 @@ plot(test, lead(test) - test)
 
 plot(test)
 
-NumericVector popmodel(double r, double k, double m,double b0,double plim,int years, double sigma_proc,NumericVector catches){
-  
+years = 10
+
+msy = rk/4
+
+test <-
+  graddesc(
+    r = 0.4,
+    m = 2,
+    init_deps = 1,
+    plim = 0.05,
+    years = years,
+    sigma_procs = 0,
+    catches = rep(0, years),
+    final_state = 0.5,
+    learn_rate = .1
+  )
