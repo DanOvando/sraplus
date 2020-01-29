@@ -20,7 +20,7 @@ plot(test)
 
 years = 10
 
-msy = rk/4
+msy = r*k/4
 
 test <-
   graddesc(

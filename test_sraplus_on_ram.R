@@ -162,7 +162,7 @@ ram_fits <- ram_data %>%
   nest()
 
 
-dat <- ram_fits$data[[100]]
+dat <- ram_fits$data[[4]]
 
 dat <- dat %>% filter(!is.na(catch))
 

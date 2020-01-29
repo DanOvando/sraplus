@@ -3,6 +3,10 @@ library(tidyverse)
 library(sraplus)
 
 # library(tmbstan)
+
+Sys.unsetenv("PKG_CXXFLAGS")
+
+# library(tmbstan)
 # library(rstan)
 # rstan_options(auto_write = TRUE)
 
