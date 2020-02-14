@@ -162,13 +162,19 @@ ram_fits <- ram_data %>%
   nest()
 
 
-dat <- ram_fits$data[[4]]
+dat <- ram_fits$data[[7]]
+
+dat <- ram_fits$data[[which(ram_fits$stockid == "YTROCKNPCOAST")]]
+
+dat <- ram_fits$data[[which(ram_fits$stockid == "ATBTUNAWATL")]]
 
 dat <- dat %>% filter(!is.na(catch))
 
-sigma_obs <- 0.01
+sigma_obs <- 0
 
 index_years <- dat$year[!is.na(dat$index)]
+
+dat$index <- dat$b_v_bmsy
 
 driors <- format_driors(taxa = dat$scientificname[1],
                            catch = dat$catch,
@@ -192,10 +198,10 @@ plot_driors(driors)
 
 
 fit <- fit_sraplus(driors = driors,
-                      engine = "stan",
+                      engine = "tmb",
                       model = "sraplus_tmb",
                       estimate_shape = FALSE, 
-                      estimate_proc_error = TRUE,
+                      estimate_proc_error = FALSE,
                       estimate_k = TRUE,
                       learn_rate = 2e-1,
                       n_keep = 2000,

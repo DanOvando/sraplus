@@ -279,6 +279,8 @@ index_driors <- format_driors(
   years = sim$pop$year,
   index = sim$pop$biomass * 1e-3,
   index_years = sim$pop$year,
+  initial_state = 1,
+  initial_state_cv = 0.05,
   growth_rate_prior = 0.4,
   growth_rate_prior_cv = 0.1,
   shape_prior = 1.01,
@@ -287,10 +289,15 @@ index_driors <- format_driors(
 plot_driors(index_driors)
 
 index_fit <- fit_sraplus(driors = index_driors,
-                      engine = "tmb",
-                      model = "sraplus_tmb")
+                      engine = "stan",
+                      model = "sraplus_tmb", 
+                      estimate_proc_error = FALSE,
+                      newtonsteps = 10)
 
 plot_sraplus(index = index_fit,years = index_driors$years)
+
+plot_prior_posterior(index_fit, index_driors)
+
 
 ```
 

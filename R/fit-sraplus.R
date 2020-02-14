@@ -437,7 +437,7 @@ fit_sraplus <- function(driors,
     if (estimate_k){
     
       
-      lks <- seq(1, log(10 * max(driors$catch)), length.out = 50)
+      lks <- seq(1, log(25 * max(driors$catch)), length.out = 50)
 
       pens <- NA
       for ( i in 1:length(lks)){
