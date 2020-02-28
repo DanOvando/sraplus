@@ -437,17 +437,21 @@ fit_sraplus <- function(driors,
     if (estimate_k){
     
       
+      temp_inits <- inits
+      
+      temp_inits$log_r <- log(0.0275)
+      
       lks <- seq(1, log(25 * max(driors$catch)), length.out = 50)
 
       pens <- NA
       for ( i in 1:length(lks)){
 
-        inits$log_anchor <- lks[i]
+        temp_inits$log_anchor <- lks[i]
 
         sra_model <-
           TMB::MakeADFun(
             data = sra_data,
-            parameters = inits,
+            parameters = temp_inits,
             DLL = model_name,
             random = randos,
             silent = TRUE,
@@ -463,16 +467,15 @@ fit_sraplus <- function(driors,
       }
 
     # lower_anchor <- log(1.25 * max(driors$catch))
-
     lower_anchor <-  lks[which(pens == 0)[1]]
 
     inits$log_anchor <- log(2 * exp(lower_anchor))
 
-    upper_anchor <- log(50 * max(driors$catch))
+    # upper_anchor <- 5 * lower_anchor
     
-    # lower_anchor <- -Inf
+    lower_anchor <- -Inf
     # 
-    # upper_anchor <- Inf
+    upper_anchor <- Inf
     } else {
       lower_anchor = log(1e-3)
       
