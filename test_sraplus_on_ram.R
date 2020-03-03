@@ -166,7 +166,7 @@ dat <- ram_fits$data[[13]] # pick a  stock to run
 
 index_years <- dat$year[!is.na(dat$index)]
 
-sigma_obs <- 0
+sigma_obs <- 0.05
 
 driors <- format_driors(taxa = dat$scientificname[1],
                            catch = dat$catch,
@@ -174,11 +174,11 @@ driors <- format_driors(taxa = dat$scientificname[1],
                            index =  dat$index[dat$year %in% index_years]* exp(rnorm(length(index_years),-sigma_obs^2/2,sigma_obs)),
                            index_years =index_years,
                            initial_state = 1,
-                           initial_state_cv = .1,
+                           initial_state_cv = .01,
                            terminal_state = NA,
                            shape_prior = 1.01,
                            shape_prior_cv = 1,
-                           growth_rate_prior = 0.4,
+                           growth_rate_prior = 0.2,
                            growth_rate_prior_cv = 0.5,
                            sigma_ratio_prior = 1,
                            sigma_ratio_prior_cv = .1)
@@ -189,9 +189,9 @@ plot_driors(driors)
 fit <- fit_sraplus(driors = driors,
                       engine = "stan",
                       model = "sraplus_tmb",
-                      estimate_shape = TRUE, 
+                      estimate_shape = FALSE, 
                       estimate_proc_error = TRUE,
-                      estimate_k = TRUE,
+                      estimate_k = FALSE,
                       learn_rate = 2e-1,
                       n_keep = 2000,
                       eps = 1e-12,
