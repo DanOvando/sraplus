@@ -84,6 +84,8 @@ Type objective_function<Type>::operator() ()
   
   DATA_INTEGER(estimate_qslope);
   
+  DATA_INTEGER(estimate_f);
+  
   // DATA_INTEGER(use_init); // use initial reference point
   
   DATA_INTEGER(use_final_state); // use final reference point
@@ -166,6 +168,9 @@ Type objective_function<Type>::operator() ()
   
   PARAMETER(log_shape);
   
+  PARAMETER_VECTOR(log_f_t);
+  
+  
   //// model ////
   
   Type crashed = 0;
@@ -190,9 +195,11 @@ Type objective_function<Type>::operator() ()
   
   vector<Type> u_t(time);
   
-  vector<Type> f_t(time - 1);
+  vector<Type> f_t(time);
   
-  vector<Type> short_u_t(time - 1);
+  vector<Type> catch_hat_t(time);
+  
+  vector<Type> temp_catch_t(time);
   
   Type q_slope = 0;
   
@@ -201,6 +208,12 @@ Type objective_function<Type>::operator() ()
    q_slope = exp(log_q_slope);
   
   } 
+  
+  if (estimate_f == 1){
+    
+    f_t = exp(log_f_t);
+    
+  }
   
   Type sigma_obs = exp(log_sigma_obs);
   
@@ -322,6 +335,16 @@ Type objective_function<Type>::operator() ()
   b_t(0) = init_dep;
   
   q_t(0) = q;
+  
+  catch_hat_t(0) = b_t(0) * (1 - exp(-f_t(0)));
+  
+  if (estimate_f == 1){
+    
+    temp_catch_t = catch_hat_t
+    
+  } else {
+    temp_catch_t = catch_t
+  }
   
   for (int t = 1; t<time; t++){
     
