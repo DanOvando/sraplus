@@ -105,7 +105,7 @@ ml_fit <- fit_sraplus(driors = ml_driors,
                       adapt_delta = 0.95,
                       marginalize_q = FALSE,
                       max_treedepth = 12,
-                      ci  = 0.01)
+                      ci  = 0.89)
 
 diagnose_sraplus(ml_fit, ml_driors)
 
