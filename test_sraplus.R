@@ -12,7 +12,7 @@ Sys.unsetenv("PKG_CXXFLAGS")
 
 set.seed(42)
 
-sigma_obs = .1
+sigma_obs = 0.025
 
 sigma_proc_ratio = 0.1
 
@@ -86,8 +86,6 @@ ml_driors <- format_driors(taxa = example_taxa,
                         growth_rate_prior_cv = 0.5,
                         sigma_ratio_prior = 1,
                         sigma_ratio_prior_cv = .1,
-                        sigma_obs_prior = 0.1,
-                        sigma_obs_prior_cv = 1
                         )
 
 plot_driors(ml_driors)
@@ -120,7 +118,7 @@ bayes_fit <- fit_sraplus(driors = ml_driors,
                       engine = "stan",
                       model = "sraplus_tmb",
                       estimate_shape = FALSE, 
-                      estimate_proc_error = TRUE,
+                      estimate_proc_error = FALSE,
                       estimate_k = TRUE,
                       learn_rate = 2e-1,
                       n_keep = 5000,

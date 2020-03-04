@@ -443,11 +443,21 @@ fit_sraplus <- function(driors,
       
       lks <- seq(1, log(50 * sum(driors$catch)), length.out = 50)
 
+      lks <- 200
       pens <- NA
-      for ( i in 1:length(lks)){
 
-        temp_inits$log_anchor <- lks[i]
+      it <- 2000
+      itframe <- data.frame(log_anchor = runif(it, min = log(1), max = log(50 * sum(driors$catch))),
+                                               log_r =  runif(it, min = log(0.01), max = log(2)),
+                            pens = NA)
+      
+      
+      for ( i in 1:it){
 
+        temp_inits$log_anchor <- itframe$log_anchor[i]
+        
+        temp_inits$log_r <- itframe$log_r[i]
+        
         sra_model <-
           TMB::MakeADFun(
             data = sra_data,
@@ -462,18 +472,25 @@ fit_sraplus <- function(driors,
 
         sra_model$report() -> a
 
-        pens[i] <- a$pen
+        itframe$pens[i] <- a$pen
 
       }
+# browser()
+# 
+# itframe %>% 
+#   ggplot(aes((log_r), (log_anchor), color = pens == 0)) + 
+#   geom_point()
 
+
+  
     # lower_anchor <- log(1.25 * max(driors$catch))
-    lower_anchor <-  lks[which(pens == 0)[1]]
+    lower_anchor <-  0.9 * min(itframe$log_anchor[(itframe$pens == 0)])
 
     inits$log_anchor <- log(2 * exp(lower_anchor))
 
     # upper_anchor <- 5 * lower_anchor
     
-    lower_anchor <- -Inf
+    # lower_anchor <- -Inf
     # 
     upper_anchor <- Inf
     } else {
