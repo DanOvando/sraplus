@@ -449,7 +449,8 @@ fit_sraplus <- function(driors,
       it <- 2000
       itframe <- data.frame(log_anchor = runif(it, min = log(1), max = log(50 * sum(driors$catch))),
                                                log_r =  runif(it, min = log(0.01), max = log(2)),
-                            pens = NA)
+                            pens = NA,
+                            final_dep = NA)
       
       
       for ( i in 1:it){
@@ -473,12 +474,14 @@ fit_sraplus <- function(driors,
         sra_model$report() -> a
 
         itframe$pens[i] <- a$pen
+        
+        itframe$final_dep[i] <- a$dep_t[length(a$dep_t)]
 
       }
 # browser()
 # 
-# itframe %>% 
-#   ggplot(aes((log_r), (log_anchor), color = pens == 0)) + 
+# itframe %>%
+#   ggplot(aes((log_r), (log_anchor), color = pens == 0)) +
 #   geom_point()
 
 
@@ -487,7 +490,8 @@ fit_sraplus <- function(driors,
     lower_anchor <-  0.9 * min(itframe$log_anchor[(itframe$pens == 0)])
 
     inits$log_anchor <- log(2 * exp(lower_anchor))
-
+    
+    driors$k_prior <- median(itframe$log_anchor[itframe$pens == 0 & itframe$final_dep < 0.9])
     # upper_anchor <- 5 * lower_anchor
     
     # lower_anchor <- -Inf
