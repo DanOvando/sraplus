@@ -162,7 +162,7 @@ ram_fits <- ram_data %>%
   nest()
 
 
-dat <- ram_fits$data[[13]] # pick a  stock to run
+dat <- ram_fits$data[[42]] # pick a  stock to run
 
 index_years <- dat$year[!is.na(dat$index)]
 
@@ -191,7 +191,7 @@ fit <- fit_sraplus(driors = driors,
                       model = "sraplus_tmb",
                       estimate_shape = FALSE, 
                       estimate_proc_error = TRUE,
-                      estimate_k = FALSE,
+                      estimate_k = TRUE,
                       learn_rate = 2e-1,
                       n_keep = 2000,
                       eps = 1e-12,
