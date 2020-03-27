@@ -61,6 +61,7 @@ fit_sraplus <- function(driors,
                         estimate_qslope = FALSE,
                         estimate_proc_error = TRUE,
                         estimate_k = TRUE,
+                        estimate_f  = FALSE,
                         learn_rate = 1e-3,
                         marginalize_q = FALSE,
                         use_baranov = TRUE,
@@ -145,6 +146,7 @@ fit_sraplus <- function(driors,
     estimate_proc_error = estimate_proc_error,
     estimate_shape = estimate_shape,
     estimate_qslope = estimate_qslope,
+    estimate_f = estimate_f,
     learn_rate = learn_rate
   )
   
@@ -184,6 +186,7 @@ fit_sraplus <- function(driors,
     log_sigma_ratio = log(driors$sigma_ratio_prior + 1e-6),
     log_proc_errors = rep(0, time - 1),
     log_shape = log(driors$shape_prior),
+    log_f_t = rep(log(.2), time),
     log_q_slope = log(
       ifelse(
         estimate_qslope == TRUE &&
@@ -194,6 +197,10 @@ fit_sraplus <- function(driors,
     )
   )
   
+  
+  if (estimate_f == 0){
+    knockout$log_f_t <- rep(NA, time)
+  }
   
   if (sra_data$fit_index == 0) {
     knockout$log_q <- NA
