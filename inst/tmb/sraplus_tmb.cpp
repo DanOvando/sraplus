@@ -3,13 +3,13 @@
 template<class Type>
 Type growfoo(Type r, Type m, Type b, Type plim)
 {
-
+  
   Type growth = (r  / (m - 1)) * b * (1 - pow(b,m - 1));
   
   Type plim_growth = (r  / (m - 1)) * b * (1 - pow(b,m - 1)) * (b / (plim));
   
   return  CppAD::CondExpGe(b, plim, growth, plim_growth);
-
+  
 } // close function
 
 
@@ -32,14 +32,14 @@ vector<Type> popmodel(Type r, Type m, Type k, Type b0, vector<Type> catches, vec
   b(0) = b0;
   
   for (int t = 1; t < time; t++){
-   
-   
-   Type growth = growfoo(r, m, b(t - 1),plim);
-
-   Type temp = ((b(t - 1) + growth - catches(t - 1) / k) * proc_error(t - 1));
+    
+    
+    Type growth = growfoo(r, m, b(t - 1),plim);
+    
+    Type temp = ((b(t - 1) + growth - catches(t - 1) / k) * proc_error(t - 1));
     
     b(t) = CppAD::CondExpGe(temp * k, eps, temp, (eps/(Type(2)-(temp * k)/eps)) / k);
-
+    
   }
   b = b * k;
   
@@ -53,7 +53,7 @@ Type objective_function<Type>::operator() ()
 {
   
   //// data and all that ////
-
+  
   DATA_VECTOR(catch_t);
   
   DATA_VECTOR(index_t);
@@ -83,6 +83,8 @@ Type objective_function<Type>::operator() ()
   DATA_INTEGER(estimate_shape); 
   
   DATA_INTEGER(estimate_qslope);
+  
+  DATA_INTEGER(estimate_f);
   
   // DATA_INTEGER(use_init); // use initial reference point
   
@@ -166,6 +168,9 @@ Type objective_function<Type>::operator() ()
   
   PARAMETER(log_shape);
   
+  PARAMETER_VECTOR(log_f_t);
+  
+  
   //// model ////
   
   Type crashed = 0;
@@ -190,17 +195,25 @@ Type objective_function<Type>::operator() ()
   
   vector<Type> u_t(time);
   
-  vector<Type> f_t(time - 1);
+  vector<Type> f_t(time);
   
-  vector<Type> short_u_t(time - 1);
+  vector<Type> catch_hat_t(time);
+  
+  vector<Type> temp_catch_t(time);
   
   Type q_slope = 0;
   
   if (estimate_qslope == 1){
-  
-   q_slope = exp(log_q_slope);
-  
+    
+    q_slope = exp(log_q_slope);
+    
   } 
+  
+  if (estimate_f == 1){
+    
+    f_t = exp(log_f_t);
+    
+  }
   
   Type sigma_obs = exp(log_sigma_obs);
   
@@ -217,7 +230,7 @@ Type objective_function<Type>::operator() ()
   // proc_errors = exp(log_proc_errors * sigma_proc - pow(sigma_proc,2)/2);
   
   
-
+  
   catch_t = catch_t;
   
   Type r = exp(log_r);
@@ -227,13 +240,13 @@ Type objective_function<Type>::operator() ()
   Type m = exp(log_shape);
   
   Type k = 0;
-
+  
   Type init_dep = exp(log_init_dep);
   
   Type delta = 100;
   
   Type counter = 0;
-
+  
   Type new_proposal = 0;
   
   Type conv_error = 0;
@@ -243,7 +256,7 @@ Type objective_function<Type>::operator() ()
   Type grad_dep = 0;
   
   if (est_k == 1){
-  
+    
     k = exp(log_anchor);
     
   } else {
@@ -259,45 +272,45 @@ Type objective_function<Type>::operator() ()
     proposal_result = popmodel(r,m,exp(last_proposal), init_dep, catch_t, proc_errors, time, eps,plim);
     
     Type prop_error =  log(proposal_result[time - 1] / exp(last_proposal)) - log(final_state);
-  
+    
     while(delta > 1e-3){
       
-    new_proposal = last_proposal -  learn_rate * prop_error;
-    
-    // std::cout << "new proposal is" << new_proposal << std::endl;
+      new_proposal = last_proposal -  learn_rate * prop_error;
       
-     proposal_result = popmodel(r,m,exp(new_proposal), init_dep, catch_t, proc_errors, time, eps,plim);
+      // std::cout << "new proposal is" << new_proposal << std::endl;
+      
+      proposal_result = popmodel(r,m,exp(new_proposal), init_dep, catch_t, proc_errors, time, eps,plim);
       
       grad_dep = proposal_result[time - 1] / exp(new_proposal);
       
-     prop_error =  log(grad_dep) - log(final_state);
-     
-     // std::cout << "prop dep is" << proposal_result[time - 1] / exp(new_proposal) << std::endl;
-
-     
-    last_proposal = new_proposal;
-    
-    delta = sqrt(pow(grad_dep - final_state,2));
+      prop_error =  log(grad_dep) - log(final_state);
       
-    conv_error = delta;
+      // std::cout << "prop dep is" << proposal_result[time - 1] / exp(new_proposal) << std::endl;
       
       
-    conv_error = delta;
+      last_proposal = new_proposal;
+      
+      delta = sqrt(pow(grad_dep - final_state,2));
+      
+      conv_error = delta;
       
       
-          // std::cout<< delta << std::endl;
+      conv_error = delta;
+      
+      
+      // std::cout<< delta << std::endl;
       
       counter = counter + 1;
       
       if (counter > 5000){
-
+        
         delta = -999;
       } // close escape hatch
       
       
     } // close while looop for gradient descnet
     
-   k = exp(new_proposal);
+    k = exp(new_proposal);
     
     nll += conv_error;  
   } // close estimate_k
@@ -323,6 +336,16 @@ Type objective_function<Type>::operator() ()
   
   q_t(0) = q;
   
+  
+  if (estimate_f == 1){
+    
+    temp_catch_t(0) = b_t(0) * (1 - exp(-f_t(0))) * k;
+
+    
+  } else {
+    temp_catch_t = catch_t;
+  }
+  
   for (int t = 1; t<time; t++){
     
     q_t[t] = q_t[t - 1] * (1 + q_slope);
@@ -331,13 +354,15 @@ Type objective_function<Type>::operator() ()
     
     growth_t(t - 1) = growfoo(r,m,b_t(t - 1),plim);
     
-    b_t(t) = (b_t(t - 1) +  growth_t(t - 1) - catch_t(t - 1) / k) * proc_errors(t - 1);
+    b_t(t) = (b_t(t - 1) +  growth_t(t - 1) - temp_catch_t(t - 1) / k) * proc_errors(t - 1);
     
     // b_t(t) = posfun(b_t(t) * k,eps,pen) / k;
     
     b_t(t) = posfun(b_t(t),eps,pen);
     
-    
+    if (estimate_f == 1){
+      temp_catch_t(t) = b_t(t) * (1 - exp(-f_t(t))) * k;
+    }
     
   } // close population model
   
@@ -374,6 +399,16 @@ Type objective_function<Type>::operator() ()
   }
   
   
+  if (estimate_f == 1){
+    
+    for (int t = 0; t < time; t++){
+      
+      nll -= dnorm(log(catch_t(t) + 1e-3), log(temp_catch_t(t) + 1e-3), Type(0.01), true);
+      
+    }
+    
+  }
+  
   if (fit_index == 1) {
     
     vector<Type> z_t = index_t / b_t(index_years - 1);
@@ -389,8 +424,8 @@ Type objective_function<Type>::operator() ()
         Type effective_f = (ftemp / (ftemp + nat_m)) * (1 - exp(-(ftemp + nat_m)));
         
         if (use_baranov == 1){
-        
-        index_t(t) = catch_t(index_years(t) - 1) / effective_f;
+          
+          index_t(t) = catch_t(index_years(t) - 1) / effective_f;
           
         } else {
           index_t(t) = catch_t(index_years(t) - 1) / ftemp;
@@ -400,7 +435,7 @@ Type objective_function<Type>::operator() ()
       
       if (marginalize_q == 0){ // standard estimation of q
         
-          // test bias correction on the sigma_obs
+        // test bias correction on the sigma_obs
         nll -= dnorm(log(index_t(t)), log(index_hat_t(index_years(t) - 1)), sigma_obs, true);
         
       } else { // marginalized q 
@@ -425,15 +460,15 @@ Type objective_function<Type>::operator() ()
   }
   
   if (estimate_proc_error == 1){
-  
-  for (int t = 0; t < (time - 1); t++){
     
-    nll -= dnorm(log_proc_errors(t), -pow(sigma_proc,2)/2, sigma_proc, true);
-    
-    // nll -= dnorm(log_proc_errors(t), Type(0), Type(1), true);
-    
-    
-  }
+    for (int t = 0; t < (time - 1); t++){
+      
+      nll -= dnorm(log_proc_errors(t), -pow(sigma_proc,2)/2, sigma_proc, true);
+      
+      // nll -= dnorm(log_proc_errors(t), Type(0), Type(1), true);
+      
+      
+    }
   }
   
   nll -= dnorm(log_r, log_r_prior, log_r_cv, true);
@@ -471,17 +506,17 @@ Type objective_function<Type>::operator() ()
     for (int i = 0; i < log_final_u.size(); i++){
       
       if (f_ref_type == 1){
-      
-      nll -= dnorm(log(u_v_umsy(time - 1)), log_final_u(i),log_final_u_cv(i), true);
-      
+        
+        nll -= dnorm(log(u_v_umsy(time - 1)), log_final_u(i),log_final_u_cv(i), true);
+        
       } 
       
       if (f_ref_type == 0){
         
         // std::cout<< "hello? it's u!" << std::endl;
-      
-      nll -= dnorm(log(u_t(time - 1)), log_final_u(i),log_final_u_cv(i), true);
-      
+        
+        nll -= dnorm(log(u_t(time - 1)), log_final_u(i),log_final_u_cv(i), true);
+        
       }
     } // cluse use final u loops
     
@@ -492,15 +527,15 @@ Type objective_function<Type>::operator() ()
   nll -= dnorm(log_sigma_obs,log(sigma_obs_prior), sigma_obs_prior_cv, true);
   
   if (estimate_qslope == 1){
-  
-  nll -= dnorm(log_q_slope,log(q_slope_prior),q_slope_cv, true);
+    
+    nll -= dnorm(log_q_slope,log(q_slope_prior),q_slope_cv, true);
     
   }
   
   if (estimate_proc_error == 1){
-  
-  nll -= dnorm(log_sigma_ratio, log(sigma_ratio_prior), sigma_ratio_prior_cv, true);
-  
+    
+    nll -= dnorm(log_sigma_ratio, log(sigma_ratio_prior), sigma_ratio_prior_cv, true);
+    
   }
   // nll -= dnorm(log_sigma_proc,log(sigma_proc_prior), sigma_proc_prior_cv, true);
   
@@ -509,8 +544,8 @@ Type objective_function<Type>::operator() ()
   }
   
   if (estimate_shape == 1){
-  
-  nll -= dnorm(log_shape,log(shape_prior),shape_cv, true);
+    
+    nll -= dnorm(log_shape,log(shape_prior),shape_cv, true);
     
   }
   

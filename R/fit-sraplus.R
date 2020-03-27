@@ -61,6 +61,7 @@ fit_sraplus <- function(driors,
                         estimate_qslope = FALSE,
                         estimate_proc_error = TRUE,
                         estimate_k = TRUE,
+                        estimate_f  = FALSE,
                         learn_rate = 1e-3,
                         marginalize_q = FALSE,
                         use_baranov = TRUE,
@@ -145,6 +146,7 @@ fit_sraplus <- function(driors,
     estimate_proc_error = estimate_proc_error,
     estimate_shape = estimate_shape,
     estimate_qslope = estimate_qslope,
+    estimate_f = estimate_f,
     learn_rate = learn_rate
   )
   
@@ -184,6 +186,7 @@ fit_sraplus <- function(driors,
     log_sigma_ratio = log(driors$sigma_ratio_prior + 1e-6),
     log_proc_errors = rep(0, time - 1),
     log_shape = log(driors$shape_prior),
+    log_f_t = rep(log(.2), time),
     log_q_slope = log(
       ifelse(
         estimate_qslope == TRUE &&
@@ -194,6 +197,10 @@ fit_sraplus <- function(driors,
     )
   )
   
+  
+  if (estimate_f == 0){
+    knockout$log_f_t <- rep(NA, time)
+  }
   
   if (sra_data$fit_index == 0) {
     knockout$log_q <- NA
@@ -437,17 +444,32 @@ fit_sraplus <- function(driors,
     if (estimate_k){
     
       
-      lks <- seq(1, log(25 * max(driors$catch)), length.out = 50)
+      temp_inits <- inits
+      
+      temp_inits$log_r <- log(0.0275)
+      
+      lks <- seq(1, log(50 * sum(driors$catch)), length.out = 50)
 
+      lks <- 200
       pens <- NA
-      for ( i in 1:length(lks)){
 
-        inits$log_anchor <- lks[i]
+      it <- 2000
+      itframe <- data.frame(log_anchor = runif(it, min = log(1), max = log(50 * sum(driors$catch))),
+                                               log_r =  runif(it, min = log(0.01), max = log(2)),
+                            pens = NA,
+                            final_dep = NA)
+      
+      
+      for ( i in 1:it){
 
+        temp_inits$log_anchor <- itframe$log_anchor[i]
+        
+        temp_inits$log_r <- itframe$log_r[i]
+        
         sra_model <-
           TMB::MakeADFun(
             data = sra_data,
-            parameters = inits,
+            parameters = temp_inits,
             DLL = model_name,
             random = randos,
             silent = TRUE,
@@ -458,21 +480,30 @@ fit_sraplus <- function(driors,
 
         sra_model$report() -> a
 
-        pens[i] <- a$pen
+        itframe$pens[i] <- a$pen
+        
+        itframe$final_dep[i] <- a$dep_t[length(a$dep_t)]
 
       }
+# browser()
+# 
+# itframe %>%
+#   ggplot(aes((log_r), (log_anchor), color = pens == 0)) +
+#   geom_point()
 
+
+  
     # lower_anchor <- log(1.25 * max(driors$catch))
-
-    lower_anchor <-  lks[which(pens == 0)[1]]
+    lower_anchor <-  0.9 * min(itframe$log_anchor[(itframe$pens == 0)])
 
     inits$log_anchor <- log(2 * exp(lower_anchor))
-
-    upper_anchor <- log(50 * max(driors$catch))
+    
+    driors$k_prior <- median(itframe$log_anchor[itframe$pens == 0 & itframe$final_dep < 0.9])
+    # upper_anchor <- 5 * lower_anchor
     
     # lower_anchor <- -Inf
     # 
-    # upper_anchor <- Inf
+    upper_anchor <- Inf
     } else {
       lower_anchor = log(1e-3)
       

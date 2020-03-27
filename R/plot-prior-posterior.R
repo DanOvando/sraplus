@@ -107,18 +107,20 @@ plot_prior_posterior <- function(fit, driors,
     timeseries <- timeseries %>%
       dplyr::left_join(index_frame, by = "year")
     
-    index_fit <- fit$results %>% 
-      dplyr::filter(variable == "index_hat_t") %>% 
-      dplyr::select(mean,lower, upper) %>% 
+    index_fit <- fit$results %>%
+      dplyr::filter(variable == "index_hat_t") %>%
+      dplyr::select(mean, lower, upper) %>%
       dplyr::mutate(metric = "index",
-                    year =driors$years,
-                    meanmean = mean(mean),
-                    sdmean = sd(mean)) %>% 
-      dplyr::mutate(mean = (mean - meanmean) / sdmean,
-                    lower = (lower - meanmean) / sdmean,
-                    upper = (upper - meanmean) / sdmean) %>% 
+                    year = driors$years) %>%
+      filter(year %in% driors$index_years) %>%
+      mutate(meanmean = mean(mean),
+             sdmean = sd(mean)) %>%
+      dplyr::mutate(
+        mean = (mean - meanmean) / sdmean,
+        lower = (lower - meanmean) / sdmean,
+        upper = (upper - meanmean) / sdmean
+      ) %>%
       dplyr::select(metric, year, mean, lower, upper)
-    
     
     fitseries <- rbind(fitseries, index_fit)
     
@@ -159,7 +161,9 @@ plot_prior_posterior <- function(fit, driors,
       dplyr::filter(variable == "index_hat_t") %>% 
       dplyr::select(mean,lower, upper) %>% 
       dplyr::mutate(metric = "cpue",
-                    year =driors$years,
+                    year = driors$years) %>% 
+      filter(year %in% driors$effort_years) %>% 
+      mutate(
                     meanmean = mean(mean),
                     sdmean = sd(mean)) %>% 
       dplyr::mutate(mean = (mean - meanmean) / sdmean,
