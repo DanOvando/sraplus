@@ -340,10 +340,10 @@ Type objective_function<Type>::operator() ()
   
   if (estimate_f == 1){
     
-    temp_catch_t = catch_hat_t
+    temp_catch_t = catch_hat_t;
     
   } else {
-    temp_catch_t = catch_t
+    temp_catch_t = catch_t;
   }
   
   for (int t = 1; t<time; t++){
