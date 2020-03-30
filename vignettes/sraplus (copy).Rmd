@@ -73,7 +73,7 @@ Once you've tried those, restart your computer and try running
 
 install.packages("devtools")
 
-remotes::install_github("danovando/sraplus", ref = 'v2.0')
+remotes::install_github("danovando/sraplus", ref = 'v3.2.1')
 
 
 ```
@@ -143,7 +143,7 @@ From there, we pass the `driors` object to `sraplus::fit_sraplus`, and plot the 
 
 ```{r}
 
- catch_only_fit <- sraplus::fit_sraplus(driors = catch_only_driors,
+ catch_only_fit <- fit_sraplus(driors = catch_only_driors,
                        engine = "sir",
                        draws = 1e6,
                        n_keep = 2000,

@@ -81,6 +81,8 @@ library(ggplot2)
 library(tidyr)
 library(dplyr)
 library(sraplus)
+library(tmbstan)
+Sys.unsetenv("PKG_CXXFLAGS")
 
 ```
 
@@ -199,9 +201,9 @@ fmi_sar_driors <- format_driors(
   initial_state = 1,
   initial_state_cv = 0.25,
   use_heuristics = FALSE,
-  sar = 20,
+  sar = 10,
   fmi = c("research" = 0.5, "management" = 0.5, "socioeconomics" = 0.5, 'enforcement' = 0.5),
-  sar_cv = 0.1,
+  sar_cv = NA,
   use_b_reg = FALSE,
   b_ref_type = "k")
 

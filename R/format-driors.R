@@ -367,6 +367,12 @@ format_driors <-
     # normally distributed on the log variance ratio, centered at zero
     # thorson munch ono 2014
     
+    if (use_b_reg == TRUE){
+      
+      log_final_u = NA
+    
+      }
+    
     driors <-
       list(
         catch = catch,
