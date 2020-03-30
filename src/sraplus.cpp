@@ -305,9 +305,17 @@ double learn_rate
   }
   
   if (use_final_state == 1){
-
+  
   log_like(i) += R::dnorm(log(final_ref),log_final_ref, sigma_dep, true);
   }
+  
+  // psuedocode for prior-predictive check
+  // bin the thing you have a prior on (say final depletion)
+  // assign K values to each final depletion. 
+  // Bin depletion and calculate total likelihood in that bin (sum delta dnorm between extremes?)
+  // assign each k to a bin, and divide the total likelihood in that bin between the ks
+  // sample from the ks with that weight
+  
 
   if (use_u_prior == 1){
 

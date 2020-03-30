@@ -73,7 +73,8 @@ fit_sraplus <- function(driors,
                         iter.max = 150,
                         rel.tol = 1e-10,
                         loopnum = 1,
-                        newtonsteps = 1) {
+                        newtonsteps = 1,
+                        tune_prior_predictive = TRUE) {
   
   if (max_time < Inf){
     
@@ -364,12 +365,41 @@ fit_sraplus <- function(driors,
       learn_rate = learn_rate
     )
     
+
+    if (tune_prior_predictive == TRUE){ # tune samples from SIR such that "posterior" (bernouli filtered) of say final depletion matches prior
+      # if we state that catches are not data, out prior should not change through the SIR
+      
+      state <- sra_fit$dep_t[nrow(sra_fit$dep_t), ]
+      
+      state_breaks <- seq(0,5, by = .05)
+      
+      state_bins <- cut(state_breaks, state_breaks, include.lowest = FALSE, right = FALSE)
+      
+      edge_p <-  pnorm(log(state_breaks), log(driors$terminal_state), driors$terminal_state_cv)
+      
+      p_bin <- lead(edge_p) - (edge_p)
+      
+      bin_frame <- data.frame(bin = state_bins, p_bin = p_bin) %>% 
+        dplyr::mutate(bin = as.character(bin))
+      
+      draws <- data.frame(state = state) %>% 
+        dplyr::mutate(bin = as.character(cut(state, state_breaks,include.lowest = FALSE, right = FALSE))) %>% 
+        dplyr::left_join(bin_frame, by = "bin") %>% 
+        dplyr::group_by(bin) %>% 
+        dplyr::mutate(weight = unique(p_bin) / length(p_bin)) %>% 
+        dplyr:: ungroup() %>% 
+        dplyr::mutate(index = 1:nrow(.))
+      
+      sra_fit$keepers <- sample(draws$index, n_keep, replace = TRUE, prob = draws$weight)
+      
+    } 
     
     keepers <- sra_fit$keepers
     
     outs <- stringr::str_detect(names(sra_fit), "_t")
     
-    sra_fit$b_t[, keepers] -> a
+#     sra_fit$b_t[, keepers] -> a
+# browser()
     
     tidy_fits <-
       purrr::map_df(
