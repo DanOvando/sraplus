@@ -388,6 +388,7 @@ NumericVector keepers = sample(drawdex, n_keep, 1, scaled_like) + 1;
       Rcpp::Named("m") = ms,
       Rcpp::Named("k") = ks,
       Rcpp::Named("umsy") = umsy,
-      Rcpp::Named("msy") = msy);
+      Rcpp::Named("msy") = msy,
+      Rcpp::Named("likelihood") = log_like);
 
 } // close popmodel

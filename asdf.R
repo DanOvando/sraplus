@@ -1,3 +1,7 @@
+library(ggplot2)
+library(tidyr)
+library(dplyr)
+library(sraplus)
 
 
 catch_only_driors <- sraplus::format_driors(
@@ -5,8 +9,8 @@ catch_only_driors <- sraplus::format_driors(
   catch = cod$catch,
   years = cod$year,
   use_heuristics = FALSE,
-  terminal_state = .25,
-  terminal_state_cv = .5
+  terminal_state = 0.5,
+  terminal_state_cv = 0.25
 )
 
 
@@ -25,46 +29,83 @@ plot_sraplus(catch_only_fit)
 plot_prior_posterior(catch_only_fit, catch_only_driors)
 
 
-keepers <- sra_fit$keepers
 
-outs <- stringr::str_detect(names(sra_fit), "_t")
+sar_driors <- format_driors(
+  taxa = example_taxa,
+  catch = cod$catch,
+  years = cod$year,
+  initial_state = 1,
+  initial_state_cv = 0.25,
+  use_heuristics = FALSE,
+  sar = 10,
+  sar_cv = NA,
+  use_b_reg = FALSE,
+  b_ref_type = "k")
 
-sra_fit$b_t[, keepers] -> a
+sar_fit <- fit_sraplus(driors = sar_driors,
+                              engine = "sir",
+                              draws = 1e5,
+                              n_keep = 2000,
+                              estimate_proc_error = FALSE, 
+                              estimate_shape = TRUE,
+                              tune_prior_predictive = TRUE)
 
-wtf <- sra_fit$dep_t[nrow(sra_fit$dep_t), ] -> a
-
-state_breaks <- seq(0,2, by = .05)
-
-state_bins <- cut(state_breaks, state_breaks, include.lowest = FALSE, right = FALSE)
-
-edge_p <-  pnorm(log(state_breaks), log(0.5),.2)
-
-p_bin <- lead(edge_p) - (edge_p)
-
-bin_frame <- data.frame(bin = state_bins, p_bin = p_bin) %>% 
-  mutate(bin = as.character(bin))
+plot_prior_posterior(sar_fit, sar_driors)
 
 
-draws <- data.frame(state = wtf) %>% 
-  mutate(bin = as.character(cut(state, state_breaks,include.lowest = FALSE, right = FALSE))) %>% 
-  left_join(bin_frame, by = "bin") %>% 
-  group_by(bin) %>% 
-  mutate(weight = unique(p_bin) / length(p_bin)) %>% 
-    ungroup() %>% 
-  mutate(index = 1:nrow(.))
+sar_driors_2 <- format_driors(
+  taxa = example_taxa,
+  catch = cod$catch,
+  years = cod$year,
+  initial_state = 1,
+  initial_state_cv = 0.25,
+  use_heuristics = FALSE,
+  sar = 10,
+  sar_cv = NA,
+  use_b_reg = TRUE,
+  b_ref_type = "k")
 
-sample_index <- sample(draws$index, length(keepers), replace = TRUE, prob = draws$weight)
+sar_fit_2 <- fit_sraplus(driors = sar_driors_2,
+                        engine = "sir",
+                        draws = 1e5,
+                        n_keep = 2000,
+                        estimate_proc_error = FALSE, 
+                        estimate_shape = TRUE,
+                        tune_prior_predictive = FALSE)
 
-hmm <- draws$state[sample_index]
+plot_sraplus(sar_fit, sar_fit_2)
 
-hist(hmm)
+diagnose_sraplus(sar_fit, sar_driors)
 
-ggplot() + 
-  geom_density(data = draws, aes(state)) + 
-  geom_density(data = data.frame(a = rlnorm(1000, log(0.5),.2)), aes(a)) + 
-  geom_density(data = data.frame(a = hmm), aes(a)) 
+plot_prior_posterior(sar_fit, sar_driors)
 
-hist(sra_fit$k[sample_index])
-  
+
+fmi_sar_driors <- format_driors(
+  taxa = example_taxa,
+  catch = cod$catch,
+  years = cod$year,
+  initial_state = 1,
+  initial_state_cv = 0.25,
+  use_heuristics = FALSE,
+  sar = 10,
+  fmi = c("research" = 1, "management" = 1, "socioeconomics" = 1, 'enforcement' = 1),
+  sar_cv = NA,
+  use_b_reg = FALSE,
+  b_ref_type = "k")
+
+sraplus::plot_driors(fmi_sar_driors)
+
+fmi_sar_fit <- fit_sraplus(
+  driors = fmi_sar_driors,
+  engine = "sir",
+  draws = 1e6,
+  n_keep = 2000,
+  estimate_shape = FALSE,
+  estimate_proc_error = FALSE
+)
+
+plot_sraplus(fmi_sar = fmi_sar_fit,
+             sar = sar_fit)
+
 
 

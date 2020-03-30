@@ -369,9 +369,33 @@ fit_sraplus <- function(driors,
     if (tune_prior_predictive == TRUE){ # tune samples from SIR such that "posterior" (bernouli filtered) of say final depletion matches prior
       # if we state that catches are not data, out prior should not change through the SIR
       
+      if (any(!is.na(driors$log_final_u))){
+        
+        if (driors$f_ref_type == "fmsy"){
+          
+          state <- sra_fit$u_umsy_t[nrow(sra_fit$dep_t), ]
+          
+        } else {
+          
+          state <- sra_fit$u_t[nrow(sra_fit$dep_t), ]
+          
+          
+        }
+        
+        
+        
+      } else if (driors$b_ref_type == "k"){
+      
       state <- sra_fit$dep_t[nrow(sra_fit$dep_t), ]
       
-      state_breaks <- seq(0,5, by = .05)
+      } else {
+        
+        state <- sra_fit$b_bmsy_t[nrow(sra_fit$dep_t), ]
+        
+      }
+      
+
+      state_breaks <- seq(0,10, by = .025)
       
       state_bins <- cut(state_breaks, state_breaks, include.lowest = FALSE, right = FALSE)
       
@@ -382,6 +406,19 @@ fit_sraplus <- function(driors,
       bin_frame <- data.frame(bin = state_bins, p_bin = p_bin) %>% 
         dplyr::mutate(bin = as.character(bin))
       
+      
+      log_like <- sra_fit$likelihood
+      # browser()
+      bin_frame <- data.frame(state = state, likelihood = sra_fit$likelihood) %>%
+        dplyr::mutate(bin = as.character(cut(state, state_breaks,include.lowest = FALSE, right = FALSE))) %>%
+        group_by(bin) %>%
+        summarise(p_bin = mean(likelihood, na.rm = TRUE))
+
+      # bin_frame %>%
+      #   ggplot(aes(bin, p_bin)) +
+      #   geom_col() + 
+      #   coord_flip()
+      # 
       draws <- data.frame(state = state) %>% 
         dplyr::mutate(bin = as.character(cut(state, state_breaks,include.lowest = FALSE, right = FALSE))) %>% 
         dplyr::left_join(bin_frame, by = "bin") %>% 
