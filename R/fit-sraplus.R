@@ -559,7 +559,7 @@ fit_sraplus <- function(driors,
 #   geom_point()
 
 
-  
+  browser()
     # lower_anchor <- log(1.25 * max(driors$catch))
     lower_anchor <-  0.9 * min(itframe$log_anchor[(itframe$pens == 0)])
 
