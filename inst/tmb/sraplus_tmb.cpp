@@ -68,7 +68,7 @@ Type objective_function<Type>::operator() ()
   
   DATA_INTEGER(use_baranov); // use baranov equation in CPUE standardization? requires estimate of natural mortality
   
-  DATA_INTEGER(marginalize_q); // should q be marginalized out? only use for fitting index not CPUE
+  DATA_INTEGER(analytical_q); // should q be marginalized out? only use for fitting index not CPUE
   
   DATA_INTEGER(use_u_prior); //
   
@@ -433,7 +433,7 @@ Type objective_function<Type>::operator() ()
         
       }
       
-      if (marginalize_q == 0){ // standard estimation of q
+      if (analytical_q == 0){ // standard estimation of q
         
         // test bias correction on the sigma_obs
         nll -= dnorm(log(index_t(t)), log(index_hat_t(index_years(t) - 1)), sigma_obs, true);

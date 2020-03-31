@@ -196,7 +196,7 @@ fit <- fit_sraplus(driors = driors,
                       n_keep = 2000,
                       eps = 1e-12,
                       adapt_delta = 0.95,
-                      marginalize_q = FALSE,
+                      analytical_q = FALSE,
                       max_treedepth = 12)
 
 diagnose_sraplus(fit, driors)

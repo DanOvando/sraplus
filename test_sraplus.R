@@ -102,7 +102,7 @@ ml_fit <- fit_sraplus(driors = ml_driors,
                       n_keep = 2000,
                       eps = 1e-12,
                       adapt_delta = 0.95,
-                      marginalize_q = FALSE,
+                      analytical_q = FALSE,
                       max_treedepth = 12,
                       ci  = 0.89)
 
@@ -126,7 +126,7 @@ bayes_fit <- fit_sraplus(driors = ml_driors,
                       n_keep = 5000,
                       eps = 1e-2,
                       adapt_delta = 0.8,
-                      marginalize_q = FALSE,
+                      analytical_q = FALSE,
                       max_treedepth = 12)
 
 diagnose_sraplus(bayes_fit, ml_driors)
@@ -297,7 +297,7 @@ index_bayes_fit <- fit_sraplus(driors = index_driors,
                          n_keep = 2000,
                          eps = 1e-3,
                          adapt_delta = 0.95,
-                         marginalize_q = FALSE,
+                         analytical_q = FALSE,
                          max_treedepth = 12)
 
 
@@ -311,7 +311,7 @@ index_ml_fit <- fit_sraplus(driors = index_driors,
                                n_keep = 2000,
                                eps = 1e-3,
                                adapt_delta = 0.95,
-                               marginalize_q = FALSE,
+                               analytical_q = FALSE,
                                max_treedepth = 12)
 
 plot_sraplus(
@@ -330,7 +330,7 @@ effort_bayes_fit <- fit_sraplus(driors = effort_driors,
                                n_keep = 2000,
                                eps = 1e-3,
                                adapt_delta = 0.95,
-                               marginalize_q = FALSE,
+                               analytical_q = FALSE,
                                max_treedepth = 12)
 
 
@@ -344,7 +344,7 @@ effort_ml_fit <- fit_sraplus(driors = effort_driors,
                             n_keep = 2000,
                             eps = 1e-3,
                             adapt_delta = 0.95,
-                            marginalize_q = FALSE,
+                            analytical_q = FALSE,
                             max_treedepth = 12)
 
 plot_prior_posterior(effort_ml_fit, effort_driors)

@@ -63,7 +63,7 @@ fit_sraplus <- function(driors,
                         estimate_k = TRUE,
                         estimate_f  = FALSE,
                         learn_rate = 1e-3,
-                        marginalize_q = FALSE,
+                        analytical_q = FALSE,
                         use_baranov = TRUE,
                         include_m = FALSE,
                         ci = 0.89,
@@ -98,6 +98,9 @@ fit_sraplus <- function(driors,
   } else {
     index_t = rep(0, length(driors$effort))
   }
+  
+  
+  
   
   sra_data <- list(
     catch_t = driors$catch,
@@ -142,7 +145,7 @@ fit_sraplus <- function(driors,
     shape_cv = driors$shape_prior_cv,
     sigma_obs_prior = driors$sigma_obs_prior,
     sigma_obs_prior_cv = driors$sigma_obs_prior_cv,
-    marginalize_q = marginalize_q,
+    analytical_q = analytical_q,
     est_k = estimate_k,
     estimate_proc_error = estimate_proc_error,
     estimate_shape = estimate_shape,
@@ -240,17 +243,17 @@ fit_sraplus <- function(driors,
     
   }
   
-  if (sra_data$calc_cpue == TRUE & marginalize_q == 1) {
-    sra_data$marginalize_q <-  0
+  if (sra_data$calc_cpue == TRUE & analytical_q == 1) {
+    sra_data$analytical_q <-  0
     
     warning(
-      "You can't calculate CPUE and marginalize q, defaulting to calculating CPUE. Either set marginalize_q = 0 or calc_cpue = 0"
+      "You can't calculate CPUE and marginalize q, defaulting to calculating CPUE. Either set analytical_q = 0 or calc_cpue = 0"
     )
     
   }
   
   
-  if (sra_data$calc_cpue == FALSE & marginalize_q == 1) {
+  if (sra_data$calc_cpue == FALSE & analytical_q == 1) {
     knockout$log_q <- NA
     
   }
@@ -308,13 +311,14 @@ fit_sraplus <- function(driors,
     }
     
     init_dep <- exp(
-      rnorm(
+      truncnorm::rtruncnorm(
         draws,
-        sra_data$log_init_dep_prior,
-        sra_data$log_init_dep_cv
+        b = ifelse(estimate_proc_error,log(1.1),log(1)),
+        mean = sra_data$log_init_dep_prior,
+        sd = sra_data$log_init_dep_cv
       )
     )
-    
+
     if (estimate_proc_error == FALSE){
       
       init_dep = pmin(init_dep, 1)
@@ -532,7 +536,6 @@ fit_sraplus <- function(driors,
         temp_inits$log_anchor <- itframe$log_anchor[i]
         
         temp_inits$log_r <- itframe$log_r[i]
-        
         sra_model <-
           TMB::MakeADFun(
             data = sra_data,
@@ -614,7 +617,7 @@ fit_sraplus <- function(driors,
       # lower["sigma_obs"] <- 0
     }
     
-    if (marginalize_q == 0 & sra_data$fit_index == 1) {
+    if (analytical_q == 0 & sra_data$fit_index == 1) {
       upper['log_q'] <- log(1)
     }
     if (estimate_qslope == TRUE) {
