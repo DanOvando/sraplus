@@ -2,7 +2,7 @@ library(tidyverse)
 
 library(sraplus)
 
-# library(tmbstan)
+library(tmbstan)
 
 Sys.unsetenv("PKG_CXXFLAGS")
 

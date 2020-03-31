@@ -3,6 +3,9 @@ library(tidyr)
 library(dplyr)
 library(sraplus)
 
+example_taxa <- "gadus morhua"
+
+data(cod)
 
 catch_only_driors <- sraplus::format_driors(
   taxa = example_taxa,
@@ -44,8 +47,8 @@ sar_driors <- format_driors(
 
 sar_fit <- fit_sraplus(driors = sar_driors,
                               engine = "sir",
-                              draws = 1e5,
-                              n_keep = 2000,
+                              draws = 1e6,
+                              n_keep = 5000,
                               estimate_proc_error = FALSE, 
                               estimate_shape = TRUE,
                               tune_prior_predictive = TRUE)
@@ -62,18 +65,18 @@ sar_driors_2 <- format_driors(
   use_heuristics = FALSE,
   sar = 10,
   sar_cv = NA,
-  use_b_reg = TRUE,
+  use_b_reg = FALSE,
   b_ref_type = "k")
 
 sar_fit_2 <- fit_sraplus(driors = sar_driors_2,
                         engine = "sir",
-                        draws = 1e5,
-                        n_keep = 2000,
+                        draws = 1e6,
+                        n_keep = 5000,
                         estimate_proc_error = FALSE, 
                         estimate_shape = TRUE,
                         tune_prior_predictive = FALSE)
 
-plot_sraplus(sar_fit, sar_fit_2)
+plot_sraplus(tune = sar_fit, notune = sar_fit_2)
 
 diagnose_sraplus(sar_fit, sar_driors)
 
