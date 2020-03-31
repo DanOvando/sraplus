@@ -85,7 +85,7 @@ Once you’ve tried those, restart your computer and try running
 
 install.packages("devtools")
 
-remotes::install_github("danovando/sraplus", ref = 'v2.0')
+remotes::install_github("danovando/sraplus")
 ```
 
 # Example Use
@@ -100,7 +100,7 @@ library(tidyr)
 library(dplyr)
 library(sraplus)
 library(tmbstan)
-library(tmbstan)
+Sys.unsetenv("PKG_CXXFLAGS")
 ```
 
 Once you’ve successfully installed `sraplus` you can take for a test
@@ -132,26 +132,25 @@ data(cod)
 
 head(cod)
 #> # A tibble: 6 x 53
-#>   stockid scientificname commonname  year  catch stocklong.x TBmsybest
-#>   <chr>   <chr>          <chr>      <int>  <dbl> <chr>           <dbl>
-#> 1 CODIII… Gadus morhua   Atlantic …  1963 118000 Atlantic c…   948996.
-#> 2 CODIII… Gadus morhua   Atlantic …  1964 145000 Atlantic c…   948996.
-#> 3 CODIII… Gadus morhua   Atlantic …  1965 199000 Atlantic c…   948996.
-#> 4 CODIII… Gadus morhua   Atlantic …  1966 241000 Atlantic c…   948996.
-#> 5 CODIII… Gadus morhua   Atlantic …  1967 288000 Atlantic c…   948996.
-#> 6 CODIII… Gadus morhua   Atlantic …  1968 294000 Atlantic c…   948996.
-#> # … with 46 more variables: ERmsybest <dbl>, TBmgtbest <dbl>,
-#> #   ERmgtbest <dbl>, TBmsy <dbl>, SSBmsy <dbl>, Nmsy <dbl>, MSY <dbl>,
-#> #   Fmsy <dbl>, ERmsy <dbl>, TBmgt <dbl>, SSBmgt <dbl>, Fmgt <dbl>,
-#> #   ERmgt <dbl>, TB0 <dbl>, SSB0 <dbl>, M <dbl>, TBlim <dbl>,
-#> #   SSBlim <dbl>, Flim <dbl>, ERlim <dbl>, b_v_bmsy <dbl>, u_v_umsy <dbl>,
-#> #   exploitation_rate <dbl>, effort <dbl>, total_biomass <dbl>,
-#> #   ss_biomass <dbl>, tsn <chr>, areaid <chr>, stocklong.y <chr>,
-#> #   region <chr>, inmyersdb <chr>, myersstockid <chr>, country <chr>,
-#> #   areatype <chr>, areacode <chr>, areaname <chr>,
-#> #   alternateareaname <chr>, management_body <chr>, country_rfmo <chr>,
-#> #   tb_v_tb0 <dbl>, ssb_v_ssb0 <dbl>, delta_year <int>, n_years <int>,
-#> #   has_tb0 <lgl>, has_tb <lgl>, first_catch_year <int>
+#>   stockid scientificname commonname  year  catch stocklong.x TBmsybest ERmsybest
+#>   <chr>   <chr>          <chr>      <int>  <dbl> <chr>           <dbl>     <dbl>
+#> 1 CODIII… Gadus morhua   Atlantic …  1963 118000 Atlantic c…   948996.     0.262
+#> 2 CODIII… Gadus morhua   Atlantic …  1964 145000 Atlantic c…   948996.     0.262
+#> 3 CODIII… Gadus morhua   Atlantic …  1965 199000 Atlantic c…   948996.     0.262
+#> 4 CODIII… Gadus morhua   Atlantic …  1966 241000 Atlantic c…   948996.     0.262
+#> 5 CODIII… Gadus morhua   Atlantic …  1967 288000 Atlantic c…   948996.     0.262
+#> 6 CODIII… Gadus morhua   Atlantic …  1968 294000 Atlantic c…   948996.     0.262
+#> # … with 45 more variables: TBmgtbest <dbl>, ERmgtbest <dbl>, TBmsy <dbl>,
+#> #   SSBmsy <dbl>, Nmsy <dbl>, MSY <dbl>, Fmsy <dbl>, ERmsy <dbl>, TBmgt <dbl>,
+#> #   SSBmgt <dbl>, Fmgt <dbl>, ERmgt <dbl>, TB0 <dbl>, SSB0 <dbl>, M <dbl>,
+#> #   TBlim <dbl>, SSBlim <dbl>, Flim <dbl>, ERlim <dbl>, b_v_bmsy <dbl>,
+#> #   u_v_umsy <dbl>, exploitation_rate <dbl>, effort <dbl>, total_biomass <dbl>,
+#> #   ss_biomass <dbl>, tsn <chr>, areaid <chr>, stocklong.y <chr>, region <chr>,
+#> #   inmyersdb <chr>, myersstockid <chr>, country <chr>, areatype <chr>,
+#> #   areacode <chr>, areaname <chr>, alternateareaname <chr>,
+#> #   management_body <chr>, country_rfmo <chr>, tb_v_tb0 <dbl>,
+#> #   ssb_v_ssb0 <dbl>, delta_year <int>, n_years <int>, has_tb0 <lgl>,
+#> #   has_tb <lgl>, first_catch_year <int>
 ```
 
 From there, we’ll pass the catch data, and the years corresponding to
@@ -196,10 +195,10 @@ in this case the SIR algorithm will run 1 million iterations, and sample
 
 ``` r
 
- catch_only_fit <- sraplus::fit_sraplus(driors = catch_only_driors,
+ catch_only_fit <- fit_sraplus(driors = catch_only_driors,
                        engine = "sir",
                        draws = 1e6,
-                       n_keep = 2000,
+                       n_keep = 4000,
                        estimate_proc_error = TRUE, 
                        estimate_shape = TRUE)
 ```
@@ -219,12 +218,12 @@ head(catch_only_fit$results)
 #> # A tibble: 6 x 6
 #>    year variable            mean            sd        lower        upper
 #>   <dbl> <chr>              <dbl>         <dbl>        <dbl>        <dbl>
-#> 1  1963 b_div_bmsy         0.616        0.0919       0.501         0.762
-#> 2  1963 b           12199445.    31174712.     2150607.     34855121.   
-#> 3  1963 c_div_msy          0.328        0.206        0.0550        0.591
+#> 1  1963 b_div_bmsy         0.619        0.101        0.512         0.756
+#> 2  1963 b           15383178.    44061596.     2286442.     50533201.   
+#> 3  1963 c_div_msy          0.258        0.190        0.0284        0.492
 #> 4  1963 crashed            0            0            0             0    
-#> 5  1963 depletion          0.403        0.0430       0.338         0.476
-#> 6  1963 index_hat_t   554866.     1514050.       26743.      1800673.
+#> 5  1963 depletion          0.402        0.0403       0.342         0.468
+#> 6  1963 index_hat_t   719239.     2628989.       25779.      2181291.
 ```
 
 `results` is organized as a dataframe tracking different variables over
@@ -239,13 +238,13 @@ object is the output of the SIR algorithm.
 
 ``` r
 head(catch_only_fit$fit)
-#>   variable year draw    value draw_id
-#> 1      b_t 1963    1  5601272  202493
-#> 2      b_t 1964    1  6042798  202493
-#> 3      b_t 1965    1  6166636  202493
-#> 4      b_t 1966    1  7129507  202493
-#> 5      b_t 1967    1 10176243  202493
-#> 6      b_t 1968    1 13438744  202493
+#>   variable year draw   value draw_id
+#> 1      b_t 1963    1 5570904  697914
+#> 2      b_t 1964    1 4673482  697914
+#> 3      b_t 1965    1 5460228  697914
+#> 4      b_t 1966    1 6960955  697914
+#> 5      b_t 1967    1 8015513  697914
+#> 6      b_t 1968    1 8603589  697914
 ```
 
 From there, we can generate some standard plots of B/Bmsy
@@ -287,11 +286,11 @@ fmi_sar_driors <- format_driors(
   initial_state = 1,
   initial_state_cv = 0.25,
   use_heuristics = FALSE,
-  sar = 17,
+  sar = 10,
   fmi = c("research" = 0.5, "management" = 0.5, "socioeconomics" = 0.5, 'enforcement' = 0.5),
+  sar_cv = NA,
   use_b_reg = FALSE,
-  b_ref_type = "k",
-  sigma_r_prior_cv = 0.5)
+  b_ref_type = "k")
 
 sraplus::plot_driors(fmi_sar_driors)
 ```
@@ -305,9 +304,9 @@ We’ll then fit and plot our model. Note that you can pass multiple
 fmi_sar_fit <- fit_sraplus(
   driors = fmi_sar_driors,
   engine = "sir",
-  draws = 5e6,
-  n_keep = 2000,
-  estimate_shape = FALSE,
+  draws = 1e6,
+  n_keep = 4000,
+  estimate_shape = TRUE,
   estimate_proc_error = TRUE
 )
 
@@ -335,7 +334,7 @@ sraplus::diagnose_sraplus(fit = fmi_sar_fit, driors = fmi_sar_driors )
 #> [1] "fishlife matched supplied species"
 #> 
 #> $distinct_sir_draws
-#> [1] 562
+#> [1] 1585
 #> 
 #> $sir_convergence_plot
 ```
@@ -394,6 +393,8 @@ index_driors <- format_driors(
   years = sim$pop$year,
   index = sim$pop$biomass * 1e-3,
   index_years = sim$pop$year,
+  initial_state = 1,
+  initial_state_cv = 0.05,
   growth_rate_prior = 0.4,
   growth_rate_prior_cv = 0.1,
   shape_prior = 1.01,
@@ -407,13 +408,60 @@ plot_driors(index_driors)
 ``` r
 
 index_fit <- fit_sraplus(driors = index_driors,
-                      engine = "tmb",
-                      model = "sraplus_tmb")
+                      engine = "stan",
+                      model = "sraplus_tmb", 
+                      estimate_proc_error = FALSE,
+                      newtonsteps = 10)
+#> 
+#> SAMPLING FOR MODEL 'tmb_generic' NOW (CHAIN 1).
+#> Chain 1: 
+#> Chain 1: Gradient evaluation took 2.3e-05 seconds
+#> Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 0.23 seconds.
+#> Chain 1: Adjust your expectations accordingly!
+#> Chain 1: 
+#> Chain 1: 
+#> Chain 1: Iteration:    1 / 2000 [  0%]  (Warmup)
+#> Chain 1: Iteration:  200 / 2000 [ 10%]  (Warmup)
+#> Chain 1: Iteration:  400 / 2000 [ 20%]  (Warmup)
+#> Chain 1: Iteration:  600 / 2000 [ 30%]  (Warmup)
+#> Chain 1: Iteration:  800 / 2000 [ 40%]  (Warmup)
+#> Chain 1: Iteration: 1000 / 2000 [ 50%]  (Warmup)
+#> Chain 1: Iteration: 1001 / 2000 [ 50%]  (Sampling)
+#> Chain 1: Iteration: 1200 / 2000 [ 60%]  (Sampling)
+#> Chain 1: Iteration: 1400 / 2000 [ 70%]  (Sampling)
+#> Chain 1: Iteration: 1600 / 2000 [ 80%]  (Sampling)
+#> Chain 1: Iteration: 1800 / 2000 [ 90%]  (Sampling)
+#> Chain 1: Iteration: 2000 / 2000 [100%]  (Sampling)
+#> Chain 1: 
+#> Chain 1:  Elapsed Time: 8.78771 seconds (Warm-up)
+#> Chain 1:                10.7284 seconds (Sampling)
+#> Chain 1:                19.5161 seconds (Total)
+#> Chain 1:
+#> Warning: There were 677 transitions after warmup that exceeded the maximum treedepth. Increase max_treedepth above 10. See
+#> http://mc-stan.org/misc/warnings.html#maximum-treedepth-exceeded
+#> Warning: Examine the pairs() plot to diagnose sampling problems
+#> Warning: The largest R-hat is 2.11, indicating chains have not mixed.
+#> Running the chains for more iterations may help. See
+#> http://mc-stan.org/misc/warnings.html#r-hat
+#> Warning: Bulk Effective Samples Size (ESS) is too low, indicating posterior means and medians may be unreliable.
+#> Running the chains for more iterations may help. See
+#> http://mc-stan.org/misc/warnings.html#bulk-ess
+#> Warning: Tail Effective Samples Size (ESS) is too low, indicating posterior variances and tail quantiles may be unreliable.
+#> Running the chains for more iterations may help. See
+#> http://mc-stan.org/misc/warnings.html#tail-ess
 
 plot_sraplus(index = index_fit,years = index_driors$years)
 ```
 
 ![](README_files/figure-gfm/unnamed-chunk-11-2.png)<!-- -->
+
+``` r
+
+plot_prior_posterior(index_fit, index_driors)
+#> Warning: Removed 25 rows containing missing values (geom_pointrange).
+```
+
+![](README_files/figure-gfm/unnamed-chunk-11-3.png)<!-- -->
 
 Looks good, now let’s try something a bit trickier.
 
@@ -653,28 +701,29 @@ summarize_sralpus(cpue_sar_proc_fit, output = "table") %>%
   knitr::kable()
 ```
 
-| variable          |        mean |          sd |       lower |        upper | year |
-| :---------------- | ----------: | ----------: | ----------: | -----------: | ---: |
-| log\_ihat         |   6.4246370 |   0.2559840 |   6.0155252 |    6.8337488 |   25 |
-| log\_b\_div\_bmsy |   0.5545893 |   0.0997763 |   0.3951275 |    0.7140511 |   25 |
-| log\_b            |   6.4246370 |   0.2559840 |   6.0155252 |    6.8337488 |   25 |
-| log\_depletion    | \-0.4404438 |   0.0997763 | \-0.5999056 |  \-0.2809820 |   25 |
-| log\_u\_div\_umsy | \-1.0198170 |   0.2532328 | \-1.4245319 |  \-0.6151022 |   25 |
-| log\_c\_div\_msy  | \-0.4652277 |   0.1645654 | \-0.7282350 |  \-0.2022205 |   25 |
-| proc\_errors      |   0.9631473 |   0.0125003 |   0.9431694 |    0.9831251 |   24 |
-| plim              |   0.2000000 |   0.0000000 |   0.2000000 |    0.2000000 |    1 |
-| b\_to\_k          |   0.3697112 |   0.0000000 |   0.3697112 |    0.3697112 |    1 |
-| crashed           |   0.0000000 |   0.0000000 |   0.0000000 |    0.0000000 |    1 |
-| index\_hat\_t     | 616.8568553 | 157.9054557 | 364.4934393 |  869.2202713 |   25 |
-| r                 |   0.3419930 |   0.0302143 |   0.2937047 |    0.3902812 |    1 |
-| m                 |   1.0100000 |   0.0000000 |   1.0100000 |    1.0100000 |    1 |
-| umsy              |   0.3386069 |   0.0299151 |   0.2907968 |    0.3864170 |    1 |
-| k                 | 958.2232513 | 165.0769203 | 694.3984497 | 1222.0480529 |    1 |
-| q\_t              |   0.0010918 |   0.0002985 |   0.0006147 |    0.0015689 |   25 |
-| q\_slope          |   0.0000010 |   0.0000000 |   0.0000010 |    0.0000010 |    1 |
-| ihat              | 616.8568553 |   0.2559840 | 409.7409783 |  928.6656695 |   25 |
-| b\_div\_bmsy      |   1.7412257 |   0.0997763 |   1.4845735 |    2.0422478 |   25 |
-| b                 | 616.8568553 |   0.2559840 | 409.7409783 |  928.6656695 |   25 |
-| depletion         |   0.6437507 |   0.0997763 |   0.5488635 |    0.7550419 |   25 |
-| u\_div\_umsy      |   0.3606609 |   0.2532328 |   0.2406211 |    0.5405857 |   25 |
-| c\_div\_msy       |   0.6279921 |   0.1645654 |   0.4827603 |    0.8169148 |   25 |
+| variable          |        mean |         sd |       lower |       upper | year |
+| :---------------- | ----------: | ---------: | ----------: | ----------: | ---: |
+| sigma\_proc       |   0.0783211 |  0.0126499 |   0.0581042 |   0.0985381 |    1 |
+| log\_ihat         |   5.5899531 |  0.0479397 |   5.5133361 |   5.6665700 |   25 |
+| log\_b\_div\_bmsy |   0.1843356 |  0.0646092 |   0.0810777 |   0.2875936 |   25 |
+| log\_b            |   5.5899531 |  0.0479397 |   5.5133361 |   5.6665700 |   25 |
+| log\_depletion    | \-0.8106975 |  0.0646092 | \-0.9139554 | \-0.7074395 |   25 |
+| log\_u\_div\_umsy | \-0.3398683 |  0.0833556 | \-0.4730867 | \-0.2066500 |   25 |
+| log\_c\_div\_msy  | \-0.1555327 |  0.0484258 | \-0.2329265 | \-0.0781390 |   25 |
+| proc\_errors      |   0.9297747 |  0.0389390 |   0.8675428 |   0.9920067 |   24 |
+| plim              |   0.0500000 |  0.0000000 |   0.0500000 |   0.0500000 |    1 |
+| b\_to\_k          |   0.3697112 |  0.0000000 |   0.3697112 |   0.3697112 |    1 |
+| crashed           |   0.0000000 |  0.0000000 |   0.0000000 |   0.0000000 |    1 |
+| index\_hat\_t     | 267.7230550 | 12.8345692 | 247.2109345 | 288.2351755 |   25 |
+| r                 |   0.3992198 |  0.0312465 |   0.3492819 |   0.4491577 |    1 |
+| m                 |   1.0100000 |  0.0000000 |   1.0100000 |   1.0100000 |    1 |
+| umsy              |   0.3952671 |  0.0309371 |   0.3458236 |   0.4447106 |    1 |
+| k                 | 602.2366826 | 38.5165742 | 540.6797579 | 663.7936073 |    1 |
+| q\_t              |   0.0027137 |  0.0001787 |   0.0024281 |   0.0029993 |   25 |
+| q\_slope          |   0.0000000 |  0.0000000 |   0.0000000 |   0.0000000 |    1 |
+| ihat              | 267.7230550 |  0.0479397 | 247.9770328 | 289.0414220 |   25 |
+| b\_div\_bmsy      |   1.2024193 |  0.0646092 |   1.0844551 |   1.3332153 |   25 |
+| b                 | 267.7230550 |  0.0479397 | 247.9770328 | 289.0414220 |   25 |
+| depletion         |   0.4445479 |  0.0646092 |   0.4009352 |   0.4929047 |   25 |
+| u\_div\_umsy      |   0.7118640 |  0.0833556 |   0.6230761 |   0.8133043 |   25 |
+| c\_div\_msy       |   0.8559591 |  0.0484258 |   0.7922118 |   0.9248359 |   25 |

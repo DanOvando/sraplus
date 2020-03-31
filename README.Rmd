@@ -138,19 +138,11 @@ From there, we pass the `driors` object to `sraplus::fit_sraplus`, and plot the 
 
  catch_only_fit <- fit_sraplus(driors = catch_only_driors,
                        engine = "sir",
-                       draws = 1e5,
-                       n_keep = 2000,
-                       estimate_proc_error = FALSE, 
+                       draws = 1e6,
+                       n_keep = 4000,
+                       estimate_proc_error = TRUE, 
                        estimate_shape = TRUE)
-# 
-#  catch_only_fit <- fit_sraplus(driors = catch_only_driors,
-#                        engine = "sir",
-#                        draws = 1e4,
-#                        n_keep = 2000,
-#                        estimate_proc_error = FALSE, 
-#                        estimate_shape = FALSE,
-#                        estimate_k = FALSE,
-#                        learn_rate = .05)
+
 ```
 
 Running `fit_sraplus` always produces a list with two objects: `results` and `fit`. `results` is (mostly) standardized across engines set of summary outputs from the fitted model. This allows us to easily plot and compare outputs from models fit using `sir`, TMB, or stan. The `fit` object contains the actual fitted model, which will of course vary dramatically depending on what engine was used. 
@@ -219,8 +211,8 @@ fmi_sar_fit <- fit_sraplus(
   driors = fmi_sar_driors,
   engine = "sir",
   draws = 1e6,
-  n_keep = 2000,
-  estimate_shape = FALSE,
+  n_keep = 4000,
+  estimate_shape = TRUE,
   estimate_proc_error = TRUE
 )
 
