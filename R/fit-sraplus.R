@@ -557,9 +557,9 @@ fit_sraplus <- function(driors,
 # itframe %>%
 #   ggplot(aes((log_r), (log_anchor), color = pens == 0)) +
 #   geom_point()
-
-
-  browser()
+# 
+# 
+#   browser()
     # lower_anchor <- log(1.25 * max(driors$catch))
     lower_anchor <-  0.9 * min(itframe$log_anchor[(itframe$pens == 0)])
 
