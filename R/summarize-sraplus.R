@@ -1,3 +1,12 @@
+#' provide summary of sraplus fit
+#'
+#' @param fit 
+#' @param output 
+#'
+#' @return
+#' @export
+#'
+#' @examples
 summarize_sralpus <- function(fit, output = "table"){
   
   # library(tidyverse)

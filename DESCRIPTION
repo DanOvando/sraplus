@@ -31,7 +31,7 @@ Suggests:
     rmarkdown
 VignetteBuilder: knitr
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 6.1.1
+RoxygenNote: 7.1.0
 Remotes: 
     james-thorson/FishLife,
     kaskr/TMB_contrib_R/TMBhelper,

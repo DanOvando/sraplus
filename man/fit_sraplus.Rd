@@ -4,15 +4,43 @@
 \alias{fit_sraplus}
 \title{Run sraplus}
 \usage{
-fit_sraplus(driors, include_fit = TRUE, seed = 42, plim = 0.2,
-  model_name = "sraplus_tmb", randos = "log_proc_errors",
-  draws = 1e+06, n_keep = 2000, engine = "sir", cores = 4,
-  chains = 1, cleanup = FALSE, max_treedepth = 10,
-  adapt_delta = 0.8, estimate_shape = FALSE, estimate_qslope = FALSE,
-  estimate_proc_error = TRUE, marginalize_q = FALSE,
-  use_baranov = TRUE, include_m = FALSE, ci = 0.89,
-  try_again = FALSE, eps = 1e-06, max_time = Inf, eval.max = 200,
-  iter.max = 150, rel.tol = 1e-10, loopnum = 1, newtonsteps = 1)
+fit_sraplus(
+  driors,
+  include_fit = TRUE,
+  seed = 42,
+  plim = 0.05,
+  model_name = "sraplus_tmb",
+  randos = "log_proc_errors",
+  draws = 1e+06,
+  n_keep = 2000,
+  engine = "sir",
+  cores = 4,
+  chains = 1,
+  cleanup = FALSE,
+  max_treedepth = 10,
+  adapt_delta = 0.8,
+  estimate_shape = FALSE,
+  estimate_qslope = FALSE,
+  estimate_proc_error = TRUE,
+  estimate_k = TRUE,
+  estimate_f = FALSE,
+  learn_rate = 0.001,
+  analytical_q = FALSE,
+  use_baranov = TRUE,
+  include_m = FALSE,
+  ci = 0.89,
+  try_again = FALSE,
+  eps = 1e-06,
+  max_time = Inf,
+  eval.max = 200,
+  iter.max = 150,
+  rel.tol = 1e-10,
+  loopnum = 1,
+  newtonsteps = 1,
+  tune_prior_predictive = TRUE,
+  refresh = 250,
+  ...
+)
 }
 \arguments{
 \item{driors}{a list of driors passed from sraplus::format_driors}
@@ -52,7 +80,41 @@ If FALSE q_slope is held at the initial value, either default or supplied. if TR
 \item{estimate_proc_error}{logical indicating whether to estimate process errors.
 If FALSE process errors are not included in the model}
 
+\item{estimate_k}{}
+
+\item{estimate_f}{}
+
+\item{learn_rate}{}
+
+\item{analytical_q}{}
+
+\item{use_baranov}{}
+
+\item{include_m}{}
+
 \item{ci}{confidence/credible interval range for summaries}
+
+\item{try_again}{}
+
+\item{eps}{}
+
+\item{max_time}{}
+
+\item{eval.max}{}
+
+\item{iter.max}{}
+
+\item{rel.tol}{}
+
+\item{loopnum}{}
+
+\item{newtonsteps}{}
+
+\item{tune_prior_predictive}{}
+
+\item{refresh}{}
+
+\item{...}{}
 }
 \value{
 a fitted sraplus object

@@ -218,12 +218,12 @@ head(catch_only_fit$results)
 #> # A tibble: 6 x 6
 #>    year variable            mean            sd        lower        upper
 #>   <dbl> <chr>              <dbl>         <dbl>        <dbl>        <dbl>
-#> 1  1963 b_div_bmsy         0.619        0.101        0.512         0.756
-#> 2  1963 b           15383178.    44061596.     2286442.     50533201.   
-#> 3  1963 c_div_msy          0.258        0.190        0.0284        0.492
+#> 1  1963 b_div_bmsy         0.620        0.109        0.511         0.752
+#> 2  1963 b           15483993.    52655442.     2242565.     43198981.   
+#> 3  1963 c_div_msy          0.261        0.182        0.0369        0.503
 #> 4  1963 crashed            0            0            0             0    
-#> 5  1963 depletion          0.402        0.0403       0.342         0.468
-#> 6  1963 index_hat_t   719239.     2628989.       25779.      2181291.
+#> 5  1963 depletion          0.402        0.0396       0.342         0.464
+#> 6  1963 index_hat_t   777815.     2670686.       25424.      2289380.
 ```
 
 `results` is organized as a dataframe tracking different variables over
@@ -239,12 +239,12 @@ object is the output of the SIR algorithm.
 ``` r
 head(catch_only_fit$fit)
 #>   variable year draw   value draw_id
-#> 1      b_t 1963    1 5570904  697914
-#> 2      b_t 1964    1 4673482  697914
-#> 3      b_t 1965    1 5460228  697914
-#> 4      b_t 1966    1 6960955  697914
-#> 5      b_t 1967    1 8015513  697914
-#> 6      b_t 1968    1 8603589  697914
+#> 1      b_t 1963    1 3200936   68246
+#> 2      b_t 1964    1 3146514   68246
+#> 3      b_t 1965    1 3334339   68246
+#> 4      b_t 1966    1 3298752   68246
+#> 5      b_t 1967    1 3555096   68246
+#> 6      b_t 1968    1 3398260   68246
 ```
 
 From there, we can generate some standard plots of B/Bmsy
@@ -334,7 +334,7 @@ sraplus::diagnose_sraplus(fit = fmi_sar_fit, driors = fmi_sar_driors )
 #> [1] "fishlife matched supplied species"
 #> 
 #> $distinct_sir_draws
-#> [1] 1585
+#> [1] 1548
 #> 
 #> $sir_convergence_plot
 ```
@@ -354,7 +354,7 @@ very simple example,using a simple fishery simulator built into
 set.seed(42)
 sim <-
   sraplus_simulator(
-    sigma_proc = 0,
+    sigma_proc = 0.05,
     sigma_u = 0,
     q_slope = 0,
     r = 0.4,
@@ -394,11 +394,7 @@ index_driors <- format_driors(
   index = sim$pop$biomass * 1e-3,
   index_years = sim$pop$year,
   initial_state = 1,
-  initial_state_cv = 0.05,
-  growth_rate_prior = 0.4,
-  growth_rate_prior_cv = 0.1,
-  shape_prior = 1.01,
-  shape_prior_cv = 0.1)
+  initial_state_cv = 0.005)
 
 plot_driors(index_driors)
 ```
@@ -408,47 +404,9 @@ plot_driors(index_driors)
 ``` r
 
 index_fit <- fit_sraplus(driors = index_driors,
-                      engine = "stan",
+                      engine = "tmb",
                       model = "sraplus_tmb", 
-                      estimate_proc_error = FALSE,
-                      newtonsteps = 10)
-#> 
-#> SAMPLING FOR MODEL 'tmb_generic' NOW (CHAIN 1).
-#> Chain 1: 
-#> Chain 1: Gradient evaluation took 2.3e-05 seconds
-#> Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 0.23 seconds.
-#> Chain 1: Adjust your expectations accordingly!
-#> Chain 1: 
-#> Chain 1: 
-#> Chain 1: Iteration:    1 / 2000 [  0%]  (Warmup)
-#> Chain 1: Iteration:  200 / 2000 [ 10%]  (Warmup)
-#> Chain 1: Iteration:  400 / 2000 [ 20%]  (Warmup)
-#> Chain 1: Iteration:  600 / 2000 [ 30%]  (Warmup)
-#> Chain 1: Iteration:  800 / 2000 [ 40%]  (Warmup)
-#> Chain 1: Iteration: 1000 / 2000 [ 50%]  (Warmup)
-#> Chain 1: Iteration: 1001 / 2000 [ 50%]  (Sampling)
-#> Chain 1: Iteration: 1200 / 2000 [ 60%]  (Sampling)
-#> Chain 1: Iteration: 1400 / 2000 [ 70%]  (Sampling)
-#> Chain 1: Iteration: 1600 / 2000 [ 80%]  (Sampling)
-#> Chain 1: Iteration: 1800 / 2000 [ 90%]  (Sampling)
-#> Chain 1: Iteration: 2000 / 2000 [100%]  (Sampling)
-#> Chain 1: 
-#> Chain 1:  Elapsed Time: 8.78771 seconds (Warm-up)
-#> Chain 1:                10.7284 seconds (Sampling)
-#> Chain 1:                19.5161 seconds (Total)
-#> Chain 1:
-#> Warning: There were 677 transitions after warmup that exceeded the maximum treedepth. Increase max_treedepth above 10. See
-#> http://mc-stan.org/misc/warnings.html#maximum-treedepth-exceeded
-#> Warning: Examine the pairs() plot to diagnose sampling problems
-#> Warning: The largest R-hat is 2.11, indicating chains have not mixed.
-#> Running the chains for more iterations may help. See
-#> http://mc-stan.org/misc/warnings.html#r-hat
-#> Warning: Bulk Effective Samples Size (ESS) is too low, indicating posterior means and medians may be unreliable.
-#> Running the chains for more iterations may help. See
-#> http://mc-stan.org/misc/warnings.html#bulk-ess
-#> Warning: Tail Effective Samples Size (ESS) is too low, indicating posterior variances and tail quantiles may be unreliable.
-#> Running the chains for more iterations may help. See
-#> http://mc-stan.org/misc/warnings.html#tail-ess
+                      estimate_proc_error = FALSE)
 
 plot_sraplus(index = index_fit,years = index_driors$years)
 ```

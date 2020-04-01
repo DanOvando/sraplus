@@ -243,7 +243,7 @@ We'll now try adding in some actual data to fit to. For illustration purposes (a
 set.seed(42)
 sim <-
   sraplus_simulator(
-    sigma_proc = 0,
+    sigma_proc = 0.05,
     sigma_u = 0,
     q_slope = 0,
     r = 0.4,
@@ -274,19 +274,14 @@ index_driors <- format_driors(
   index = sim$pop$biomass * 1e-3,
   index_years = sim$pop$year,
   initial_state = 1,
-  initial_state_cv = 0.05,
-  growth_rate_prior = 0.4,
-  growth_rate_prior_cv = 0.1,
-  shape_prior = 1.01,
-  shape_prior_cv = 0.1)
+  initial_state_cv = 0.005)
 
 plot_driors(index_driors)
 
 index_fit <- fit_sraplus(driors = index_driors,
-                      engine = "stan",
+                      engine = "tmb",
                       model = "sraplus_tmb", 
-                      estimate_proc_error = FALSE,
-                      newtonsteps = 10)
+                      estimate_proc_error = FALSE)
 
 plot_sraplus(index = index_fit,years = index_driors$years)
 

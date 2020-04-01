@@ -19,9 +19,9 @@ plot_driors <- function(driors, fontsize = 10, prob = 0.9) {
     
   }
   
-  if (any(!is.na(driors$u_v_umsy))) {
+  if (any(!is.na(driors$u))) {
     u_frame <- dplyr::tibble(year = driors$u_years,
-                             u_v_umsy = driors$u_v_umsy)
+                             u = driors$u)
     timeseries <- timeseries %>%
       dplyr::left_join(u_frame, by = "year")
     
@@ -46,19 +46,19 @@ plot_driors <- function(driors, fontsize = 10, prob = 0.9) {
     theme_sraplus(base_size = 12)
   
   
-  if (length(driors$log_final_u) > 1) {
-    driors$log_final_u1 = driors$log_final_u[1]
+  if (length(driors$log_terminal_u) > 1) {
+    driors$log_terminal_u1 = driors$log_terminal_u[1]
     
-    driors$log_final_u1_cv = driors$log_final_u_cv[1]
+    driors$log_terminal_u1_cv = driors$log_terminal_u_cv[1]
     
-    driors$log_final_u2 = driors$log_final_u[2]
+    driors$log_terminal_u2 = driors$log_terminal_u[2]
     
-    driors$log_final_u2_cv = driors$log_final_u_cv[2]
+    driors$log_terminal_u2_cv = driors$log_terminal_u_cv[2]
     
     driors <-
       purrr::list_modify(driors,
-                         "log_final_u" = NULL,
-                         "log_final_u_cv" = NULL)
+                         "log_terminal_u" = NULL,
+                         "log_terminal_u_cv" = NULL)
     
   }
   

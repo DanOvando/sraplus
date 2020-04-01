@@ -7,11 +7,11 @@
 #' @param terminal_state reference point in the terminal year, units of depletion or B/Bmsy (set ref_type accordingly).
 #' when \code{initial_state} is 1, implies either B/K = 1 or B/Bmsy = 1
 #' @param terminal_state_cv CV associated with terminal state reference point
-#' @param u_v_umsy u/umsy data over time
+#' @param u u/umsy data over time
 #' @param u_years years in which u/umsy data are available
 #' @param u_cv cv associated with u/umsy data
-#' @param final_u vector of priors on u/umsy in the terminal years
-#' @param final_u_cv vector of cvs on u/umsy in the terminal years
+#' @param terminal_u vector of priors on u/umsy in the terminal years
+#' @param terminal_u_cv vector of cvs on u/umsy in the terminal years
 #' @param catch vector of catches over lifetime of fishery
 #' @param years vector of years that the catch data correspond to
 #' @param index vector of an abundance index
@@ -52,11 +52,11 @@ format_driors <-
            initial_state_cv = 0.1,
            terminal_state = NA,
            terminal_state_cv = 0.2,
-           u_v_umsy = NA,
+           u = NA,
            u_years = NA,
            u_cv = 0.2,
-           final_u = NA,
-           final_u_cv = NA,
+           terminal_u = NA,
+           terminal_u_cv = NA,
            catch = NA,
            years = NA,
            index = NA,
@@ -98,7 +98,7 @@ format_driors <-
     }
     
     if (use_heuristics == TRUE) {
-      warning("WARNING: You are using catch heursitics as your stock assessment")
+      warning("WARNING: You are using catch heursitics as your stock assessment. Consider manually setting priors on terminal depletion based on expert opinion, or using a proxy such as swept area ratio")
       
     }
     
@@ -145,11 +145,11 @@ format_driors <-
         pp[pp > quantile(pp, (1 - prob) / 2) &
              pp < quantile(pp, 1 - (1 - prob) / 2)]
       
-      final_u <- c(final_u, exp(mean(pp)))
+      terminal_u <- c(terminal_u, exp(mean(pp)))
       
       usd <- ifelse(is.na(sar_cv), sd(pp), sar_cv)
       
-      final_u_cv <- c(final_u_cv, usd)
+      terminal_u_cv <- c(terminal_u_cv, usd)
       
       if (use_b_reg == TRUE) {
         tempmod <- sar_models$fit[sar_models$metric == "mean_bbmsy"][[1]]
@@ -191,10 +191,10 @@ format_driors <-
         pp[pp > quantile(pp, (1 - prob) / 2) &
              pp < quantile(pp, 1 - (1 - prob) / 2)]
       
-      final_u <- c(final_u, exp(mean(pp)))
+      terminal_u <- c(terminal_u, exp(mean(pp)))
       
-      final_u_cv <-
-        c(final_u_cv, ifelse(is.na(fmi_cv), sd(pp), fmi_cv))
+      terminal_u_cv <-
+        c(terminal_u_cv, ifelse(is.na(fmi_cv), sd(pp), fmi_cv))
       
       if (use_b_reg == TRUE) {
         tempmod <- fmi_models$fit[fmi_models$metric == "mean_bbmsy"][[1]]
@@ -301,14 +301,14 @@ format_driors <-
     }
     
     
-    if (any(!is.na(final_u))) {
-      log_final_u <- log(final_u[!is.na(final_u)])
+    if (any(!is.na(terminal_u))) {
+      log_terminal_u <- log(terminal_u[!is.na(terminal_u)])
       
-      log_final_u_cv <- final_u_cv[!is.na(final_u)]
+      log_terminal_u_cv <- terminal_u_cv[!is.na(terminal_u)]
       #
       # if (is.na(terminal_state)){ # if no terminal b prior use approx from U/Umsy
       #
-      #   terminal_state <- pmax(.05,2.5 - mean(final_u[!is.na(final_u)]))
+      #   terminal_state <- pmax(.05,2.5 - mean(terminal_u[!is.na(terminal_u)]))
       #
       #   terminal_state_cv <- 0.2
       #
@@ -322,9 +322,9 @@ format_driors <-
       # }
       
     } else {
-      log_final_u <- NA
+      log_terminal_u <- NA
       
-      log_final_u_cv <- NA
+      log_terminal_u_cv <- NA
     }
     
     if (use_heuristics == TRUE) {
@@ -369,7 +369,7 @@ format_driors <-
     
     if (use_b_reg == TRUE){
       
-      log_final_u = NA
+      log_terminal_u = NA
     
       }
     
@@ -385,7 +385,7 @@ format_driors <-
         initial_state_cv = initial_state_cv,
         index = index,
         effort = effort,
-        u_v_umsy = u_v_umsy,
+        u = u,
         u_years = u_years,
         u_cv = u_cv,
         index_years = index_years,
@@ -401,8 +401,8 @@ format_driors <-
         # sigma_r_prior = ifelse(is.na(sigma_r_prior), exp(mean_lh["ln_var"]) / 2, sigma_r_prior),
         # sigma_r_prior_cv = ifelse(is.na(sigma_r_prior_cv), sqrt(cov_lh["ln_var"]), sigma_r_prior_cv),
         m =  ifelse(is.na(m), exp(mean_lh["M"]), m),
-        log_final_u = log_final_u,
-        log_final_u_cv = log_final_u_cv,
+        log_terminal_u = log_terminal_u,
+        log_terminal_u_cv = log_terminal_u_cv,
         q_slope_prior = q_slope_prior + 1e-6,
         q_slope_prior_cv = q_slope_prior_cv,
         shape_prior = shape_prior,

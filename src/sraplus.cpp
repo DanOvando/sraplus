@@ -57,8 +57,8 @@ List sraplus(NumericVector catches,
              NumericVector drawdex,
              NumericVector index_t,
              NumericVector sigma_obs,
-             NumericVector log_final_u,
-             NumericVector log_final_u_cv,
+             NumericVector log_terminal_u,
+             NumericVector log_terminal_u_cv,
 IntegerVector index_years,
 IntegerVector u_years,
 int draws,
@@ -66,10 +66,10 @@ int n_keep,
 int b_ref_type,
 int f_ref_type,
 int fit_index,
-int use_final_u,
-int use_final_state,
+int use_terminal_u,
+int use_terminal_state,
 bool estimate_k,
-double log_final_ref,
+double log_terminal_ref,
 double sigma_dep,
 double plim,
 int use_u_prior,
@@ -110,7 +110,7 @@ double learn_rate
   
   for (int i = 0; i < draws; i++) {
 
-  double final_ref;
+  double terminal_ref;
 
   double growth_mult = 1;
 
@@ -143,7 +143,7 @@ double learn_rate
     
     double k;
     
-    double final_state;
+    double terminal_state;
     
     int counter;
     
@@ -153,7 +153,7 @@ double learn_rate
     
     delta = 100;
     
-    final_state = anchors(i);
+    terminal_state = anchors(i);
     
     NumericVector proposal_result(years);
     
@@ -167,7 +167,7 @@ double learn_rate
     
     // std::cout <<  "counter is" << proposal_result(years - 1)  << std::endl;
     
-    prop_error =  log(proposal_result(years - 1) / exp(last_proposal)) - log(final_state);
+    prop_error =  log(proposal_result(years - 1) / exp(last_proposal)) - log(terminal_state);
     
     
     
@@ -204,13 +204,13 @@ double learn_rate
       grad_dep = proposal_result(years - 1) / exp(new_proposal);
       
       
-      prop_error =  log(grad_dep + 1e-6) - log(final_state);
+      prop_error =  log(grad_dep + 1e-6) - log(terminal_state);
       
       // std::cout << "prop dep is" << proposal_result[time - 1] / exp(new_proposal) << std::endl;
       
       last_proposal = new_proposal;
       
-      delta = sqrt(pow(grad_dep - final_state,2));
+      delta = sqrt(pow(grad_dep - terminal_state,2));
       
       // std::cout <<  "new proposal is  is" << new_proposal  << std::endl;
       
@@ -296,22 +296,22 @@ double learn_rate
 
   if (b_ref_type == 0){
 
-    final_ref = dep_t(years - 1,i);
+    terminal_ref = dep_t(years - 1,i);
   }
 
   if (b_ref_type == 1){
 
-    final_ref = b_bmsy_t(years - 1,i);
+    terminal_ref = b_bmsy_t(years - 1,i);
   }
   
-  if (use_final_state == 1){
+  if (use_terminal_state == 1){
   
-  log_like(i) += R::dnorm(log(final_ref),log_final_ref, sigma_dep, true);
+  log_like(i) += R::dnorm(log(terminal_ref),log_terminal_ref, sigma_dep, true);
   }
   
   // psuedocode for prior-predictive check
-  // bin the thing you have a prior on (say final depletion)
-  // assign K values to each final depletion. 
+  // bin the thing you have a prior on (say terminal depletion)
+  // assign K values to each terminal depletion. 
   // Bin depletion and calculate total likelihood in that bin (sum delta dnorm between extremes?)
   // assign each k to a bin, and divide the total likelihood in that bin between the ks
   // sample from the ks with that weight
@@ -340,22 +340,22 @@ double learn_rate
 
   }
 
-  if (use_final_u == 1){
+  if (use_terminal_u == 1){
 
-    for (int j = 0; j < log_final_u.size(); j++){
+    for (int j = 0; j < log_terminal_u.size(); j++){
       
       if (f_ref_type == 1){
 
-      log_like(i) += R::dnorm(log(u_umsy_t(years - 1, i) + 1e-6), log_final_u(j),log_final_u_cv(j), true);
+      log_like(i) += R::dnorm(log(u_umsy_t(years - 1, i) + 1e-6), log_terminal_u(j),log_terminal_u_cv(j), true);
       } else {
         
-        log_like(i) += R::dnorm(log(u_t(years - 1, i) + 1e-6), log_final_u(j),log_final_u_cv(j), true);
+        log_like(i) += R::dnorm(log(u_t(years - 1, i) + 1e-6), log_terminal_u(j),log_terminal_u_cv(j), true);
         
       }
 
-    } // close use final u loops
+    } // close use terminal u loops
 
-  } // close use final u
+  } // close use terminal u
 
   } // close if crashed is false
 

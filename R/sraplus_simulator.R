@@ -1,3 +1,20 @@
+#' sraplus fishery simulator
+#'
+#' @param r 
+#' @param k 
+#' @param m 
+#' @param q 
+#' @param q_slope 
+#' @param sigma_proc 
+#' @param sigma_u 
+#' @param init_dep 
+#' @param init_u_umsy 
+#' @param years 
+#'
+#' @return
+#' @export
+#'
+#' @examples
 sraplus_simulator <-
   function(r = 0.2,
            k = 1000,

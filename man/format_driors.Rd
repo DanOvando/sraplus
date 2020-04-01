@@ -4,20 +4,48 @@
 \alias{format_driors}
 \title{Format data and priors for sraplus}
 \usage{
-format_driors(taxa = "lutjanus griseus", initial_state = 1,
-  initial_state_cv = 0.1, terminal_state = NA,
-  terminal_state_cv = 0.2, u_v_umsy = NA, u_years = NA, u_cv = 0.2,
-  final_u = NA, final_u_cv = NA, catch = NA, years = NA,
-  index = NA, effort = NA, b_ref_type = "k", f_ref_type = "fmsy",
-  index_years = 1, effort_years = NA, use_heuristics = FALSE,
-  use_b_reg = FALSE, growth_rate_prior = NA,
-  growth_rate_prior_cv = 0.1, fmi = c(research = NA, management = NA,
-  enforcement = NA, socioeconomics = NA), fmi_cv = NA, sar = NA,
-  sar_cv = NA, q_slope_prior = 0, q_slope_prior_cv = 0.1, m = NA,
-  k_prior = NA, k_prior_cv = 2, sigma_r_prior = 0.05,
-  sigma_r_prior_cv = 0.5, shape_prior = 1.01, shape_prior_cv = 0.25,
-  q_prior_cv = 1, sigma_obs_prior = 0.05, sigma_obs_prior_cv = 2,
-  isscaap_group = NA, prob = 0.9)
+format_driors(
+  taxa = "lutjanus griseus",
+  initial_state = 1,
+  initial_state_cv = 0.1,
+  terminal_state = NA,
+  terminal_state_cv = 0.2,
+  u = NA,
+  u_years = NA,
+  u_cv = 0.2,
+  terminal_u = NA,
+  terminal_u_cv = NA,
+  catch = NA,
+  years = NA,
+  index = NA,
+  effort = NA,
+  b_ref_type = "k",
+  f_ref_type = "fmsy",
+  index_years = 1,
+  effort_years = NA,
+  use_heuristics = FALSE,
+  use_b_reg = FALSE,
+  growth_rate_prior = NA,
+  growth_rate_prior_cv = 0.1,
+  fmi = c(research = NA, management = NA, enforcement = NA, socioeconomics = NA),
+  fmi_cv = NA,
+  sar = NA,
+  sar_cv = NA,
+  q_slope_prior = 0,
+  q_slope_prior_cv = 0.1,
+  m = NA,
+  k_prior = NA,
+  k_prior_cv = 2,
+  sigma_ratio_prior = 1,
+  sigma_ratio_prior_cv = 0.5,
+  shape_prior = 1.01,
+  shape_prior_cv = 0.25,
+  q_prior_cv = 1,
+  sigma_obs_prior = 0.05,
+  sigma_obs_prior_cv = 1,
+  isscaap_group = NA,
+  prob = 0.9
+)
 }
 \arguments{
 \item{taxa}{the genus and species of the species (case insensitive)}
@@ -32,15 +60,15 @@ when \code{initial_state} is 1, implies either B/K = 1 or B/Bmsy = 1}
 
 \item{terminal_state_cv}{CV associated with terminal state reference point}
 
-\item{u_v_umsy}{u/umsy data over time}
+\item{u}{u/umsy data over time}
 
 \item{u_years}{years in which u/umsy data are available}
 
 \item{u_cv}{cv associated with u/umsy data}
 
-\item{final_u}{vector of priors on u/umsy in the terminal years}
+\item{terminal_u}{vector of priors on u/umsy in the terminal years}
 
-\item{final_u_cv}{vector of cvs on u/umsy in the terminal years}
+\item{terminal_u_cv}{vector of cvs on u/umsy in the terminal years}
 
 \item{catch}{vector of catches over lifetime of fishery}
 
@@ -84,9 +112,9 @@ when \code{initial_state} is 1, implies either B/K = 1 or B/Bmsy = 1}
 
 \item{k_prior_cv}{CV of prior on carrying capacity}
 
-\item{sigma_r_prior}{prior on process error}
+\item{sigma_ratio_prior}{}
 
-\item{sigma_r_prior_cv}{CV of prior on process error}
+\item{sigma_ratio_prior_cv}{}
 
 \item{shape_prior}{prior on shape parameter of Pella-Tomlinson model}
 

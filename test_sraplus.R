@@ -127,7 +127,8 @@ bayes_fit <- fit_sraplus(driors = ml_driors,
                       eps = 1e-2,
                       adapt_delta = 0.8,
                       analytical_q = FALSE,
-                      max_treedepth = 12)
+                      max_treedepth = 12,
+                      refresh = 0)
 
 diagnose_sraplus(bayes_fit, ml_driors)
 
@@ -142,6 +143,55 @@ test <- names(bayes_fit$fit)
 
 
 plot_sraplus(ml_fit = ml_fit, bayes_fit = bayes_fit,years = ml_driors$years)
+
+
+# test u priors
+
+u_driors <- format_driors(
+  taxa = example_taxa,
+  catch = pop$catch,
+  years = pop$year,
+  index = pop$biomass * q * exp(rnorm(
+    length(pop$biomass), -sigma_obs ^ 2 / 2, sigma_obs
+  )),
+  index_years = pop$year,
+  terminal_u = .75,
+  terminal_u_cv = .1,
+  initial_state = 1,
+  initial_state_cv = 0.025,
+  terminal_state = NA,
+  shape_prior = 1.01,
+  growth_rate_prior = 0.4,
+  growth_rate_prior_cv = 0.5,
+  sigma_ratio_prior = 1,
+  sigma_ratio_prior_cv = .1,
+)
+
+plot_driors(u_driors)
+
+
+u_fit <- fit_sraplus(driors = u_driors,
+                      engine = "tmb",
+                      model = "sraplus_tmb",
+                      estimate_shape = FALSE, 
+                      estimate_proc_error = FALSE,
+                      estimate_f = TRUE,
+                      estimate_k = TRUE,
+                      learn_rate = 2e-1,
+                      n_keep = 2000,
+                      eps = 1e-12,
+                      adapt_delta = 0.95,
+                      analytical_q = FALSE,
+                      max_treedepth = 12,
+                      ci  = 0.89)
+
+diagnose_sraplus(u_fit, u_driors)
+
+plot_sraplus(u_fit = u_fit, years = u_fit$years)
+
+plot_prior_posterior(u_fit, u_driors)
+
+sraplus::summarize_sralpus(ml_fit)
 
 
 # 

@@ -24,6 +24,23 @@
 #' @param estimate_proc_error logical indicating whether to estimate process errors.
 #' If FALSE process errors are not included in the model
 #' @param ci confidence/credible interval range for summaries
+#' @param estimate_k 
+#' @param estimate_f 
+#' @param learn_rate 
+#' @param analytical_q 
+#' @param use_baranov 
+#' @param include_m 
+#' @param try_again 
+#' @param eps 
+#' @param max_time 
+#' @param eval.max 
+#' @param iter.max 
+#' @param rel.tol 
+#' @param loopnum 
+#' @param newtonsteps 
+#' @param tune_prior_predictive 
+#' @param refresh 
+#' @param ... 
 #'
 #' @return a fitted sraplus object
 #' @export
@@ -75,7 +92,11 @@ fit_sraplus <- function(driors,
                         rel.tol = 1e-10,
                         loopnum = 1,
                         newtonsteps = 1,
-                        tune_prior_predictive = TRUE) {
+                        tune_prior_predictive = TRUE,
+                        refresh = 250,
+                        ...) {
+  
+  opts <- list(...)
   
   if (max_time < Inf){
     
@@ -111,28 +132,28 @@ fit_sraplus <- function(driors,
     log_r_cv = driors$growth_rate_prior_cv,
     log_init_dep_prior = log(driors$initial_state),
     log_init_dep_cv = driors$initial_state_cv,
-    log_final_dep_prior = log(driors$terminal_state),
-    log_final_dep_cv = driors$terminal_state_cv,
+    log_terminal_dep_prior = log(driors$terminal_state),
+    log_terminal_dep_cv = driors$terminal_state_cv,
     time = time,
     fit_index = as.numeric(!all(is.na(driors$index)) |
                              !all(is.na(driors$effort))),
     calc_cpue =  as.numeric(!all(is.na(driors$effort))),
     use_baranov = as.numeric(use_baranov),
-    use_u_prior = as.numeric(!all(is.na(driors$u_v_umsy))),
+    use_u_prior = as.numeric(!all(is.na(driors$u))),
     u_years = which(driors$years %in% driors$u_years),
-    u_priors = driors$u_v_umsy,
+    u_priors = driors$u,
     u_cv = driors$u_cv,
     plim = plim,
     sigma_ratio_prior = driors$sigma_ratio_prior,
     sigma_ratio_prior_cv = driors$sigma_ratio_prior_cv,
     b_ref_type = ifelse(driors$b_ref_type == "k", 0, 1),
     f_ref_type = ifelse(driors$f_ref_type == "f", 0, 1),
-    use_final_state = !is.na(driors$terminal_state),
-    use_final_u = as.numeric(!all(is.na(
-      driors$log_final_u
+    use_terminal_state = !is.na(driors$terminal_state),
+    use_terminal_u = as.numeric(!all(is.na(
+      driors$log_terminal_u
     ))),
-    log_final_u = driors$log_final_u,
-    log_final_u_cv = driors$log_final_u_cv,
+    log_terminal_u = driors$log_terminal_u,
+    log_terminal_u_cv = driors$log_terminal_u_cv,
     use_init =  !is.na(driors$initial_state),
     sigma_u = driors$u_cv,
     k_prior = driors$k_prior,
@@ -279,11 +300,11 @@ fit_sraplus <- function(driors,
       engine <- sir
     }
     
-    if (sra_data$use_final_state == 0 &
-        sra_data$use_final_u == 0 &
+    if (sra_data$use_terminal_state == 0 &
+        sra_data$use_terminal_u == 0 &
         sra_data$use_u_prior == 0 & is.na(driors$terminal_state)) {
       stop(
-        "Trying to run SIR without priors on final status or fishing mortality! Specify one or both of these"
+        "Trying to run SIR without priors on terminal status or fishing mortality! Specify one or both of these"
       )
     }
     
@@ -324,7 +345,6 @@ fit_sraplus <- function(driors,
       init_dep = pmin(init_dep, 1)
       
     }
-    
     sra_fit <- sraplus::sraplus(
       catches = sra_data$catch_t,
       rs = pmax(
@@ -344,15 +364,15 @@ fit_sraplus <- function(driors,
       anchors = anchors,
       sigma_procs = runif(draws, 0, ifelse(estimate_proc_error, 0.2, 0)),
       draws = draws,
-      log_final_ref = ifelse(
-        is.na(sra_data$log_final_dep_prior),
+      log_terminal_ref = ifelse(
+        is.na(sra_data$log_terminal_dep_prior),
         0.5,
-        sra_data$log_final_dep_prior
+        sra_data$log_terminal_dep_prior
       ),
       sigma_dep = ifelse(
-        is.na(sra_data$log_final_dep_prior),
+        is.na(sra_data$log_terminal_dep_prior),
         1,
-        sra_data$log_final_dep_cv
+        sra_data$log_terminal_dep_cv
       ),
       use_u_prior = sra_data$use_u_prior,
       u_priors = sra_data$u_priors,
@@ -368,19 +388,19 @@ fit_sraplus <- function(driors,
       fit_index = sra_data$fit_index,
       sigma_obs = exp(rnorm(draws, log(0.2), 0.1)),
       plim = plim,
-      use_final_u = sra_data$use_final_u,
-      use_final_state = sra_data$use_final_state,
-      log_final_u = sra_data$log_final_u,
-      log_final_u_cv =  sra_data$log_final_u_cv,
+      use_terminal_u = sra_data$use_terminal_u,
+      use_terminal_state = sra_data$use_terminal_state,
+      log_terminal_u = sra_data$log_terminal_u,
+      log_terminal_u_cv =  sra_data$log_terminal_u_cv,
       estimate_k = estimate_k,
       learn_rate = learn_rate
     )
     
 
-    if (tune_prior_predictive == TRUE){ # tune samples from SIR such that "posterior" (bernouli filtered) of say final depletion matches prior
+    if (tune_prior_predictive == TRUE){ # tune samples from SIR such that "posterior" (bernouli filtered) of say terminal depletion matches prior
       # if we state that catches are not data, out prior should not change through the SIR
       
-      if (any(!is.na(driors$log_final_u))){
+      if (any(!is.na(driors$log_terminal_u))){
         
         if (driors$f_ref_type == "fmsy"){
           
@@ -528,7 +548,7 @@ fit_sraplus <- function(driors,
       itframe <- data.frame(log_anchor = runif(it, min = log(1), max = log(50 * sum(driors$catch))),
                                                log_r =  runif(it, min = log(0.01), max = log(2)),
                             pens = NA,
-                            final_dep = NA)
+                            terminal_dep = NA)
       
       
       for ( i in 1:it){
@@ -552,7 +572,7 @@ fit_sraplus <- function(driors,
 
         itframe$pens[i] <- a$pen
         
-        itframe$final_dep[i] <- a$dep_t[length(a$dep_t)]
+        itframe$terminal_dep[i] <- a$dep_t[length(a$dep_t)]
 
       }
 # browser()
@@ -568,7 +588,7 @@ fit_sraplus <- function(driors,
 
     inits$log_anchor <- log(2 * exp(lower_anchor))
     
-    driors$k_prior <- median(itframe$log_anchor[itframe$pens == 0 & itframe$final_dep < 0.9])
+    driors$k_prior <- median(itframe$log_anchor[itframe$pens == 0 & itframe$terminal_dep < 0.9])
     # upper_anchor <- 5 * lower_anchor
     
     # lower_anchor <- -Inf
@@ -642,7 +662,8 @@ fit_sraplus <- function(driors,
           iter = n_keep,
           init = purrr::map(chains,  ~ purrr::map(inits, jitter), inits = inits),
           control = list(max_treedepth = max_treedepth,
-                         adapt_delta = adapt_delta)
+                         adapt_delta = adapt_delta),
+          refresh = refresh
         )
       
       draws = tidybayes::tidy_draws(fit) %>%

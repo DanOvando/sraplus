@@ -1,3 +1,22 @@
+#' fir-sraplus-regressions
+#'
+#' @param split 
+#' @param model_structure 
+#' @param use_splits 
+#' @param chains 
+#' @param cores 
+#' @param iter 
+#' @param adapt_delta 
+#' @param max_treedepth 
+#' @param produce 
+#' @param refresh 
+#' @param post_draws 
+#' @param ... 
+#'
+#' @return
+#' @export
+#'
+#' @examples
 fit_prior_regressions <-
   function(split,
            model_structure,

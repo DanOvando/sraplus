@@ -72,11 +72,11 @@ Type objective_function<Type>::operator() ()
   
   DATA_INTEGER(use_u_prior); //
   
-  DATA_INTEGER(b_ref_type); //0 means that initial and final are relative to K, 1 to Bmsy
+  DATA_INTEGER(b_ref_type); //0 means that initial and terminal are relative to K, 1 to Bmsy
   
   DATA_INTEGER(f_ref_type); //0 means f, 1 f/fmsy
   
-  DATA_INTEGER(est_k); // 1 means estiamte k, 0 means estimate final depletion
+  DATA_INTEGER(est_k); // 1 means estiamte k, 0 means estimate terminal depletion
   
   DATA_INTEGER(estimate_proc_error); // 1 to estimate process error, 0 to not
   
@@ -88,13 +88,13 @@ Type objective_function<Type>::operator() ()
   
   // DATA_INTEGER(use_init); // use initial reference point
   
-  DATA_INTEGER(use_final_state); // use final reference point
+  DATA_INTEGER(use_terminal_state); // use terminal reference point
   
-  DATA_INTEGER(use_final_u); // use final U/Umsy
+  DATA_INTEGER(use_terminal_u); // use terminal U/Umsy
   
-  DATA_VECTOR(log_final_u);
+  DATA_VECTOR(log_terminal_u);
   
-  DATA_VECTOR(log_final_u_cv);
+  DATA_VECTOR(log_terminal_u_cv);
   
   DATA_VECTOR(u_priors);
   
@@ -132,9 +132,9 @@ Type objective_function<Type>::operator() ()
   
   DATA_SCALAR(log_init_dep_cv);
   
-  DATA_SCALAR(log_final_dep_prior);
+  DATA_SCALAR(log_terminal_dep_prior);
   
-  DATA_SCALAR(log_final_dep_cv);
+  DATA_SCALAR(log_terminal_dep_cv);
   
   DATA_SCALAR(q_slope_prior);
   
@@ -251,7 +251,7 @@ Type objective_function<Type>::operator() ()
   
   Type conv_error = 0;
   
-  Type final_state = 0;
+  Type terminal_state = 0;
   
   Type grad_dep = 0;
   
@@ -265,13 +265,13 @@ Type objective_function<Type>::operator() ()
     
     vector<Type> proposal_result(time);
     
-    final_state = exp(log_anchor);
+    terminal_state = exp(log_anchor);
     
     Type last_proposal =   log(max(catch_t) * 10);
     
     proposal_result = popmodel(r,m,exp(last_proposal), init_dep, catch_t, proc_errors, time, eps,plim);
     
-    Type prop_error =  log(proposal_result[time - 1] / exp(last_proposal)) - log(final_state);
+    Type prop_error =  log(proposal_result[time - 1] / exp(last_proposal)) - log(terminal_state);
     
     while(delta > 1e-3){
       
@@ -283,14 +283,14 @@ Type objective_function<Type>::operator() ()
       
       grad_dep = proposal_result[time - 1] / exp(new_proposal);
       
-      prop_error =  log(grad_dep) - log(final_state);
+      prop_error =  log(grad_dep) - log(terminal_state);
       
       // std::cout << "prop dep is" << proposal_result[time - 1] / exp(new_proposal) << std::endl;
       
       
       last_proposal = new_proposal;
       
-      delta = sqrt(pow(grad_dep - final_state,2));
+      delta = sqrt(pow(grad_dep - terminal_state,2));
       
       conv_error = delta;
       
@@ -411,6 +411,8 @@ Type objective_function<Type>::operator() ()
   
   if (fit_index == 1) {
     
+    nll -= dnorm(log_sigma_obs,log(sigma_obs_prior), sigma_obs_prior_cv, true);
+    
     vector<Type> z_t = index_t / b_t(index_years - 1);
     
     Type q_hat = z_t.mean();
@@ -473,13 +475,13 @@ Type objective_function<Type>::operator() ()
   
   nll -= dnorm(log_r, log_r_prior, log_r_cv, true);
   
-  Type final_ref = 0.5;
+  Type terminal_ref = 0.5;
   
   Type init_ref = 1.0;
   
   if (b_ref_type == 0){
     
-    final_ref = dep_t(time - 1);
+    terminal_ref = dep_t(time - 1);
     
     init_ref = dep_t(0);
     
@@ -487,27 +489,27 @@ Type objective_function<Type>::operator() ()
   
   if (b_ref_type == 1) {
     
-    final_ref = b_v_bmsy(time - 1);
+    terminal_ref = b_v_bmsy(time - 1);
     
     init_ref = b_v_bmsy(0);
     
   }
   
   
-  if (use_final_state == 1) {
+  if (use_terminal_state == 1) {
     
-    nll -= dnorm(log(final_ref), log_final_dep_prior,log_final_dep_cv, true);
+    nll -= dnorm(log(terminal_ref), log_terminal_dep_prior,log_terminal_dep_cv, true);
     
   }
   
-  // allow for arbitarry numbers of priors on final U/Umsy, so that you can use FMI + SAR
-  if (use_final_u == 1){
+  // allow for arbitarry numbers of priors on terminal U/Umsy, so that you can use FMI + SAR
+  if (use_terminal_u == 1){
     
-    for (int i = 0; i < log_final_u.size(); i++){
+    for (int i = 0; i < log_terminal_u.size(); i++){
       
       if (f_ref_type == 1){
         
-        nll -= dnorm(log(u_v_umsy(time - 1)), log_final_u(i),log_final_u_cv(i), true);
+        nll -= dnorm(log(u_v_umsy(time - 1)), log_terminal_u(i),log_terminal_u_cv(i), true);
         
       } 
       
@@ -515,16 +517,15 @@ Type objective_function<Type>::operator() ()
         
         // std::cout<< "hello? it's u!" << std::endl;
         
-        nll -= dnorm(log(u_t(time - 1)), log_final_u(i),log_final_u_cv(i), true);
+        nll -= dnorm(log(u_t(time - 1)), log_terminal_u(i),log_terminal_u_cv(i), true);
         
       }
-    } // cluse use final u loops
+    } // cluse use terminal u loops
     
-  } // close use final u
+  } // close use terminal u
   
   nll -= dnorm(log_init_dep, log_init_dep_prior, log_init_dep_cv, true);
   
-  nll -= dnorm(log_sigma_obs,log(sigma_obs_prior), sigma_obs_prior_cv, true);
   
   if (estimate_qslope == 1){
     
@@ -595,7 +596,7 @@ Type objective_function<Type>::operator() ()
   
   REPORT(log_c_div_msy);
   
-  REPORT(final_ref);
+  REPORT(terminal_ref);
   
   REPORT(proc_errors);
   

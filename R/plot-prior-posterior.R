@@ -1,3 +1,14 @@
+#' plot_prior_posterior
+#'
+#' @param fit 
+#' @param driors 
+#' @param draws 
+#' @param prob 
+#'
+#' @return
+#' @export
+#'
+#' @examples
 plot_prior_posterior <- function(fit, driors,
                                  draws = 1000,
                                  prob  = 0.9){
@@ -44,7 +55,7 @@ plot_prior_posterior <- function(fit, driors,
 #                                         years = sim$pop$year,
 #                                         effort = sim$pop$effort[effort_years],
 #                                         effort_years = effort_years,
-#                                u_v_umsy = sim$pop$u_umsy[effort_years],
+#                                u = sim$pop$u_umsy[effort_years],
 #                                u_years = effort_years,
 #                                         growth_rate_prior = 0.4,
 #                                         growth_rate_prior_cv = 0.1,
@@ -126,16 +137,16 @@ plot_prior_posterior <- function(fit, driors,
     
   }
   
-  if (any(!is.na(driors$u_v_umsy))) {
+  if (any(!is.na(driors$u))) {
     u_frame <- dplyr::tibble(year = driors$u_years,
-                             u_v_umsy = driors$u_v_umsy)
+                             u = driors$u)
     timeseries <- timeseries %>%
       dplyr::left_join(u_frame, by = "year")
     
     u_fit <- fit$results %>% 
       dplyr::filter(variable == "u_div_umsy") %>% 
       dplyr::select(mean,lower, upper) %>% 
-      dplyr::mutate(metric = "u_v_umsy",
+      dplyr::mutate(metric = "u",
                     year = driors$years) %>% 
       # dplyr::filter(year %in% driors$u_years) %>% 
       dplyr::mutate(
@@ -225,19 +236,19 @@ plot_prior_posterior <- function(fit, driors,
   }
   
   
-  if (length(driors$log_final_u) > 1) {
-    driors$log_final_u1 = driors$log_final_u[1]
+  if (length(driors$log_terminal_u) > 1) {
+    driors$log_terminal_u1 = driors$log_terminal_u[1]
     
-    driors$log_final_u1_cv = driors$log_final_u_cv[1]
+    driors$log_terminal_u1_cv = driors$log_terminal_u_cv[1]
     
-    driors$log_final_u2 = driors$log_final_u[2]
+    driors$log_terminal_u2 = driors$log_terminal_u[2]
     
-    driors$log_final_u2_cv = driors$log_final_u_cv[2]
+    driors$log_terminal_u2_cv = driors$log_terminal_u_cv[2]
     
     driors <-
       purrr::list_modify(driors,
-                         "log_final_u" = NULL,
-                         "log_final_u_cv" = NULL)
+                         "log_terminal_u" = NULL,
+                         "log_terminal_u_cv" = NULL)
     
   }
   
