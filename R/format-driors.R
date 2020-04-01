@@ -91,6 +91,7 @@ format_driors <-
            sigma_obs_prior = 0.05,
            sigma_obs_prior_cv = 1,
            isscaap_group = NA,
+           f_prior_form = 0,
            prob = 0.9) {
     if (use_b_reg == TRUE) {
       b_ref_type <-  "b"
@@ -411,7 +412,8 @@ format_driors <-
         sigma_obs_prior = sigma_obs_prior,
         sigma_obs_prior_cv = sigma_obs_prior_cv,
         fishlife_taxa = fishlife_taxa,
-        input_taxa = taxa
+        input_taxa = taxa,
+        f_prior_form = f_prior_form
       )
     
     driors$b_ref_type <- b_ref_type

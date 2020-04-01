@@ -86,6 +86,8 @@ Type objective_function<Type>::operator() ()
   
   DATA_INTEGER(estimate_f);
   
+  DATA_INTEGER(f_prior_form);
+  
   // DATA_INTEGER(use_init); // use initial reference point
   
   DATA_INTEGER(use_terminal_state); // use terminal reference point
@@ -369,6 +371,12 @@ Type objective_function<Type>::operator() ()
   
   u_t(time - 1) = catch_t(time -1)  / (b_t(time - 1) * k);
   
+  if (estimate_f == 1){
+    
+    u_t = 1 - exp(-f_t);
+    
+  }
+  
   growth_t(time - 1) = (r  / (m - 1)) * b_t(time - 1) * (1 - pow(b_t(time - 1),m - 1));
   
   b_t = b_t * k;
@@ -403,6 +411,12 @@ Type objective_function<Type>::operator() ()
     
     for (int t = 0; t < time; t++){
       
+      if (f_prior_form == 1 & use_u_prior == 0 & t > 0){
+        
+        nll -= dnorm(log_f_t(t), log_f_t(t - 1), sigma_u);
+        
+      }
+       
       nll -= dnorm(log(catch_t(t) + 1e-3), log(temp_catch_t(t) + 1e-3), Type(0.01), true);
       
     }
@@ -455,8 +469,21 @@ Type objective_function<Type>::operator() ()
     
     for (int t = 0; t < u_years.size(); t++){
       
-      nll -= dnorm(log(u_v_umsy(u_years(t) - 1) + 1e-3), log(u_priors(t) + 1e-3), sigma_u, true);
       
+      if (f_ref_type == 1){
+        
+        nll -= dnorm(log(u_v_umsy(u_years(t) - 1) + 1e-3), log(u_priors(t) + 1e-3), sigma_u, true);
+      
+      } 
+      
+      if (f_ref_type == 0){
+        
+        // std::cout<< "hello? it's u!" << std::endl;
+        
+          nll -= dnorm(log(u_t(u_years(t) - 1) + 1e-3), log(u_priors(t) + 1e-3), sigma_u, true);
+          
+        
+      }
     }
     
   }

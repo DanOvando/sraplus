@@ -5,6 +5,7 @@ library(sraplus)
 library(tmbstan)
 
 Sys.unsetenv("PKG_CXXFLAGS")
+example_taxa <- "gadus sdfg"
 
 # library(tmbstan)
 # library(rstan)
@@ -45,7 +46,6 @@ pop %>%
   geom_line(aes(year, scale(biomass * q), color = "index")) + 
   geom_line(aes(year, scale(catch / effort), color = "cpue"))
 
-example_taxa <- "gadus sdfg"
 
 
 # driors <- format_driors(
@@ -155,8 +155,10 @@ u_driors <- format_driors(
     length(pop$biomass), -sigma_obs ^ 2 / 2, sigma_obs
   )),
   index_years = pop$year,
-  terminal_u = .75,
-  terminal_u_cv = .1,
+  u = pop$u,
+  u_years = pop$year,
+  u_cv = .1,
+  f_ref_type = "f",
   initial_state = 1,
   initial_state_cv = 0.025,
   terminal_state = NA,
@@ -175,7 +177,7 @@ u_fit <- fit_sraplus(driors = u_driors,
                       model = "sraplus_tmb",
                       estimate_shape = FALSE, 
                       estimate_proc_error = FALSE,
-                      estimate_f = TRUE,
+                      estimate_f = FALSE,
                       estimate_k = TRUE,
                       learn_rate = 2e-1,
                       n_keep = 2000,
@@ -305,6 +307,44 @@ pop %>%
   geom_line(aes(year, scale(u), color = "u"))
 
 
+u_driors <-  format_driors(taxa = example_taxa,
+                           catch = pop$catch,
+                           years = pop$year,
+                           index = pop$biomass * q * exp(rnorm(length(pop$effort), -sigma_obs^2/2, sigma_obs)),
+                           index_years = pop$year,
+                           u = pop$u,
+                           u_years = pop$year,
+                           u_cv = .1,
+                           f_ref_type = "f",
+                           f_prior_form = 0,
+                           initial_state = 1,
+                           initial_state_cv = 0.05,
+                           terminal_state = NA,
+                           growth_rate_prior = 0.4,
+                           growth_rate_prior_cv = 0.1,
+                           q_slope_prior = 0.025,
+                           q_slope_prior_cv = 0.01)
+
+
+plot_driors(u_driors)
+
+
+u_fit <- fit_sraplus(driors = u_driors,
+                               engine = "tmb",
+                               model = "sraplus_tmb",
+                               estimate_shape = FALSE, 
+                               estimate_proc_error = FALSE,
+                              estimate_f = TRUE,
+                               n_keep = 2000,
+                               adapt_delta = 0.95,
+                               analytical_q = FALSE,
+                               max_treedepth = 12)
+
+plot_sraplus(u_fit)
+
+plot_prior_posterior(u_fit, u_driors)
+
+
 
 effort_driors <- format_driors(taxa = example_taxa,
                            catch = pop$catch,
@@ -320,6 +360,8 @@ effort_driors <- format_driors(taxa = example_taxa,
                            q_slope_prior_cv = 0.01)
 
 plot_driors(effort_driors)
+
+
 
 index_driors <- format_driors(taxa = example_taxa,
                                   catch = pop$catch,
@@ -350,6 +392,7 @@ index_bayes_fit <- fit_sraplus(driors = index_driors,
                          analytical_q = FALSE,
                          max_treedepth = 12)
 
+plot_sraplus(index_bayes_fit)
 
 index_ml_fit <- fit_sraplus(driors = index_driors,
                                engine = "tmb",
