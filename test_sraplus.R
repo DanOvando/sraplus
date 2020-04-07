@@ -312,11 +312,11 @@ u_driors <-  format_driors(taxa = example_taxa,
                            years = pop$year,
                            index = pop$biomass * q * exp(rnorm(length(pop$effort), -sigma_obs^2/2, sigma_obs)),
                            index_years = pop$year,
-                           u = pop$u,
-                           u_years = pop$year,
-                           u_cv = .1,
-                           f_ref_type = "f",
-                           f_prior_form = 0,
+                           # u = pop$u,
+                           # u_years = pop$year,
+                           u_cv = 0.2,
+                           f_ref_type = "fmsy",
+                           f_prior_form = 1,
                            initial_state = 1,
                            initial_state_cv = 0.05,
                            terminal_state = NA,
@@ -330,17 +330,29 @@ plot_driors(u_driors)
 
 
 u_fit <- fit_sraplus(driors = u_driors,
-                               engine = "tmb",
+                               engine = "stan",
                                model = "sraplus_tmb",
                                estimate_shape = FALSE, 
-                               estimate_proc_error = FALSE,
+                               estimate_proc_error = TRUE,
                               estimate_f = TRUE,
                                n_keep = 2000,
                                adapt_delta = 0.95,
                                analytical_q = FALSE,
                                max_treedepth = 12)
 
-plot_sraplus(u_fit)
+u_fit_false <- fit_sraplus(driors = u_driors,
+                     engine = "tmb",
+                     model = "sraplus_tmb",
+                     estimate_shape = FALSE, 
+                     estimate_proc_error = FALSE,
+                     estimate_f = FALSE,
+                     n_keep = 2000,
+                     adapt_delta = 0.95,
+                     analytical_q = FALSE,
+                     max_treedepth = 12)
+
+
+plot_sraplus(fit_u = u_fit, dont_fit_u = u_fit_false)
 
 plot_prior_posterior(u_fit, u_driors)
 

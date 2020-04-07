@@ -68,7 +68,7 @@ format_driors <-
            use_heuristics = FALSE,
            use_b_reg = FALSE,
            growth_rate_prior = NA,
-           growth_rate_prior_cv = 0.1,
+           growth_rate_prior_cv = 0.5,
            fmi = c(
              "research" = NA,
              "management" = NA,
@@ -99,8 +99,14 @@ format_driors <-
     }
     
     if (use_heuristics == TRUE) {
-      warning("WARNING: You are using catch heursitics as your stock assessment. Consider manually setting priors on terminal depletion based on expert opinion, or using a proxy such as swept area ratio")
+      warning("You are using catch heursitics as your stock assessment. Consider manually setting priors on terminal depletion based on expert opinion, or using a proxy such as swept area ratio")
       
+    }
+    
+    delta_years <- years - lag(years)
+    
+    if (any(delta_years[!is.na(delta_years)] > 1)){
+      stop("You have missing years in your catch data. sraplus needs continuous catch data at this time: either interpolate missing years or locate missing data")
     }
     
     genus <- tolower(strsplit(taxa, split = ' ')[[1]][1])
@@ -373,7 +379,6 @@ format_driors <-
       log_terminal_u = NA
     
       }
-    
     driors <-
       list(
         catch = catch,
