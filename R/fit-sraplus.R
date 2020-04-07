@@ -44,22 +44,7 @@
 #'
 #' @return a fitted sraplus object
 #' @export
-#' @examples
-#' \dontrun{
-#'
-#' catch_only_driors <- sraplus::format_driors(
-#' taxa = example_taxa,
-#' catch = cod$catch,
-#' years = cod$year,
-#' use_heuristics = TRUE
-#' )
-#'
-#'  catch_only_fit <- sraplus::fit_sraplus(driors = catch_only_driors,
-#'engine = "sir",
-#'draws = 1e6,
-#'n_keep = 2000)
-#'
-#' }
+
 fit_sraplus <- function(driors,
                         include_fit = TRUE,
                         seed = 42,
