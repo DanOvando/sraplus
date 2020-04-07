@@ -7,8 +7,9 @@
 #' @export
 #'
 #' @examples
-#' 
+#' \dontrun{
 #' diagnose_sraplus(sraplus_fit, sraplus_driors)
+#' }
 
 diagnose_sraplus <- function(fit, driors) {
   # check quality of fishlife match

@@ -8,7 +8,6 @@
 #' @return
 #' @export
 #'
-#' @examples
 plot_prior_posterior <- function(fit, driors,
                                  draws = 1000,
                                  prob  = 0.9){

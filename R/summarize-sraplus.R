@@ -6,7 +6,6 @@
 #' @return
 #' @export
 #'
-#' @examples
 summarize_sralpus <- function(fit, output = "table"){
   
   # library(tidyverse)

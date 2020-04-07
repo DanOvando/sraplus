@@ -14,7 +14,6 @@
 #' @return
 #' @export
 #'
-#' @examples
 sraplus_simulator <-
   function(r = 0.2,
            k = 1000,

@@ -16,7 +16,6 @@
 #' @return
 #' @export
 #'
-#' @examples
 fit_prior_regressions <-
   function(split,
            model_structure,
