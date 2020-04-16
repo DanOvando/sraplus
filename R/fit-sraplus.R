@@ -62,6 +62,7 @@ fit_sraplus <- function(driors,
                         estimate_shape = FALSE,
                         estimate_qslope = FALSE,
                         estimate_proc_error = TRUE,
+                        estimate_initial_state = TRUE,
                         estimate_k = TRUE,
                         estimate_f  = FALSE,
                         learn_rate = 1e-3,
@@ -153,6 +154,7 @@ fit_sraplus <- function(driors,
     sigma_obs_prior_cv = driors$sigma_obs_prior_cv,
     analytical_q = analytical_q,
     est_k = estimate_k,
+    estimate_initial_state = estimate_initial_state,
     estimate_proc_error = estimate_proc_error,
     estimate_shape = estimate_shape,
     estimate_qslope = estimate_qslope,
@@ -208,6 +210,9 @@ fit_sraplus <- function(driors,
     )
   )
   
+  if (estimate_initial_state == 0){
+    knockout$log_init_dep <- NA
+  }
   
   if (estimate_f == 0){
     knockout$log_f_t <- rep(NA, time)
@@ -531,8 +536,8 @@ fit_sraplus <- function(driors,
       pens <- NA
 
       it <- 2000
-      itframe <- data.frame(log_anchor = runif(it, min = log(1), max = log(50 * sum(driors$catch))),
-                                               log_r =  runif(it, min = log(0.01), max = log(2)),
+      itframe <- data.frame(log_anchor = runif(it, min = log(1), max = log(50 * max(driors$catch))),
+                                               log_r =  runif(it, min = log(0.01), max = log(1)),
                             pens = NA,
                             terminal_dep = NA)
       
@@ -540,7 +545,6 @@ fit_sraplus <- function(driors,
       for ( i in 1:it){
 
         temp_inits$log_anchor <- itframe$log_anchor[i]
-        
         temp_inits$log_r <- itframe$log_r[i]
         sra_model <-
           TMB::MakeADFun(
@@ -566,20 +570,20 @@ fit_sraplus <- function(driors,
 # itframe %>%
 #   ggplot(aes((log_r), (log_anchor), color = pens == 0)) +
 #   geom_point()
+
 # 
-# 
-#   browser()
     # lower_anchor <- log(1.25 * max(driors$catch))
     lower_anchor <-  0.9 * min(itframe$log_anchor[(itframe$pens == 0)])
 
-    inits$log_anchor <- log(2 * exp(lower_anchor))
+    inits$log_anchor <- log(10 * exp(lower_anchor))
     
     driors$k_prior <- median(itframe$log_anchor[itframe$pens == 0 & itframe$terminal_dep < 0.9])
-    # upper_anchor <- 5 * lower_anchor
+    
+    upper_anchor <- max(itframe$log_anchor[itframe$pens == 0 & itframe$terminal_dep < 0.95])
     
     # lower_anchor <- -Inf
     # 
-    upper_anchor <- Inf
+    # upper_anchor <- Inf
     } else {
       lower_anchor = log(1e-3)
       
@@ -612,9 +616,11 @@ fit_sraplus <- function(driors,
     
     # upper["log_init_dep"] <- log(1.5)
     
-    if (estimate_proc_error == FALSE){
+    # if (estimate_proc_error == FALSE & estimate_initial_state == TRUE){
       
-      upper["log_init_dep"] <- log(1)
+    if (estimate_initial_state == TRUE){
+        
+      upper["log_init_dep"] <- log(1.05)
       
     }
     

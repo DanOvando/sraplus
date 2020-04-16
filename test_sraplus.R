@@ -128,10 +128,10 @@ bayes_fit <- fit_sraplus(driors = ml_driors,
                       adapt_delta = 0.8,
                       analytical_q = FALSE,
                       max_treedepth = 12,
-                      refresh = 0)
+                      refresh = 250)
 
 diagnose_sraplus(bayes_fit, ml_driors)
-
+  
 plot_prior_posterior(bayes_fit, ml_driors)
 
 
@@ -307,54 +307,54 @@ pop %>%
   geom_line(aes(year, scale(u), color = "u"))
 
 
-u_driors <-  format_driors(taxa = example_taxa,
-                           catch = pop$catch,
-                           years = pop$year,
-                           index = pop$biomass * q * exp(rnorm(length(pop$effort), -sigma_obs^2/2, sigma_obs)),
-                           index_years = pop$year,
-                           # u = pop$u,
-                           # u_years = pop$year,
-                           u_cv = 0.2,
-                           f_ref_type = "fmsy",
-                           f_prior_form = 1,
-                           initial_state = 1,
-                           initial_state_cv = 0.05,
-                           terminal_state = NA,
-                           growth_rate_prior = 0.4,
-                           growth_rate_prior_cv = 0.1,
-                           q_slope_prior = 0.025,
-                           q_slope_prior_cv = 0.01)
-
-
-plot_driors(u_driors)
-
-
-u_fit <- fit_sraplus(driors = u_driors,
-                               engine = "stan",
-                               model = "sraplus_tmb",
-                               estimate_shape = FALSE, 
-                               estimate_proc_error = TRUE,
-                              estimate_f = TRUE,
-                               n_keep = 2000,
-                               adapt_delta = 0.95,
-                               analytical_q = FALSE,
-                               max_treedepth = 12)
-
-u_fit_false <- fit_sraplus(driors = u_driors,
-                     engine = "tmb",
-                     model = "sraplus_tmb",
-                     estimate_shape = FALSE, 
-                     estimate_proc_error = FALSE,
-                     estimate_f = FALSE,
-                     n_keep = 2000,
-                     adapt_delta = 0.95,
-                     analytical_q = FALSE,
-                     max_treedepth = 12)
-
-
-plot_sraplus(fit_u = u_fit, dont_fit_u = u_fit_false)
-
-plot_prior_posterior(u_fit, u_driors)
+# u_driors <-  format_driors(taxa = example_taxa,
+#                            catch = pop$catch,
+#                            years = pop$year,
+#                            index = pop$biomass * q * exp(rnorm(length(pop$effort), -sigma_obs^2/2, sigma_obs)),
+#                            index_years = pop$year,
+#                            # u = pop$u,
+#                            # u_years = pop$year,
+#                            u_cv = 0.2,
+#                            f_ref_type = "fmsy",
+#                            f_prior_form = 1,
+#                            initial_state = 1,
+#                            initial_state_cv = 0.05,
+#                            terminal_state = NA,
+#                            growth_rate_prior = 0.4,
+#                            growth_rate_prior_cv = 0.1,
+#                            q_slope_prior = 0.025,
+#                            q_slope_prior_cv = 0.01)
+# 
+# 
+# plot_driors(u_driors)
+# 
+# 
+# u_fit <- fit_sraplus(driors = u_driors,
+#                                engine = "stan",
+#                                model = "sraplus_tmb",
+#                                estimate_shape = FALSE, 
+#                                estimate_proc_error = TRUE,
+#                               estimate_f = TRUE,
+#                                n_keep = 2000,
+#                                adapt_delta = 0.95,
+#                                analytical_q = FALSE,
+#                                max_treedepth = 12)
+# 
+# u_fit_false <- fit_sraplus(driors = u_driors,
+#                      engine = "tmb",
+#                      model = "sraplus_tmb",
+#                      estimate_shape = FALSE, 
+#                      estimate_proc_error = FALSE,
+#                      estimate_f = FALSE,
+#                      n_keep = 2000,
+#                      adapt_delta = 0.95,
+#                      analytical_q = FALSE,
+#                      max_treedepth = 12)
+# 
+# 
+# plot_sraplus(fit_u = u_fit, dont_fit_u = u_fit_false)
+# 
+# plot_prior_posterior(u_fit, u_driors)
 
 
 
@@ -382,11 +382,7 @@ index_driors <- format_driors(taxa = example_taxa,
                                   index_years = pop$year,
                                   initial_state = 1,
                                   initial_state_cv = 0.05,
-                                  terminal_state = NA,
-                                  growth_rate_prior = 0.4,
-                                  growth_rate_prior_cv = 0.1,
-                                 sigma_ratio_prior = 1,
-                                 sigma_ratio_prior_cv = 0.5)
+                                  terminal_state = NA)
 
 plot_driors(index_driors)
 

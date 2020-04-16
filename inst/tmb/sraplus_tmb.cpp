@@ -78,6 +78,8 @@ Type objective_function<Type>::operator() ()
   
   DATA_INTEGER(est_k); // 1 means estiamte k, 0 means estimate terminal depletion
   
+  DATA_INTEGER(estimate_initial_state); // 1 to estimate initial state, 0 to not
+  
   DATA_INTEGER(estimate_proc_error); // 1 to estimate process error, 0 to not
   
   DATA_INTEGER(estimate_shape); 
@@ -551,8 +553,9 @@ Type objective_function<Type>::operator() ()
     
   } // close use terminal u
   
+  if (estimate_initial_state == 1){
   nll -= dnorm(log_init_dep, log_init_dep_prior, log_init_dep_cv, true);
-  
+  }
   
   if (estimate_qslope == 1){
     
