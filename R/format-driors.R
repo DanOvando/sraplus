@@ -268,15 +268,23 @@ format_driors <-
         Family = taxon["Family"],
         Genus = taxon["Genus"],
         Species = taxon["Species"],
-        ParentChild_gz = FishLifeData$ParentChild_gz
       )$result$result$match_taxonomy[1]
       
+      
       taxa_location <-
-        grep(sp, FishLifeData$ParentChild_gz[, "ChildName"])[1]
+        grep(sp, FishLife::FishBase_and_RAM$ParentChild_gz[, "ChildName"])[1]
       
-      mean_lh <- FishLifeData$beta_gv[taxa_location,]
+      # taxa_location <-
+      #   grep(sp, FishLifeData$ParentChild_gz[, "ChildName"])[1]
+      # 
       
-      cov_lh <- FishLifeData$Cov_gvv[taxa_location, ,]
+      mean_lh <- FishLife::FishBase_and_RAM$beta_gv[taxa_location,]
+      
+      # mean_lh <- FishLifeData$beta_gv[taxa_location,]
+      
+      cov_lh <- FishLife::FishBase_and_RAM$Cov_gvv[taxa_location, ,]
+      
+      # cov_lh <- FishLifeData$Cov_gvv[taxa_location, ,]
       
       mean_lh <- mean_lh[which(names(mean_lh) %in% params_mvn)]
       
@@ -284,13 +292,18 @@ format_driors <-
         cov_lh[which(rownames(cov_lh) %in% params_mvn), which(colnames(cov_lh) %in% params_mvn)] %>% diag()
       
     } else {
-      mean_lh <-
-        c("r" = mean(FishLifeData$beta_gv[, "r"]),
-          m = exp(mean(FishLifeData$beta_gv[, "M"])))
       
+      mean_lh <-
+        c("r" = mean(FishLife::FishBase_and_RAM$beta_gv[, "r"]),
+          m = exp(mean(FishLife::FishBase_and_RAM$beta_gv[, "M"])))
+      
+      # mean_lh <-
+      #   c("r" = mean(FishLifeData$beta_gv[, "r"]),
+      #     m = exp(mean(FishLifeData$beta_gv[, "M"])))
+      # 
       cov_lh <-
-        c("r" = sd(FishLifeData$beta_gv[, "r"]),
-          m = sd(FishLifeData$beta_gv[, "M"]))
+        c("r" = sd(FishLife::FishBase_and_RAM$beta_gv[, "r"]),
+          m = sd(FishLife::FishBase_and_RAM$beta_gv[, "M"]))
       
       
     }
@@ -378,7 +391,7 @@ format_driors <-
       
       log_terminal_u = NA
     
-      }
+    }
     driors <-
       list(
         catch = catch,

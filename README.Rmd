@@ -111,15 +111,11 @@ From there, we'll pass the catch data, and the years corresponding to the catch 
 ```{r c-msy-2}
 
 
-catch_only_driors <- sraplus::format_driors(
+catch_only_driors <- format_driors(
   taxa = example_taxa,
-  catch = cod$catch * exp(rnorm(length(cod$catch), 0, .5)),
+  catch = cod$catch,
   years = cod$year,
-  use_heuristics = FALSE,
-  initial_state = 1,
-  initial_state_cv = 0.2,
-  terminal_state = 0.2,
-  terminal_state_cv = 1
+  use_heuristics = TRUE
 )
 
 
@@ -141,14 +137,6 @@ From there, we pass the `driors` object to `sraplus::fit_sraplus`, and plot the 
 ```{r}
 
 sfs <- purrr::safely(fit_sraplus)
- hello <- sfs(driors = catch_only_driors,
-                       engine = "sir",
-                       draws = 1e6,
-                       n_keep = 4000,
-                       estimate_proc_error = TRUE, 
-                       estimate_shape = TRUE,
-                       max_time = .2)
-
 
  catch_only_fit <- fit_sraplus(driors = catch_only_driors,
                        engine = "sir",
@@ -157,7 +145,7 @@ sfs <- purrr::safely(fit_sraplus)
                        estimate_proc_error = TRUE, 
                        estimate_shape = TRUE,
                        max_time = Inf,
-                       tune_prior_predictive = TRUE)
+                       tune_prior_predictive = FALSE)
  
  sraplus::plot_sraplus(catch_only = catch_only_fit, years = catch_only_driors$years)
 

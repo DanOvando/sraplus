@@ -131,26 +131,28 @@ example_taxa <- "gadus morhua"
 data(cod)
 
 head(cod)
-#> # A tibble: 6 x 53
+#> # A tibble: 6 x 59
 #>   stockid scientificname commonname  year  catch stocklong.x TBmsybest ERmsybest
 #>   <chr>   <chr>          <chr>      <int>  <dbl> <chr>           <dbl>     <dbl>
-#> 1 CODIII… Gadus morhua   Atlantic …  1963 118000 Atlantic c…   948996.     0.262
-#> 2 CODIII… Gadus morhua   Atlantic …  1964 145000 Atlantic c…   948996.     0.262
-#> 3 CODIII… Gadus morhua   Atlantic …  1965 199000 Atlantic c…   948996.     0.262
-#> 4 CODIII… Gadus morhua   Atlantic …  1966 241000 Atlantic c…   948996.     0.262
-#> 5 CODIII… Gadus morhua   Atlantic …  1967 288000 Atlantic c…   948996.     0.262
-#> 6 CODIII… Gadus morhua   Atlantic …  1968 294000 Atlantic c…   948996.     0.262
-#> # … with 45 more variables: TBmgtbest <dbl>, ERmgtbest <dbl>, TBmsy <dbl>,
-#> #   SSBmsy <dbl>, Nmsy <dbl>, MSY <dbl>, Fmsy <dbl>, ERmsy <dbl>, TBmgt <dbl>,
-#> #   SSBmgt <dbl>, Fmgt <dbl>, ERmgt <dbl>, TB0 <dbl>, SSB0 <dbl>, M <dbl>,
-#> #   TBlim <dbl>, SSBlim <dbl>, Flim <dbl>, ERlim <dbl>, b_v_bmsy <dbl>,
-#> #   u_v_umsy <dbl>, exploitation_rate <dbl>, effort <dbl>, total_biomass <dbl>,
-#> #   ss_biomass <dbl>, tsn <chr>, areaid <chr>, stocklong.y <chr>, region <chr>,
-#> #   inmyersdb <chr>, myersstockid <chr>, country <chr>, areatype <chr>,
-#> #   areacode <chr>, areaname <chr>, alternateareaname <chr>,
-#> #   management_body <chr>, country_rfmo <chr>, tb_v_tb0 <dbl>,
-#> #   ssb_v_ssb0 <dbl>, delta_year <int>, n_years <int>, has_tb0 <lgl>,
-#> #   has_tb <lgl>, first_catch_year <int>
+#> 1 CODIII… Gadus morhua   Atlantic …  1963 118000 Atlantic c…   971321.     0.455
+#> 2 CODIII… Gadus morhua   Atlantic …  1964 144000 Atlantic c…   971321.     0.455
+#> 3 CODIII… Gadus morhua   Atlantic …  1965 198000 Atlantic c…   971321.     0.455
+#> 4 CODIII… Gadus morhua   Atlantic …  1966 241000 Atlantic c…   971321.     0.455
+#> 5 CODIII… Gadus morhua   Atlantic …  1967 287000 Atlantic c…   971321.     0.455
+#> 6 CODIII… Gadus morhua   Atlantic …  1968 292000 Atlantic c…   971321.     0.455
+#> # … with 51 more variables: MSYbest <dbl>, TBmgtbest <dbl>, ERmgtbest <dbl>,
+#> #   TBmsy <dbl>, SSBmsy <dbl>, Nmsy <dbl>, MSY <dbl>, Fmsy <dbl>, ERmsy <dbl>,
+#> #   TBmgt <dbl>, SSBmgt <dbl>, Fmgt <dbl>, ERmgt <dbl>, TB0 <dbl>, SSB0 <dbl>,
+#> #   M <dbl>, TBlim <dbl>, SSBlim <dbl>, Flim <dbl>, ERlim <dbl>,
+#> #   b_v_bmsy <dbl>, u_v_umsy <dbl>, exploitation_rate <dbl>, effort <dbl>,
+#> #   total_biomass <dbl>, ss_biomass <dbl>, tsn <chr>, areaid <chr>,
+#> #   stocklong.y <chr>, region <chr>, primary_country <chr>,
+#> #   primary_FAOarea <chr>, inmyersdb <chr>, myersstockid <chr>, state <chr>,
+#> #   country <chr>, areatype <chr>, areacode <chr>, areaname <chr>,
+#> #   alternateareaname <chr>, tb_v_tb0 <dbl>, ssb_v_ssb0 <dbl>,
+#> #   delta_year <int>, missing_gaps <lgl>, n_years <int>, has_tb0 <lgl>,
+#> #   has_tb <lgl>, first_catch_year <int>, pchange_effort <dbl>,
+#> #   cs_effort <dbl>, b_rel <dbl>
 ```
 
 From there, we’ll pass the catch data, and the years corresponding to
@@ -163,14 +165,16 @@ beliefs expressed through the catch heuristics.
 ``` r
 
 
-catch_only_driors <- sraplus::format_driors(
+catch_only_driors <- format_driors(
   taxa = example_taxa,
   catch = cod$catch,
   years = cod$year,
   use_heuristics = TRUE
 )
-#> Warning in sraplus::format_driors(taxa = example_taxa, catch = cod$catch, :
-#> WARNING: You are using catch heursitics as your stock assessment
+#> Warning in format_driors(taxa = example_taxa, catch = cod$catch, years =
+#> cod$year, : You are using catch heursitics as your stock assessment. Consider
+#> manually setting priors on terminal depletion based on expert opinion, or using
+#> a proxy such as swept area ratio
 ```
 
 You can take a look at the information in the `catch_only_driors` object
@@ -195,13 +199,21 @@ in this case the SIR algorithm will run 1 million iterations, and sample
 
 ``` r
 
+sfs <- purrr::safely(fit_sraplus)
+
  catch_only_fit <- fit_sraplus(driors = catch_only_driors,
                        engine = "sir",
-                       draws = 1e6,
+                       draws = 1e5,
                        n_keep = 4000,
                        estimate_proc_error = TRUE, 
-                       estimate_shape = TRUE)
+                       estimate_shape = TRUE,
+                       max_time = Inf,
+                       tune_prior_predictive = FALSE)
+ 
+ sraplus::plot_sraplus(catch_only = catch_only_fit, years = catch_only_driors$years)
 ```
+
+![](README_files/figure-gfm/unnamed-chunk-6-1.png)<!-- -->
 
 Running `fit_sraplus` always produces a list with two objects: `results`
 and `fit`. `results` is (mostly) standardized across engines set of
@@ -216,14 +228,14 @@ Let’s take a quick look at the `results` object.
 
 head(catch_only_fit$results)
 #> # A tibble: 6 x 6
-#>    year variable            mean            sd        lower        upper
-#>   <dbl> <chr>              <dbl>         <dbl>        <dbl>        <dbl>
-#> 1  1963 b_div_bmsy         0.620        0.109        0.511         0.752
-#> 2  1963 b           15483993.    52655442.     2242565.     43198981.   
-#> 3  1963 c_div_msy          0.261        0.182        0.0369        0.503
-#> 4  1963 crashed            0            0            0             0    
-#> 5  1963 depletion          0.402        0.0396       0.342         0.464
-#> 6  1963 index_hat_t   777815.     2670686.       25424.      2289380.
+#>    year variable            mean            sd        lower         upper
+#>   <dbl> <chr>              <dbl>         <dbl>        <dbl>         <dbl>
+#> 1  1963 b_div_bmsy         0.771        0.358        0.532          1.30 
+#> 2  1963 b           35162148.    86616756.     3988813.     102948316.   
+#> 3  1963 c_div_msy          0.804        0.787        0.0571         2.40 
+#> 4  1963 crashed            0            0            0              0    
+#> 5  1963 depletion          0.401        0.0385       0.344          0.468
+#> 6  1963 index_hat_t  1801082.     5632770.       67711.       5100063.
 ```
 
 `results` is organized as a dataframe tracking different variables over
@@ -238,13 +250,13 @@ object is the output of the SIR algorithm.
 
 ``` r
 head(catch_only_fit$fit)
-#>   variable year draw   value draw_id
-#> 1      b_t 1963    1 3200936   68246
-#> 2      b_t 1964    1 3146514   68246
-#> 3      b_t 1965    1 3334339   68246
-#> 4      b_t 1966    1 3298752   68246
-#> 5      b_t 1967    1 3555096   68246
-#> 6      b_t 1968    1 3398260   68246
+#>   variable year draw    value draw_id
+#> 1      b_t 1963    1 12504951   87615
+#> 2      b_t 1964    1 12580370   87615
+#> 3      b_t 1965    1 12461629   87615
+#> 4      b_t 1966    1 12187385   87615
+#> 5      b_t 1967    1 12547140   87615
+#> 6      b_t 1968    1 12712254   87615
 ```
 
 From there, we can generate some standard plots of B/Bmsy
@@ -334,7 +346,7 @@ sraplus::diagnose_sraplus(fit = fmi_sar_fit, driors = fmi_sar_driors )
 #> [1] "fishlife matched supplied species"
 #> 
 #> $distinct_sir_draws
-#> [1] 1548
+#> [1] 3599
 #> 
 #> $sir_convergence_plot
 ```
@@ -383,7 +395,7 @@ vector of the same length of `index` specifying which years index data
 are available. Well now use Template Model Builder (TMB) to estimate
 stock status based on this index of abundance. We’ll add in some priors
 on the growth rate and the shape of the Pella-Tomlinson model (1.01
-roughly corresponds to a Fox model, where Bmsy/K ~= 0.4). Note that we
+roughly corresponds to a Fox model, where Bmsy/K \~= 0.4). Note that we
 now set `engine = "tmb"` to fit the model via maximum likelihood using
 TMB.
 
@@ -499,8 +511,8 @@ cpue_driors <- format_driors(taxa = example_taxa,
                            years = sim$pop$year,
                            effort = sim$pop$effort,
                            effort_years = sim$pop$year,
-                           growth_rate_prior = 0.4,
-                           growth_rate_prior_cv = 0.1,
+                           # growth_rate_prior = 0.4,
+                           # growth_rate_prior_cv = 0.1,
                            shape_prior = 1.01,
                            q_slope_prior = 0,
                            q_slope_prior_cv = 0.2)
@@ -522,8 +534,8 @@ cpue_qslope_driors <- format_driors(taxa = example_taxa,
                            years = sim$pop$year,
                            effort = sim$pop$effort,
                            effort_years = sim$pop$year,
-                           growth_rate_prior = 0.4,
-                           growth_rate_prior_cv = 0.1,
+                           # growth_rate_prior = 0.4,
+                           # growth_rate_prior_cv = 0.1,
                            shape_prior = 1.01,
                            q_slope_prior = 0.025,
                            q_slope_prior_cv = 0.05)
@@ -562,8 +574,8 @@ cpue_sar_qslope_driors <- format_driors(taxa = example_taxa,
                            years = sim$pop$year,
                            effort = sim$pop$effort,
                            effort_years = sim$pop$year,
-                           growth_rate_prior = 0.4,
-                           growth_rate_prior_cv = 0.1,
+                           # growth_rate_prior = 0.4,
+                           # growth_rate_prior_cv = 0.1,
                            shape_prior = 1.01,
                            q_slope_prior = 0.025,
                            q_slope_prior_cv = 0.25,
@@ -597,8 +609,8 @@ cpue_sar_proc_driors <- format_driors(taxa = example_taxa,
                            years = sim$pop$year,
                            effort = sim$pop$effort,
                            effort_years = sim$pop$year,
-                           growth_rate_prior = 0.4,
-                           growth_rate_prior_cv = 0.1,
+                           # growth_rate_prior = 0.4,
+                           # growth_rate_prior_cv = 0.1,
                            shape_prior = 1.01,
                            q_slope_prior = 0,
                            q_slope_prior_cv = 0.25,
@@ -661,27 +673,27 @@ summarize_sralpus(cpue_sar_proc_fit, output = "table") %>%
 
 | variable          |        mean |         sd |       lower |       upper | year |
 | :---------------- | ----------: | ---------: | ----------: | ----------: | ---: |
-| sigma\_proc       |   0.0783211 |  0.0126499 |   0.0581042 |   0.0985381 |    1 |
-| log\_ihat         |   5.5899531 |  0.0479397 |   5.5133361 |   5.6665700 |   25 |
-| log\_b\_div\_bmsy |   0.1843356 |  0.0646092 |   0.0810777 |   0.2875936 |   25 |
-| log\_b            |   5.5899531 |  0.0479397 |   5.5133361 |   5.6665700 |   25 |
-| log\_depletion    | \-0.8106975 |  0.0646092 | \-0.9139554 | \-0.7074395 |   25 |
-| log\_u\_div\_umsy | \-0.3398683 |  0.0833556 | \-0.4730867 | \-0.2066500 |   25 |
-| log\_c\_div\_msy  | \-0.1555327 |  0.0484258 | \-0.2329265 | \-0.0781390 |   25 |
-| proc\_errors      |   0.9297747 |  0.0389390 |   0.8675428 |   0.9920067 |   24 |
+| sigma\_proc       |   0.1109456 |  0.0192745 |   0.0801411 |   0.1417500 |    1 |
+| log\_ihat         |   4.8974206 |  0.0505466 |   4.8166373 |   4.9782039 |   25 |
+| log\_b\_div\_bmsy | \-0.2868465 |  0.1110838 | \-0.4643799 | \-0.1093132 |   25 |
+| log\_b            |   4.8974206 |  0.0505466 |   4.8166373 |   4.9782039 |   25 |
+| log\_depletion    | \-1.2818796 |  0.1110838 | \-1.4594130 | \-1.1043463 |   25 |
+| log\_u\_div\_umsy |   0.1692312 |  0.1282680 | \-0.0357659 |   0.3742282 |   25 |
+| log\_c\_div\_msy  | \-0.1176154 |  0.0494669 | \-0.1966729 | \-0.0385578 |   25 |
+| proc\_errors      |   0.8290906 |  0.0790227 |   0.7027970 |   0.9553842 |   24 |
 | plim              |   0.0500000 |  0.0000000 |   0.0500000 |   0.0500000 |    1 |
 | b\_to\_k          |   0.3697112 |  0.0000000 |   0.3697112 |   0.3697112 |    1 |
 | crashed           |   0.0000000 |  0.0000000 |   0.0000000 |   0.0000000 |    1 |
-| index\_hat\_t     | 267.7230550 | 12.8345692 | 247.2109345 | 288.2351755 |   25 |
-| r                 |   0.3992198 |  0.0312465 |   0.3492819 |   0.4491577 |    1 |
+| index\_hat\_t     | 133.9438338 |  6.7704107 | 123.1234099 | 144.7642577 |   25 |
+| r                 |   0.4795965 |  0.0594988 |   0.3845060 |   0.5746870 |    1 |
 | m                 |   1.0100000 |  0.0000000 |   1.0100000 |   1.0100000 |    1 |
-| umsy              |   0.3952671 |  0.0309371 |   0.3458236 |   0.4447106 |    1 |
-| k                 | 602.2366826 | 38.5165742 | 540.6797579 | 663.7936073 |    1 |
-| q\_t              |   0.0027137 |  0.0001787 |   0.0024281 |   0.0029993 |   25 |
+| umsy              |   0.4748480 |  0.0589097 |   0.3806990 |   0.5689970 |    1 |
+| k                 | 482.6540670 | 51.1388454 | 400.9243151 | 564.3838189 |    1 |
+| q\_t              |   0.0051757 |  0.0007620 |   0.0039579 |   0.0063935 |   25 |
 | q\_slope          |   0.0000000 |  0.0000000 |   0.0000000 |   0.0000000 |    1 |
-| ihat              | 267.7230550 |  0.0479397 | 247.9770328 | 289.0414220 |   25 |
-| b\_div\_bmsy      |   1.2024193 |  0.0646092 |   1.0844551 |   1.3332153 |   25 |
-| b                 | 267.7230550 |  0.0479397 | 247.9770328 | 289.0414220 |   25 |
-| depletion         |   0.4445479 |  0.0646092 |   0.4009352 |   0.4929047 |   25 |
-| u\_div\_umsy      |   0.7118640 |  0.0833556 |   0.6230761 |   0.8133043 |   25 |
-| c\_div\_msy       |   0.8559591 |  0.0484258 |   0.7922118 |   0.9248359 |   25 |
+| ihat              | 133.9438338 |  0.0505466 | 123.5489297 | 145.2133229 |   25 |
+| b\_div\_bmsy      |   0.7506269 |  0.1110838 |   0.6285247 |   0.8964496 |   25 |
+| b                 | 133.9438338 |  0.0505466 | 123.5489297 | 145.2133229 |   25 |
+| depletion         |   0.2775152 |  0.1110838 |   0.2323726 |   0.3314275 |   25 |
+| u\_div\_umsy      |   1.1843939 |  0.1282680 |   0.9648662 |   1.4538689 |   25 |
+| c\_div\_msy       |   0.8890379 |  0.0494669 |   0.8214593 |   0.9621761 |   25 |

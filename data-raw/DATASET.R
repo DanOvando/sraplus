@@ -58,12 +58,12 @@ load(here("data-raw","Return.Rdata"))
 # Return <- readr::read_rds(here::here("data-raw","Return.rds"))
 
 
-FishLifeData<- Return[c("ParentChild_gz","beta_gv","Cov_gvv")]
+# FishLifeData<- Return[c("ParentChild_gz","beta_gv","Cov_gvv")]
+# 
+# FishLifeData$metadata <- "emailed from Thorson, beta version with newparameters"
 
-FishLifeData$metadata <- "emailed from Thorson, beta version with newparameters"
 
-
-if (!file.exists("ram.zip")) {
+if (!file.exists(here("data-raw","ram.zip"))) {
   
   download.file("https://www.dropbox.com/s/jpgz0a5s5of3qev/RAM%20v4.491%20Files%20(1-14-20).zip?dl=1", destfile = here::here("data-raw","ram.zip"))
   
@@ -178,15 +178,12 @@ ram_data <- ram_data %>%
   mutate(
     pchange_effort = lead(u_v_umsy) / (u_v_umsy + 1e-6),
     cs_effort = (u_v_umsy - mean(u_v_umsy)) / sd(u_v_umsy),
-    index = total_biomass * q,
-    approx_cpue = catch / (u_v_umsy / q + 1e-3),
     b_rel = dplyr::case_when(
       has_tb0 ~ total_biomass / max(TB0),
       has_tb ~ total_biomass / max(total_biomass),
       TRUE ~ b_v_bmsy / 2
     )
   ) %>%
-  mutate(approx_cpue = pmin(quantile(approx_cpue, 0.9, na.rm = TRUE), approx_cpue)) %>%
   ungroup()
 
 
@@ -194,7 +191,7 @@ ram_data <- ram_data %>%
 
 
 cod <- ram_data %>% 
-  filter(stocklong.x == "Atlantic cod IIIa (west) and IV-VIId")
+  filter(stocklong.x == "Atlantic cod ICES 3a(west)-4-7d")
 usethis::use_data(cod, overwrite = TRUE, internal = FALSE)
 
 
@@ -274,7 +271,7 @@ fao_taxa <- list(fao_species = fao_species,
 
 usethis::use_data(fao_taxa, overwrite = TRUE)
 
-usethis::use_data(FishLifeData, overwrite = TRUE, internal = TRUE)
+# usethis::use_data(FishLifeData, overwrite = TRUE, internal = TRUE)
 
 
 
@@ -769,6 +766,62 @@ sar_models <- best_sar_models %>%
   select(-best_fit, -prior_plot)
 
 usethis::use_data(sar_models,overwrite = TRUE)
+
+
+
+# catch based initial state prior ----------------------------------------------
+catch_data <- ram_data %>%
+  group_by(stockid) %>%
+  mutate(c_div_maxc = catch / max(catch, na.rm = TRUE),
+         c_div_meanc = catch / mean(catch, na.rm = TRUE),
+         c_length = as.numeric(1:length(catch)),
+         depletion = ifelse(is.na(tb_v_tb0), ssb_v_ssb0, tb_v_tb0)) %>%
+  filter(!is.na(depletion)) %>%
+  gather(metric, value, depletion,  b_v_bmsy, u_v_umsy,exploitation_rate) %>%
+  select(stockid, year, contains('c_'), isscaap_group, metric, value) %>%
+  mutate(log_value = log(value + 1e-3)) %>%
+  unique() %>%
+  na.omit() %>%
+  ungroup() %>%
+  mutate(c_length = as.numeric(scale(c_length))) %>% 
+  group_by(stockid) %>% 
+  filter(year == min(year),
+         metric == "depletion",
+         value < 1.5) %>% 
+  ungroup() 
+
+
+samps <- rsample::initial_split(catch_data)
+
+training_fit <- stan_glm(value ~c_div_meanc*c_div_maxc + c_length , data= training(samps), family = Gamma(link = "log"))
+
+training_performance <-  training(samps) %>% 
+  mutate(pred = predict(training_fit, type= "response"))
+
+training_performance %>% 
+  ggplot(aes(value, pred)) + 
+  geom_point()
+
+yardstick::rsq(traing_performance, truth = value, estimate = .fitted)
+
+test_performance <-  testing(samps) %>% 
+  mutate(pred = colMeans(posterior_predict(training_fit, newdata = testing(samps))))
+
+test_performance %>% 
+  ggplot(aes(value, pred)) + 
+  geom_point()
+
+yardstick::rsq(test_performance, truth = value, estimate = pred)
+
+rf_mod <- 
+  rand_forest(trees = 1000) %>% 
+  set_engine("ranger") %>% 
+  set_mode("regression")
+
+test_rf <- rf_mod %>% 
+  fit(value ~ ., data = training(samps) %>% select(value, c_div_maxc,c_div_meanc, c_length))
+  
+test_rf$fit
 
 # catch priors ------------------------------------------------------------
 

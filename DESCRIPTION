@@ -37,3 +37,5 @@ Remotes:
     kaskr/TMB_contrib_R/TMBhelper,
     thomasp85/patchwork
 LazyData: true
+Depends: 
+    R (>= 2.10)
