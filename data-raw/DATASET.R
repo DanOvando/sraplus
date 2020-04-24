@@ -48,6 +48,7 @@ purrr::walk(functions, ~ source(here::here("R", .x)))
 
 # load data ---------------------------------------------------------------
 
+
 load(here("data-raw","Return.Rdata"))
 
 # readr::write_rds(Return,here::here("data-raw","Return.rds"))
@@ -62,51 +63,53 @@ FishLifeData<- Return[c("ParentChild_gz","beta_gv","Cov_gvv")]
 FishLifeData$metadata <- "emailed from Thorson, beta version with newparameters"
 
 
-if (file.exists(here("data-raw","ram.RData")) == FALSE) {
-  # for now storing in my google drive... will need to put this in a better and public location
+if (!file.exists("ram.zip")) {
   
-  ram <-
-    googledrive::drive_get(path = "~/Databases/RAM/RAM-v4.41-8_20_18/DB-Files-With-Model-Fit-Data/DBdata-model_fits_included.RData") ## if this is your first time running this will be prompted to sign into your google account
+  download.file("https://www.dropbox.com/s/jpgz0a5s5of3qev/RAM%20v4.491%20Files%20(1-14-20).zip?dl=1", destfile = here::here("data-raw","ram.zip"))
   
-  googledrive::drive_download(file = googledrive::as_id(ram$id), path = "data/ram.RData")
+  unzip(here::here("data-raw","ram.zip"), exdir = "data-raw")
+  
 }
 
-load(here::here("data-raw", "ram.RData"))
 
-# process data ------------------------------------------------------------
 
-area$management_body <- str_split(area$areaid, '-', simplify = TRUE)[,2]
+# process RAM data --------------------------------------------------------
+
+ram_dirs <- list.files()
+
+ram_dirs <- ram_dirs[str_detect(ram_dirs,"RAM")]
+
+ram_files <- list.files(ram_dirs, recursive = TRUE)
+
+ram_files <- ram_files[str_detect(ram_files,".RData")]
+
+load(here(ram_dirs,ram_files[2]))
 
 stock <- stock %>%
   left_join(area, by = "areaid")
-
-
-stock$country_rfmo <-  ifelse(tolower(stock$country) == "multinational" & !is.na(stock$country),stock$management_body, countrycode::countrycode(stock$country, "country.name", "fao.name"))
-
-
 # catches
 ram_catches <- tcbest.data %>%
   mutate(year = rownames(.) %>% as.integer()) %>%
   as_data_frame() %>%
-  gather(stockid, catch, -year)
+  gather(stockid, catch,-year)
 
 # B/Bmsy
 ram_b_v_bmsy <- divbpref.data %>%
   mutate(year = rownames(.) %>% as.integer()) %>%
   as_data_frame() %>%
-  gather(stockid, b_v_bmsy, -year)
+  gather(stockid, b_v_bmsy,-year)
 
 # U/Umsy
 ram_u_v_umsy <- divupref.data %>%
   mutate(year = rownames(.) %>% as.integer()) %>%
   as_data_frame() %>%
-  gather(stockid, u_v_umsy, -year)
+  gather(stockid, u_v_umsy,-year)
 
 # Effort
 ram_effort <- effort.data %>%
   mutate(year = rownames(.) %>% as.integer()) %>%
   as_data_frame() %>%
-  gather(stockid, effort, -year)
+  gather(stockid, effort,-year)
 
 # biomass
 
@@ -114,25 +117,21 @@ ram_effort <- effort.data %>%
 ram_total_biomass <- tbbest.data %>%
   mutate(year = rownames(.) %>% as.integer()) %>%
   as_data_frame() %>%
-  gather(stockid, total_biomass, -year)
+  gather(stockid, total_biomass,-year)
 
 # ssb
 
 ram_ss_biomass <- ssb.data %>%
   mutate(year = rownames(.) %>% as.integer()) %>%
   as_data_frame() %>%
-  gather(stockid, ss_biomass, -year)
+  gather(stockid, ss_biomass,-year)
 
 
 ram_exp_rate <- ram_catches %>%
-  left_join(ram_total_biomass, by = c("stockid","year")) %>%
+  left_join(ram_total_biomass, by = c("stockid", "year")) %>%
   mutate(exploitation_rate = catch / total_biomass) %>%
-  select(-catch,-total_biomass)
+  select(-catch, -total_biomass)
 
-# ram_exp_rate <- erbest.data %>%
-#   mutate(year = rownames(.) %>% as.integer()) %>%
-#   as_data_frame() %>%
-#   gather(stockid, exploitation_rate, -year)
 
 # put it together
 
@@ -154,10 +153,7 @@ ram_data <- ram_data %>%
   mutate(tb_v_tb0 = total_biomass / TB0,
          ssb_v_ssb0 = ss_biomass / SSB0)
 
-# filter data -------------------------------------------------------------
-
-
-# for now, only include continuous catch series
+# filter data 
 
 ram_data <- ram_data %>%
   filter(is.na(catch) == FALSE) %>%
@@ -165,9 +161,12 @@ ram_data <- ram_data %>%
   mutate(delta_year = year - lag(year)) %>%
   mutate(delta_year = case_when(year == min(year) ~ as.integer(1),
                                 TRUE ~ delta_year)) %>%
+  mutate(missing_gaps = any(delta_year > 1)) %>%
+  filter(missing_gaps == FALSE) %>%
   mutate(n_years = n_distinct(year)) %>%
-  # filter(all(b_v_bmsy < crazy_b, na.rm = TRUE),
-  #        all(u_v_umsy < crazy_u, na.rm = TRUE)) %>%
+  filter(n_years >= min_years_catch) %>%
+  filter(all(b_v_bmsy < crazy_b, na.rm = TRUE),
+         all(u_v_umsy < crazy_u, na.rm = TRUE)) %>%
   ungroup() %>%
   group_by(stockid) %>%
   mutate(
@@ -175,8 +174,23 @@ ram_data <- ram_data %>%
     has_tb = !all(is.na(total_biomass)),
     first_catch_year = year[which(catch > 0)[1]]
   ) %>%
-  # filter(year >= first_catch_year) %>%
+  filter(year >= first_catch_year) %>%
+  mutate(
+    pchange_effort = lead(u_v_umsy) / (u_v_umsy + 1e-6),
+    cs_effort = (u_v_umsy - mean(u_v_umsy)) / sd(u_v_umsy),
+    index = total_biomass * q,
+    approx_cpue = catch / (u_v_umsy / q + 1e-3),
+    b_rel = dplyr::case_when(
+      has_tb0 ~ total_biomass / max(TB0),
+      has_tb ~ total_biomass / max(total_biomass),
+      TRUE ~ b_v_bmsy / 2
+    )
+  ) %>%
+  mutate(approx_cpue = pmin(quantile(approx_cpue, 0.9, na.rm = TRUE), approx_cpue)) %>%
   ungroup()
+
+
+# process data ------------------------------------------------------------
 
 
 cod <- ram_data %>% 

@@ -86,7 +86,7 @@ fit_sraplus <- function(driors,
   
   if (max_time < Inf){
     
-    setTimeLimit(elapsed = max_time)
+    setTimeLimit(elapsed = max_time * 60, transient = TRUE)
     
   }
   
