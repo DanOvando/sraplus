@@ -49,11 +49,25 @@ matrix:
     #  - libgdal-dev
      # - libproj-dev
   
-#before_install:
- # - mkdir -p ~/.R
-  #- echo "CXX14FLAGS=-O3 -mtune=native -march=native -Wno-unused-variable -Wno-unused-function  -Wno-macro-redefined" >> ~/.R/Makevars
-  #- echo "CXX14=g++ -std=c++1y -fPIC" >> ~/.R/Makevars
-  #- curl -OLs https://eddelbuettel.github.io/r-travis/run.sh && chmod 0755 run.sh
-  # optionally add our launchpad repo, but not needed here
-  # - sudo add-apt-repository -y ppa:edd/r-3.5
-  #- ./run.sh bootstrap
+
+before_script: 
+  - Rscript -e "install.packages(c('loo', 'inline', 'Rcpp', 'coda', 'BH', 'RcppEigen', 'RInside', 'RUnit', 'ggplot2', 'gridExtra', 'knitr', 'rmarkdown', 'pkgbuild'), repos='http://cran.rstudio.com')"
+  - git config -f .gitmodules submodule.stan.branch ${STAN_BRANCH} 
+  - git config -f .gitmodules submodule.StanHeaders/inst/include/mathlib.branch ${STAN_MATH_BRANCH}
+  - git submodule update --remote
+  - if [[ $TRAVIS_OS_NAME = 'osx' ]] ; then sudo tlmgr update --self; fi
+  - if [[ $TRAVIS_OS_NAME = 'osx' ]] ; then sudo tlmgr install verbatimbox readarray ifnextok multirow fancyvrb url titlesec booktabs; fi 
+  - if [[ $TRAVIS_OS_NAME != 'osx' ]] ; then tlmgr install verbatimbox readarray ifnextok; fi
+  - if [[ $TRAVIS_OS_NAME = "osx" ]] ; then  brew install ccache; brew link ccache; fi
+  - echo "CXX = $CXX" >> ./rstan/R_Makevars 
+  - echo "CXX14 = $CXX" >> ./rstan/R_Makevars 
+  - echo "CXX14FLAGS = `R CMD config CXXFLAGS` -pedantic -g0 -fPIC" >> ./rstan/R_Makevars 
+  - export CLANG_EXTRA_ARG=""
+  - if [[ $CXX =~ clang.* ]] ;  then export CLANG_EXTRA_ARG=" -Qunused-arguments -fcolor-diagnostics " ; fi
+  - echo ${CXX} --version
+  - echo ${CLANG_EXTRA_ARG}
+  # - more ./rstan/R_Makevars
+  - mkdir -p ~/.R/; cat ./rstan/R_Makevars > ~/.R/Makevars
+  # - more ~/.R/Makevars
+  - R CMD build StanHeaders/
+  - R CMD INSTALL `find StanHeaders*.tar.gz`
