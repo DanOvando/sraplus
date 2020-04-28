@@ -49,7 +49,7 @@ purrr::walk(functions, ~ source(here::here("R", .x)))
 # load data ---------------------------------------------------------------
 
 
-load(here("data-raw","Return.Rdata"))
+# load(here("data-raw","Return.Rdata"))
 
 # readr::write_rds(Return,here::here("data-raw","Return.rds"))
 # 
@@ -75,15 +75,17 @@ if (!file.exists(here("data-raw","ram.zip"))) {
 
 # process RAM data --------------------------------------------------------
 
-ram_dirs <- list.files()
+ram_dirs <- list.files("data-raw")
 
-ram_dirs <- ram_dirs[str_detect(ram_dirs,"RAM")]
+ram_dirs <- ram_dirs[str_detect(ram_dirs,"RAM v\\d")]
 
 ram_files <- list.files(ram_dirs, recursive = TRUE)
 
 ram_files <- ram_files[str_detect(ram_files,".RData")]
 
-load(here(ram_dirs,ram_files[2]))
+ram_files <- ram_files[str_detect(ram_files,"Model Fit")]
+
+load(here(ram_dirs,ram_files[1]))
 
 stock <- stock %>%
   left_join(area, by = "areaid")
