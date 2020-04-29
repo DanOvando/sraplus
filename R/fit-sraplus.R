@@ -886,7 +886,7 @@ fit_sraplus <- function(driors,
                       upper = mean +  qnorm(1 - (1 - ci) / 2) * sd) %>%
         dplyr::group_by(variable) %>%
         dplyr::mutate(year = seq_along(mean)) %>%
-        ungroup()
+        dplyr::ungroup()
       
       
       logs <- out %>%
