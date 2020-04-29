@@ -431,7 +431,7 @@ fit_sraplus <- function(driors,
               log(driors$terminal_state),
               driors$terminal_state_cv)
       
-      p_bin <- lead(edge_p) - (edge_p)
+      p_bin <- dplyr::lead(edge_p) - (edge_p)
       
       bin_frame <- data.frame(bin = state_bins, p_bin = p_bin) %>%
         dplyr::mutate(bin = as.character(bin))
@@ -449,8 +449,8 @@ fit_sraplus <- function(driors,
             right = FALSE
           )
         )) %>%
-        group_by(bin) %>%
-        summarise(p_bin = mean(likelihood, na.rm = TRUE))
+        dplyr::group_by(bin) %>%
+        dplyr::summarise(p_bin = mean(likelihood, na.rm = TRUE))
       
       # bin_frame %>%
       #   ggplot(aes(bin, p_bin)) +
