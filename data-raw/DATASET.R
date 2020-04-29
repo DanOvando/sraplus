@@ -827,28 +827,197 @@ test_rf$fit
 
 # catch priors ------------------------------------------------------------
 
+# random idea: can you classify catch series into groups and use that as a predictor?
 
 
-# catch_data <- ram_data %>%
-#   group_by(stockid) %>%
-#   mutate(c_div_maxc = catch / max(catch, na.rm = TRUE),
-#          c_div_meanc = catch / mean(catch, na.rm = TRUE),
-#          c_length = as.numeric(1:length(catch))) %>%
-#   gather(metric, value, b_v_bmsy, u_v_umsy,exploitation_rate) %>%
-#   select(stockid, year, contains('c_'), isscaap_group, metric, value) %>%
-#   mutate(log_value = log(value + 1e-3)) %>%
-#   unique() %>%
-#   na.omit() %>%
-#   ungroup() %>%
-#   mutate(c_length = as.numeric(scale(c_length)))
-#
-#   # filter(!(metric == "mean_u" & value < 0.13 & enforcement > 0.6)) # per discussions with coauthors? don't remember why
-# random_catch_tests <- catch_data %>%
-#   nest(-metric) %>%
-#   mutate(splits = map(data, ~rsample::vfold_cv(.x, v = 2, repeats = 1))) %>%
-#   select(-data) %>%
-#   unnest() %>%
-#   mutate(sampid  = 1:nrow(.))
+ram_catches <- ram_data %>% 
+  ungroup() %>% 
+  select(stockid, year, catch) %>% 
+  group_by(stockid) %>% 
+  mutate(stock_year = 1:length(catch),
+         n_years = length(catch)) %>% 
+  mutate(scaled_catch = (catch) / max(catch)) %>% 
+  ungroup() %>% 
+  filter(n_years > 25,
+         stock_year <= 25)
+
+ram_catches %>% 
+  ggplot(aes(stock_year, scaled_catch, color = stockid)) + 
+  geom_line(show.legend = FALSE)
+
+ram_catches <- ram_catches %>% 
+  select(stockid, stock_year, scaled_catch) %>% 
+  pivot_wider(names_from = stock_year, values_from = scaled_catch) %>% 
+  ungroup() 
+
+nstocks <- nrow(ram_catches)
+
+map_dbl(ram_catches, ~sum(is.na(.x)))
+
+a = ram_catches %>% select(-stockid) %>% as.matrix()
+
+catch_pca <- specc(a,centers = 5)
+
+centers(catch_pca)
+size(catch_pca)
+withinss(catch_pca)
+
+cluster <- as.vector(catch_pca)
+
+ram_catches$cluster <- cluster
+
+ram_catches <- ram_catches  %>% 
+  pivot_longer(c(-stockid,-cluster), names_to = "stock_year", values_to = "catch",
+               names_ptypes = list(stock_year = integer()))
+
+
+ram_catches %>% 
+  ggplot(aes(stock_year, catch, group = stockid)) + 
+  geom_line() + 
+  facet_wrap(~cluster)
+
+
+
+class_data <- ram_catches %>%
+  pivot_wider(names_from = stock_year, values_from = catch) %>%
+  ungroup() %>%
+  mutate(cluster = as.factor(cluster))
+
+class_splits <- rsample::initial_split(class_data,strata = cluster)
+
+class_model <- parsnip::nearest_neighbor(neighbors = 15,
+                                         mode = "classification") %>% 
+  set_engine(engine = 'kknn')
+
+class_fit <- class_model %>% 
+  parsnip::fit(cluster ~ . , data = training(class_splits) %>% select(-stockid))
+
+class_fit$fit %>% summary()
+
+training_data <- training(class_splits) %>% 
+  bind_cols(predict(class_fit, new_data = .)) %>% 
+  mutate(split = "training")
+
+
+testing_data <- testing(class_splits) %>% 
+  bind_cols(predict(class_fit, new_data = .)) %>% 
+  mutate(split = "testing")
+
+cluster_predictions <- training_data %>% 
+  bind_rows(testing_data) %>% 
+  rename(predicted_cluster = .pred_class)
+
+cluster_model_performance <- cluster_predictions %>%
+  group_by(split, cluster) %>% 
+  summarise(accuracy = mean(cluster == predicted_cluster))
+
+cluster_model_performance %>% 
+  ggplot(aes(cluster, accuracy, fill = split)) + 
+  geom_col(position = "dodge")
+ 
+cluster_predictions %>% 
+  group_by(split) %>% 
+  summarise(accuracy = mean(cluster == predicted_cluster)) %>% 
+  pivot_wider(names_from = "split", values_from = "accuracy") %>% 
+  mutate(testing_loss = testing / training - 1)
+
+
+
+# fit a model now
+
+status_model_data <- ram_data %>% 
+  filter(stockid %in% unique(cluster_predictions$stockid)) %>% 
+  left_join(cluster_predictions %>% select(stockid, predicted_cluster), by = "stockid") %>% 
+  group_by(stockid) %>%
+  mutate(c_div_maxc = catch / max(catch, na.rm = TRUE),
+         c_div_meanc = catch / mean(catch, na.rm = TRUE),
+         c_length = length(catch),
+         fishery_year = 1:length(catch)) %>%
+  gather(metric, value, b_v_bmsy, u_v_umsy,exploitation_rate) %>%
+  select(stockid, year, contains('c_'), metric, value, predicted_cluster,fishery_year) %>%
+  mutate(log_value = log(value + 1e-3)) %>%
+  unique() %>%
+  na.omit() %>%
+  ungroup() 
+
+# try and predict initial status
+
+
+initial_state_splits <-
+  initial_split(status_model_data %>% filter(fishery_year == 1, metric == "b_v_bmsy"))
+
+
+with_cluster <-
+  stan_glm(
+    value ~ c_div_maxc*predicted_cluster + c_div_meanc + c_length,
+    data =  training(initial_state_splits),
+    family = Gamma
+  )
+
+plot(with_cluster)
+
+training_with_cluster <- training(initial_state_splits) %>% 
+  mutate(predicted_value = predict(with_cluster, type = "response")) %>% 
+  mutate(split = "training")
+
+pp <- posterior_predict(with_cluster, newdata =  testing(initial_state_splits), type = "response")
+
+testing_with_cluster <- testing(initial_state_splits) %>% 
+  mutate(predicted_value = colMeans(pp)) %>% 
+  mutate(split = "testing")
+
+
+
+with_cluster_performance <- training_with_cluster %>% 
+  bind_rows(testing_with_cluster)
+
+with_cluster_performance %>% 
+  ggplot(aes(value, predicted_value)) + 
+  geom_point() +
+  geom_abline(aes(slope = 1, intercept = 0)) + 
+  geom_smooth(method = "lm") +
+  facet_wrap(~split)
+
+with_cluster_performance %>% 
+  group_by(split) %>% 
+  yardstick::rmse(truth = value, estimate = predicted_value)
+
+without_cluster <-
+  stan_glm(
+    value ~ c_div_maxc + c_div_meanc +  c_length ,
+    data =  training(initial_state_splits),
+    family = Gamma
+  )
+
+plot(without_cluster)
+
+training_without_cluster <- training(initial_state_splits) %>% 
+  mutate(predicted_value = predict(without_cluster, type = "response")) %>% 
+  mutate(split = "training")
+
+pp <- posterior_predict(without_cluster, newdata =  testing(initial_state_splits), type = "response")
+
+testing_without_cluster <- testing(initial_state_splits) %>% 
+  mutate(predicted_value = colMeans(pp)) %>% 
+  mutate(split = "testing")
+
+without_cluster_performance <- training_without_cluster %>% 
+  bind_rows(testing_without_cluster)
+
+without_cluster_performance %>% 
+  ggplot(aes(value, predicted_value)) + 
+  geom_point() +
+  geom_abline(aes(slope = 1, intercept = 0)) + 
+  geom_smooth(method = "lm") +
+  facet_wrap(~split)
+
+without_cluster_performance %>% 
+  group_by(split) %>% 
+  yardstick::rmse(truth = value, estimate = predicted_value)
+
+
+
+
 #
 # model_structures <-
 #   purrr::cross_df(list(

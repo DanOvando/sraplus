@@ -83,7 +83,7 @@ ml_driors <- format_driors(taxa = example_taxa,
                         terminal_state = NA,
                         shape_prior = 1.01,
                         growth_rate_prior = 0.4,
-                        growth_rate_prior_cv = 0.5,
+                        growth_rate_prior_cv = 0.25,
                         sigma_ratio_prior = 1,
                         sigma_ratio_prior_cv = .1,
                         )

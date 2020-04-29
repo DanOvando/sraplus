@@ -267,7 +267,7 @@ double learn_rate
     
     // std::cout << b_t(t,i)) << std::endl;
     
-    if (b_t(t,i) <= 0){
+    if (b_t(t,i) <= 0 | (b_t(t,i) /  ks(i)) > 1.25){
       
       crashed(i) = 1;
       
@@ -309,14 +309,6 @@ double learn_rate
   log_like(i) += R::dnorm(log(terminal_ref),log_terminal_ref, sigma_dep, true);
   }
   
-  // psuedocode for prior-predictive check
-  // bin the thing you have a prior on (say terminal depletion)
-  // assign K values to each terminal depletion. 
-  // Bin depletion and calculate total likelihood in that bin (sum delta dnorm between extremes?)
-  // assign each k to a bin, and divide the total likelihood in that bin between the ks
-  // sample from the ks with that weight
-  
-
   if (use_u_prior == 1){
 
     for (int t = 0; t < u_years.size(); t++) {
@@ -379,6 +371,7 @@ NumericVector keepers = sample(drawdex, n_keep, 1, scaled_like) + 1;
       Rcpp::Named("b_t") = b_t,
       Rcpp::Named("crashed") = crashed,
       Rcpp::Named("b_bmsy_t") = b_bmsy_t,
+      Rcpp::Named("u_t") = u_t,
       Rcpp::Named("u_umsy_t") = u_umsy_t,
       Rcpp::Named("dep_t") = dep_t,
       Rcpp::Named("keepers") = keepers,

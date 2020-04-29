@@ -106,9 +106,9 @@ Type objective_function<Type>::operator() ()
   
   DATA_IVECTOR(index_years);
   
-  DATA_SCALAR(k_prior);
+  DATA_SCALAR(log_k_prior);
   
-  DATA_SCALAR(k_prior_cv);
+  DATA_SCALAR(log_k_prior_cv);
   
   DATA_SCALAR(nat_m);
   
@@ -571,7 +571,7 @@ Type objective_function<Type>::operator() ()
   // nll -= dnorm(log_sigma_proc,log(sigma_proc_prior), sigma_proc_prior_cv, true);
   
   if (est_k == 1){
-    nll -= dnorm(log_anchor,log(k_prior),k_prior_cv, true);
+    nll -= dnorm(log_anchor,log_k_prior,log_k_prior_cv, true);
   }
   
   if (estimate_shape == 1){
