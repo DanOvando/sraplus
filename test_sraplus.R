@@ -74,19 +74,19 @@ pop %>%
 # sir_diagnostics <- diagnose_sraplus(sir_fit, driors)
 
 ml_driors <- format_driors(taxa = example_taxa,
-                        catch = pop$catch,
-                        years = pop$year,
-                        index = pop$biomass * q * exp(rnorm(length(pop$biomass),-sigma_obs^2/2,sigma_obs)),
-                        index_years = pop$year,
-                        initial_state = 1,
-                        initial_state_cv = 0.025,
-                        terminal_state = NA,
-                        shape_prior = 1.01,
-                        growth_rate_prior = 0.4,
-                        growth_rate_prior_cv = 0.25,
-                        sigma_ratio_prior = 1,
-                        sigma_ratio_prior_cv = .1,
-                        )
+                           catch = pop$catch,
+                           years = pop$year,
+                           index = pop$biomass * q * exp(rnorm(length(pop$biomass),-sigma_obs^2/2,sigma_obs)),
+                           index_years = pop$year,
+                           initial_state = 1,
+                           initial_state_cv = 0.025,
+                           terminal_state = NA,
+                           shape_prior = 1.01,
+                           growth_rate_prior = 0.4,
+                           growth_rate_prior_cv = 0.5,
+                           sigma_ratio_prior = 1,
+                           sigma_ratio_prior_cv = .1,
+)
 
 plot_driors(ml_driors)
 

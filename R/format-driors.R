@@ -115,12 +115,12 @@ format_driors <-
     if (is.na(isscaap_group)) {
       if (any(grepl(
         tolower(taxa),
-        tolower(fao_taxa$fao_species$scientific_name)
+        tolower(sraplus::fao_taxa$fao_species$scientific_name)
       ))) {
-        isscaap_group = fao_taxa$fao_species$isscaap_group[tolower(fao_taxa$fao_species$scientific_name) == tolower(taxa)][1]
+        isscaap_group = sraplus::fao_taxa$fao_species$isscaap_group[tolower(sraplus::fao_taxa$fao_species$scientific_name) == tolower(taxa)][1]
         
-      } else if (any(grepl(tolower(genus), tolower(fao_taxa$fao_genus$genus)))) {
-        isscaap_group = fao_taxa$fao_genus$isscaap_group[tolower(fao_taxa$fao_genus$genus) == genus][1]
+      } else if (any(grepl(tolower(genus), tolower(sraplus::fao_taxa$fao_genus$genus)))) {
+        isscaap_group = sraplus::fao_taxa$fao_genus$isscaap_group[tolower(sraplus::fao_taxa$fao_genus$genus) == genus][1]
         
         
       } else{
