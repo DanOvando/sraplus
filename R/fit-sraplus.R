@@ -725,7 +725,7 @@ fit_sraplus <- function(driors,
         )
       
       draws = tidybayes::tidy_draws(fit) %>%
-        group_by(.chain, .iteration, .draw) %>%
+        dplyr::group_by(.chain, .iteration, .draw) %>%
         tidyr::nest()
       
       draws <- draws %>%
