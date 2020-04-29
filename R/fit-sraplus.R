@@ -336,7 +336,7 @@ fit_sraplus <- function(driors,
       sir_fit_index <- 0
       
     } else {
-      sir_fit_index <- 1
+      sir_fit_index <- sra_data$fit_index
       
       sir_effort <- sra_data$effort_t
       
