@@ -92,7 +92,8 @@ format_driors <-
            sigma_obs_prior_cv = 1,
            isscaap_group = NA,
            f_prior_form = 0,
-           prob = 0.9) {
+           prob = 0.9,
+           use_fmsy_based_r = FALSE) {
     if (use_b_reg == TRUE) {
       b_ref_type <-  "b"
       
@@ -114,12 +115,12 @@ format_driors <-
     if (is.na(isscaap_group)) {
       if (any(grepl(
         tolower(taxa),
-        tolower(fao_taxa$fao_species$scientific_name)
+        tolower(sraplus::fao_taxa$fao_species$scientific_name)
       ))) {
-        isscaap_group = fao_taxa$fao_species$isscaap_group[tolower(fao_taxa$fao_species$scientific_name) == tolower(taxa)][1]
+        isscaap_group = sraplus::fao_taxa$fao_species$isscaap_group[tolower(sraplus::fao_taxa$fao_species$scientific_name) == tolower(taxa)][1]
         
-      } else if (any(grepl(tolower(genus), tolower(fao_taxa$fao_genus$genus)))) {
-        isscaap_group = fao_taxa$fao_genus$isscaap_group[tolower(fao_taxa$fao_genus$genus) == genus][1]
+      } else if (any(grepl(tolower(genus), tolower(sraplus::fao_taxa$fao_genus$genus)))) {
+        isscaap_group = sraplus::fao_taxa$fao_genus$isscaap_group[tolower(sraplus::fao_taxa$fao_genus$genus) == genus][1]
         
         
       } else{
@@ -251,7 +252,7 @@ format_driors <-
              paste(taxon, collapse = "_"))
     
     params_mvn <-
-      c("r", "ln_var", "M")
+      c("r", "ln_var", "M", "ln_Fmsy")
     if (is.null(fish_search$error)) {
       taxon <-
         dplyr::tibble(
@@ -291,11 +292,30 @@ format_driors <-
       cov_lh <-
         cov_lh[which(rownames(cov_lh) %in% params_mvn), which(colnames(cov_lh) %in% params_mvn)] %>% diag()
       
+      f_msy <- exp(mean_lh["ln_Fmsy"] + 0.5 * cov_lh["ln_Fmsy"])
+      
+      r_implied = (f_msy / (1 - 1 / shape_prior)) * (shape_prior- 1)
+ 
+      if (use_fmsy_based_r){
+        
+        mean_lh["r"] <- r_implied
+        
+      }
     } else {
       
       mean_lh <-
-        c("r" = mean(FishLife::FishBase_and_RAM$beta_gv[, "r"]),
-          m = exp(mean(FishLife::FishBase_and_RAM$beta_gv[, "M"])))
+        c("r" = median(FishLife::FishBase_and_RAM$beta_gv[, "r"]),
+          m = exp(median(FishLife::FishBase_and_RAM$beta_gv[, "M"])))
+      
+      f_msy <- median(FishLife::FishBase_and_RAM$beta_gv[,"ln_Fmsy"])
+      
+      r_implied = (f_msy / (1 - 1 / shape_prior)) * (shape_prior- 1)
+      
+      if (use_fmsy_based_r){
+        
+        mean_lh["r"] <- r_implied
+        
+      }
       
       # mean_lh <-
       #   c("r" = mean(FishLifeData$beta_gv[, "r"]),
@@ -397,11 +417,11 @@ format_driors <-
         catch = catch,
         years = years,
         k_prior = ifelse(is.na(k_prior), 10 * max(catch), k_prior),
-        k_prior_cv = k_prior_cv,
+        k_prior_cv = sqrt(log(k_prior_cv^2 + 1)),
         terminal_state = terminal_state,
-        terminal_state_cv = terminal_state_cv,
+        terminal_state_cv = sqrt(log(terminal_state_cv^2 + 1)),
         initial_state = initial_state,
-        initial_state_cv = initial_state_cv,
+        initial_state_cv = sqrt(log(initial_state_cv^2 + 1)),
         index = index,
         effort = effort,
         u = u,
@@ -416,19 +436,19 @@ format_driors <-
           growth_rate_prior_cv
         ),
         sigma_ratio_prior = sigma_ratio_prior ,
-        sigma_ratio_prior_cv = sigma_ratio_prior_cv,
+        sigma_ratio_prior_cv = sqrt(log(sigma_ratio_prior_cv^2 + 1)),
         # sigma_r_prior = ifelse(is.na(sigma_r_prior), exp(mean_lh["ln_var"]) / 2, sigma_r_prior),
         # sigma_r_prior_cv = ifelse(is.na(sigma_r_prior_cv), sqrt(cov_lh["ln_var"]), sigma_r_prior_cv),
         m =  ifelse(is.na(m), exp(mean_lh["M"]), m),
         log_terminal_u = log_terminal_u,
-        log_terminal_u_cv = log_terminal_u_cv,
+        log_terminal_u_cv =  sqrt(log(log_terminal_u_cv^2 + 1)),
         q_slope_prior = q_slope_prior + 1e-6,
-        q_slope_prior_cv = q_slope_prior_cv,
+        q_slope_prior_cv = sqrt(log(q_slope_prior_cv^2 + 1)),
         shape_prior = shape_prior,
-        shape_prior_cv = shape_prior_cv,
-        q_prior_cv = q_prior_cv,
+        shape_prior_cv =  sqrt(log(shape_prior_cv^2 + 1)),
+        q_prior_cv = sqrt(log(q_prior_cv^2 + 1)),
         sigma_obs_prior = sigma_obs_prior,
-        sigma_obs_prior_cv = sigma_obs_prior_cv,
+        sigma_obs_prior_cv = sqrt(log(sigma_obs_prior_cv^2 + 1)),
         fishlife_taxa = fishlife_taxa,
         input_taxa = taxa,
         f_prior_form = f_prior_form

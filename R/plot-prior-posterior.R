@@ -301,11 +301,11 @@ plot_prior_posterior <- function(fit, driors,
   priors$variable <- stringr::str_replace_all(priors$variable,"_prior","") 
   
   priors <- priors %>% 
-    group_by(variable) %>% 
-    summarise(mean = mean(draws),
+    dplyr::group_by(variable) %>% 
+    dplyr::summarise(mean = mean(draws),
               lower = quantile(draws,probs = c((1 - prob) / 2)),
               upper = quantile(draws,probs = c(1 - (1 - prob) / 2))) %>% 
-    mutate(source = "Prior")
+    dplyr::mutate(source = "Prior")
   
   if ("initial_state" %in% priors$variable) {
     

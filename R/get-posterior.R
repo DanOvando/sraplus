@@ -26,7 +26,7 @@ get_posterior <-  function(draws,
   draw_locs <- which(draw_names %in% names(inits))
   par_list <-
     dplyr::tibble(par = draw_names[draw_locs], vals = as.numeric(draws[draw_locs])) %>%
-    group_by(par) %>% 
+    dplyr::group_by(par) %>% 
     tidyr::nest() %>% 
     dplyr::ungroup()
   
