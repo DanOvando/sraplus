@@ -1,30 +1,18 @@
 ---
-title: "Stock Assessment with the sraplus package"
-author: "Dan Ovando"
-date: "`r Sys.Date()`"
+title: "Surplus Production Modeling and Estimation with sraplus"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{sraplus}
+  %\VignetteIndexEntry{Surplus Production Modeling and Estimation with sraplus}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
 
-```{r, echo = FALSE}
+```{r, include = FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
-  comment = "#>",
-  message = FALSE,
-  warnings = FALSE,
-  eval = TRUE#,
-  # dev = "svg"
+  comment = "#>"
 )
 ```
-
-# sraplus
-
-[![Build Status](https://travis-ci.org/DanOvando/sraplus.svg?branch=v2.0)](https://travis-ci.org/DanOvando/sraplus)
-<!-- README.md is generated from README.Rmd. Please edit that file -->
-
 
 **THIS PACKAGE IS UNDER ACTIVE DEVELOPMENT AND SHOULD NOT BE USED FOR INDIVIDUAL STOCK ASSESSMENT AT THIS TIME**
 
@@ -73,7 +61,7 @@ Once you've tried those, restart your computer and try running
 
 install.packages("devtools")
 
-remotes::install_github("danovando/sraplus", ref = 'v3.2.1')
+remotes::install_github("danovando/sraplus")
 
 
 ```
@@ -89,7 +77,7 @@ library(tidyr)
 library(dplyr)
 library(sraplus)
 library(tmbstan)
-library(tmbstan)
+Sys.unsetenv("PKG_CXXFLAGS")
 
 ```
 
@@ -118,7 +106,7 @@ From there, we'll pass the catch data, and the years corresponding to the catch 
 ```{r c-msy-2}
 
 
-catch_only_driors <- sraplus::format_driors(
+catch_only_driors <- format_driors(
   taxa = example_taxa,
   catch = cod$catch,
   years = cod$year,
@@ -143,12 +131,19 @@ From there, we pass the `driors` object to `sraplus::fit_sraplus`, and plot the 
 
 ```{r}
 
+sfs <- purrr::safely(fit_sraplus)
+
  catch_only_fit <- fit_sraplus(driors = catch_only_driors,
                        engine = "sir",
-                       draws = 1e6,
-                       n_keep = 2000,
+                       draws = 1e5,
+                       n_keep = 4000,
                        estimate_proc_error = TRUE, 
-                       estimate_shape = TRUE)
+                       estimate_shape = TRUE,
+                       max_time = Inf,
+                       tune_prior_predictive = FALSE)
+ 
+ sraplus::plot_sraplus(catch_only = catch_only_fit, years = catch_only_driors$years)
+
 
 ```
 
@@ -200,12 +195,11 @@ fmi_sar_driors <- format_driors(
   initial_state = 1,
   initial_state_cv = 0.25,
   use_heuristics = FALSE,
-  sar = 17,
-  sar_cv = 0.1,
+  sar = 10,
   fmi = c("research" = 0.5, "management" = 0.5, "socioeconomics" = 0.5, 'enforcement' = 0.5),
+  sar_cv = NA,
   use_b_reg = FALSE,
-  b_ref_type = "k",
-  sigma_r_prior_cv = 0.5)
+  b_ref_type = "k")
 
 sraplus::plot_driors(fmi_sar_driors)
 ```
@@ -219,8 +213,8 @@ fmi_sar_fit <- fit_sraplus(
   driors = fmi_sar_driors,
   engine = "sir",
   draws = 1e6,
-  n_keep = 2000,
-  estimate_shape = FALSE,
+  n_keep = 4000,
+  estimate_shape = TRUE,
   estimate_proc_error = TRUE
 )
 
@@ -232,6 +226,15 @@ plot_sraplus(fmi_sar = fmi_sar_fit,
 
 ```
 
+You can also use the function `sraplus::diagnose_sraplus` to look at some brief diagnostics of the model fit. Note that these diagnostics are not exhaustive, and users should carefully assess the quality of any model fits on their own as well. `diagnose_sraplus` will inform the user whether `FishLife` found an exact match for the species, and provide some summary diagnostics for each model type (SIR, TMB, or Stan). For the SIR case, the diagnostics include the number of unique samples in the posterior, and a plot of the mean terminal values as a function of the number of unique samples used. n
+
+```{r}
+
+sraplus::diagnose_sraplus(fit = fmi_sar_fit, driors = fmi_sar_driors )
+
+```
+
+
 
 ## Abundance Index via Maximum Likelihood
 
@@ -242,7 +245,7 @@ We'll now try adding in some actual data to fit to. For illustration purposes (a
 set.seed(42)
 sim <-
   sraplus_simulator(
-    sigma_proc = 0,
+    sigma_proc = 0.05,
     sigma_u = 0,
     q_slope = 0,
     r = 0.4,
@@ -272,18 +275,20 @@ index_driors <- format_driors(
   years = sim$pop$year,
   index = sim$pop$biomass * 1e-3,
   index_years = sim$pop$year,
-  growth_rate_prior = 0.4,
-  growth_rate_prior_cv = 0.1,
-  shape_prior = 1.01,
-  shape_prior_cv = 0.1)
+  initial_state = 1,
+  initial_state_cv = 0.005)
 
 plot_driors(index_driors)
 
 index_fit <- fit_sraplus(driors = index_driors,
                       engine = "tmb",
-                      model = "sraplus_tmb")
+                      model = "sraplus_tmb", 
+                      estimate_proc_error = FALSE)
 
 plot_sraplus(index = index_fit,years = index_driors$years)
+
+plot_prior_posterior(index_fit, index_driors)
+
 
 ```
 
@@ -340,8 +345,8 @@ cpue_driors <- format_driors(taxa = example_taxa,
                            years = sim$pop$year,
                            effort = sim$pop$effort,
                            effort_years = sim$pop$year,
-                           growth_rate_prior = 0.4,
-                           growth_rate_prior_cv = 0.1,
+                           # growth_rate_prior = 0.4,
+                           # growth_rate_prior_cv = 0.1,
                            shape_prior = 1.01,
                            q_slope_prior = 0,
                            q_slope_prior_cv = 0.2)
@@ -363,8 +368,8 @@ cpue_qslope_driors <- format_driors(taxa = example_taxa,
                            years = sim$pop$year,
                            effort = sim$pop$effort,
                            effort_years = sim$pop$year,
-                           growth_rate_prior = 0.4,
-                           growth_rate_prior_cv = 0.1,
+                           # growth_rate_prior = 0.4,
+                           # growth_rate_prior_cv = 0.1,
                            shape_prior = 1.01,
                            q_slope_prior = 0.025,
                            q_slope_prior_cv = 0.05)
@@ -396,8 +401,8 @@ cpue_sar_qslope_driors <- format_driors(taxa = example_taxa,
                            years = sim$pop$year,
                            effort = sim$pop$effort,
                            effort_years = sim$pop$year,
-                           growth_rate_prior = 0.4,
-                           growth_rate_prior_cv = 0.1,
+                           # growth_rate_prior = 0.4,
+                           # growth_rate_prior_cv = 0.1,
                            shape_prior = 1.01,
                            q_slope_prior = 0.025,
                            q_slope_prior_cv = 0.25,
@@ -428,8 +433,8 @@ cpue_sar_proc_driors <- format_driors(taxa = example_taxa,
                            years = sim$pop$year,
                            effort = sim$pop$effort,
                            effort_years = sim$pop$year,
-                           growth_rate_prior = 0.4,
-                           growth_rate_prior_cv = 0.1,
+                           # growth_rate_prior = 0.4,
+                           # growth_rate_prior_cv = 0.1,
                            shape_prior = 1.01,
                            q_slope_prior = 0,
                            q_slope_prior_cv = 0.25,
@@ -485,3 +490,4 @@ Or produce a summary table that can be saved to a .csv file.
 summarize_sralpus(cpue_sar_proc_fit, output = "table") %>% 
   knitr::kable()
 ```
+
