@@ -93,7 +93,8 @@ format_driors <-
            isscaap_group = NA,
            f_prior_form = 0,
            prob = 0.9,
-           use_fmsy_based_r = FALSE) {
+           use_fmsy_based_r = FALSE,
+           log_bias_correct = FALSE) {
     if (use_b_reg == TRUE) {
       b_ref_type <-  "b"
       
@@ -453,6 +454,7 @@ format_driors <-
         input_taxa = taxa,
         f_prior_form = f_prior_form
       )
+    
     
     driors$b_ref_type <- b_ref_type
     

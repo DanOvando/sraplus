@@ -187,7 +187,7 @@ plot_driors(driors)
 
 
 fit <- fit_sraplus(driors = driors,
-                      engine = "tmb",
+                      engine = "stan",
                       model = "sraplus_tmb",
                       estimate_shape = FALSE, 
                       estimate_proc_error = TRUE,

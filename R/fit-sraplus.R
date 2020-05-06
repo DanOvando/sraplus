@@ -81,6 +81,7 @@ fit_sraplus <- function(driors,
                         tune_prior_predictive = TRUE,
                         index_fit_tuner = "sir",
                         refresh = 250,
+                        log_bias_correct = TRUE,
                         ...) {
   opts <- list(...)
   
@@ -111,9 +112,9 @@ fit_sraplus <- function(driors,
     index_years = which(driors$years %in% driors$index_years),
     log_r_prior = log(driors$growth_rate_prior),
     log_r_cv = driors$growth_rate_prior_cv,
-    log_init_dep_prior = log(driors$initial_state),
+    log_init_dep_prior = ifelse(log_bias_correct,log(driors$initial_state) - driors$initial_state_cv^2/2 ,log(driors$initial_state)),
     log_init_dep_cv = driors$initial_state_cv,
-    log_terminal_dep_prior = log(driors$terminal_state),
+    log_terminal_dep_prior = ifelse(log_bias_correct, log(driors$terminal_state) - driors$terminal_state_cv^2/2,log(driors$terminal_state)),
     log_terminal_dep_cv = driors$terminal_state_cv,
     time = time,
     fit_index = as.numeric(!all(is.na(driors$index)) |
@@ -132,7 +133,7 @@ fit_sraplus <- function(driors,
     use_terminal_u = as.numeric(!all(is.na(
       driors$log_terminal_u
     ))),
-    log_terminal_u = driors$log_terminal_u,
+    log_terminal_u = ifelse(log_bias_correct,  driors$log_terminal_u - driors$log_terminal_u_cv^2/2,driors$log_terminal_u),
     log_terminal_u_cv = driors$log_terminal_u_cv,
     use_init =  !is.na(driors$initial_state),
     u_cv = driors$u_cv,
