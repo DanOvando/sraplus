@@ -294,7 +294,7 @@ plot_prior_posterior <- function(fit, driors,
  # this is going to be very unelegant given differnces in naming
   
   fits <- fit$results %>% 
-    mutate(variable = dplyr::case_when(variable == "r" ~ "growth_rate",
+    dplyr::mutate(variable = dplyr::case_when(variable == "r" ~ "growth_rate",
                             variable == "m" ~ "shape",
                             TRUE ~ variable ))
   
@@ -366,15 +366,44 @@ plot_prior_posterior <- function(fit, driors,
     
   } # close if terminal state
     
+  if ("terminal_u" %in% priors$variable){
+    
+    
+    
+    if (driors$f_ref_type == "fmsy") {
+      
+      terminal_u <- fits[fits$variable == "u_div_umsy",]
+      
+      terminal_u <- as.data.frame(terminal_u[nrow(terminal_u),])
+      
+      terminal_u$variable <-  "terminal_u"
+    
+      fits <- rbind(fits, (terminal_u))
+      
+      
+    } else if (driors$f_ref_type == "u"){
+      
+      terminal_u <- fits[fits$variable == "u_t",]
+      
+      terminal_u <- as.data.frame(terminal_u[nrow(terminal_u),])
+      
+      terminal_u$variable <-  "terminal_u"
+      
+      fits <- rbind(fits, terminal_u)
+    }
+    
+    
+  } # close if terminal state
+  
     
   
   posteriors <- fits %>% 
     dplyr::filter(variable %in% priors$variable) %>% 
     dplyr::mutate(source = "Posterior")
-  
+  browser()
   prior_posterior <- posteriors[,colnames(priors)] %>% 
     rbind(priors %>% filter(variable %in% posteriors$variable))
-  
+    
   prior_posterior_plot <- prior_posterior %>%
     ggplot2::ggplot() +
     ggplot2::geom_pointrange(aes(

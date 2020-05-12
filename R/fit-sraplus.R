@@ -421,22 +421,22 @@ fit_sraplus <- function(driors,
       
       state_breaks <- seq(0, 10, by = .025)
       
-      state_bins <-
-        cut(state_breaks,
-            state_breaks,
-            include.lowest = FALSE,
-            right = FALSE)
+      # state_bins <-
+      #   cut(state_breaks,
+      #       state_breaks,
+      #       include.lowest = FALSE,
+      #       right = FALSE)
       
-      edge_p <-
-        pnorm(log(state_breaks),
-              log(driors$terminal_state),
-              driors$terminal_state_cv)
-      
-      p_bin <- dplyr::lead(edge_p) - (edge_p)
-      
-      bin_frame <- data.frame(bin = state_bins, p_bin = p_bin) %>%
-        dplyr::mutate(bin = as.character(bin))
-      
+      # edge_p <-
+      #   pnorm(log(state_breaks),
+      #         log(driors$terminal_state),
+      #         driors$terminal_state_cv)
+      # 
+      # p_bin <- dplyr::lead(edge_p) - (edge_p)
+      # 
+      # bin_frame <- data.frame(bin = state_bins, p_bin = p_bin) %>%
+      #   dplyr::mutate(bin = as.character(bin))
+      # 
       
       log_like <- sra_fit$likelihood
       
@@ -472,7 +472,7 @@ fit_sraplus <- function(driors,
         dplyr::mutate(weight = unique(p_bin) / length(p_bin)) %>%
         dplyr::ungroup() %>%
         dplyr::mutate(index = 1:nrow(.))
-      
+    
       sra_fit$keepers <-
         sample(draws$index,
                n_keep,
@@ -536,7 +536,6 @@ fit_sraplus <- function(driors,
       )
     out <- list(results = out,
                 fit = tidy_fits)
-    
     out$results$year <- out$results$year - 1 + min(driors$years)
     
     out$fit$year <- out$fit$year - 1 + min(driors$years)

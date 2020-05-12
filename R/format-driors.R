@@ -93,8 +93,7 @@ format_driors <-
            isscaap_group = NA,
            f_prior_form = 0,
            prob = 0.9,
-           use_fmsy_based_r = FALSE,
-           log_bias_correct = FALSE) {
+           use_fmsy_based_r = FALSE) {
     if (use_b_reg == TRUE) {
       b_ref_type <-  "b"
       
@@ -443,6 +442,8 @@ format_driors <-
         m =  ifelse(is.na(m), exp(mean_lh["M"]), m),
         log_terminal_u = log_terminal_u,
         log_terminal_u_cv =  sqrt(log(log_terminal_u_cv^2 + 1)),
+        terminal_u = exp(log_terminal_u),
+        terminal_u_cv =  sqrt(log(log_terminal_u_cv^2 + 1)),
         q_slope_prior = q_slope_prior + 1e-6,
         q_slope_prior_cv = sqrt(log(q_slope_prior_cv^2 + 1)),
         shape_prior = shape_prior,

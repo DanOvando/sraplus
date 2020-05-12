@@ -76,7 +76,7 @@ plot_driors <- function(driors, fontsize = 10, prob = 0.9) {
   
   
   
-  foo <- function(var, driors, n = 1000) {
+  foo <- function(var, driors, n = 50000) {
     if (stringr::str_detect(var, "log")) {
       sims <- rnorm(n, driors[[var]], driors[[paste0(var, "_cv")]])
       

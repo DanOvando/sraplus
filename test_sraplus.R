@@ -4,7 +4,7 @@ library(sraplus)
 
 library(tmbstan)
 
-Sys.unsetenv("PKG_CXXFLAGS")
+# Sys.unsetenv("PKG_CXXFLAGS")
 example_taxa <- "gadus sdfg"
 
 # library(tmbstan)
@@ -81,7 +81,7 @@ ml_driors <- format_driors(taxa = example_taxa,
                            initial_state = 1,
                            initial_state_cv = 0.025,
                            terminal_state = NA,
-                           shape_prior = 1.01,
+                           shape_prior = 2,
                            growth_rate_prior = 0.4,
                            growth_rate_prior_cv = 0.5,
                            sigma_ratio_prior = 1,
@@ -94,7 +94,6 @@ plot_driors(ml_driors)
 ml_fit <- fit_sraplus(driors = ml_driors,
                       engine = "tmb",
                       model = "sraplus_tmb",
-                      estimate_shape = FALSE, 
                       estimate_proc_error = TRUE,
                       estimate_f = FALSE,
                       estimate_k = TRUE,
@@ -118,7 +117,6 @@ sraplus::summarize_sralpus(ml_fit)
 bayes_fit <- fit_sraplus(driors = ml_driors,
                       engine = "stan",
                       model = "sraplus_tmb",
-                      estimate_shape = FALSE, 
                       estimate_proc_error = TRUE,
                       estimate_f = FALSE,
                       estimate_k = TRUE,
