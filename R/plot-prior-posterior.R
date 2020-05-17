@@ -414,7 +414,7 @@ plot_prior_posterior <- function(fit, driors,
       fits <- rbind(fits, (terminal_u))
       
       
-    } else if (driors$f_ref_type == "u"){
+    } else if (driors$f_ref_type == "f"){
       
       terminal_u <- fits[fits$variable == "u_t",]
       
