@@ -235,7 +235,11 @@ plot_prior_posterior <- function(fit, driors,
   }
   
   
+  multiple_u <- FALSE
+  
   if (length(driors$log_terminal_u) > 1) {
+    multiple_u <- TRUE
+    
     driors$log_terminal_u1 = driors$log_terminal_u[1]
     
     driors$log_terminal_u1_cv = driors$log_terminal_u_cv[1]
@@ -248,6 +252,19 @@ plot_prior_posterior <- function(fit, driors,
       purrr::list_modify(driors,
                          "log_terminal_u" = NULL,
                          "log_terminal_u_cv" = NULL)
+    
+    driors$terminal_u1 = driors$terminal_u[1]
+    
+    driors$terminal_u1_cv = driors$terminal_u_cv[1]
+    
+    driors$terminal_u2 = driors$terminal_u[2]
+    
+    driors$terminal_u2_cv = driors$terminal_u_cv[2]
+    
+    driors <-
+      purrr::list_modify(driors,
+                         "terminal_u" = NULL,
+                         "terminal_u_cv" = NULL)
     
   }
   
@@ -366,9 +383,7 @@ plot_prior_posterior <- function(fit, driors,
     
   } # close if terminal state
     
-  if ("terminal_u" %in% priors$variable){
-    
-    
+  if (any(stringr::str_detect(priors$variable, "terminal_u"))){
     
     if (driors$f_ref_type == "fmsy") {
       
@@ -378,6 +393,24 @@ plot_prior_posterior <- function(fit, driors,
       
       terminal_u$variable <-  "terminal_u"
     
+      if (multiple_u){
+        
+        terminal_u1 <- fits[fits$variable == "u_div_umsy",]
+        
+        terminal_u1 <- as.data.frame(terminal_u[nrow(terminal_u),])
+        
+        terminal_u1$variable <-  "terminal_u1"
+        
+        terminal_u2 <- fits[fits$variable == "u_div_umsy",]
+        
+        terminal_u2 <- as.data.frame(terminal_u[nrow(terminal_u),])
+        
+        terminal_u2$variable <-  "terminal_u2"
+        
+        terminal_u <- dplyr::bind_rows(terminal_u1 , terminal_u2)
+        
+      }
+      
       fits <- rbind(fits, (terminal_u))
       
       
@@ -388,6 +421,24 @@ plot_prior_posterior <- function(fit, driors,
       terminal_u <- as.data.frame(terminal_u[nrow(terminal_u),])
       
       terminal_u$variable <-  "terminal_u"
+      
+      if (multiple_u){
+        
+        terminal_u1 <- fits[fits$variable == "u_t",]
+        
+        terminal_u1 <- as.data.frame(terminal_u[nrow(terminal_u),])
+        
+        terminal_u1$variable <-  "terminal_u1"
+        
+        terminal_u2 <- fits[fits$variable == "u_t",]
+        
+        terminal_u2 <- as.data.frame(terminal_u[nrow(terminal_u),])
+        
+        terminal_u2$variable <-  "terminal_u2"
+        
+        terminal_u <- dplyr::bind_rows(terminal_u1 , terminal_u2)
+        
+      }
       
       fits <- rbind(fits, terminal_u)
     }
@@ -400,11 +451,11 @@ plot_prior_posterior <- function(fit, driors,
   posteriors <- fits %>% 
     dplyr::filter(variable %in% priors$variable) %>% 
     dplyr::mutate(source = "Posterior")
-  browser()
-  prior_posterior <- posteriors[,colnames(priors)] %>% 
+
+    prior_posterior <- posteriors[,colnames(priors)] %>% 
     rbind(priors %>% filter(variable %in% posteriors$variable))
-    
-  prior_posterior_plot <- prior_posterior %>%
+  
+    prior_posterior_plot <- prior_posterior %>%
     ggplot2::ggplot() +
     ggplot2::geom_pointrange(aes(
       variable,

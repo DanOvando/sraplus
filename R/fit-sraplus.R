@@ -104,6 +104,14 @@ fit_sraplus <- function(driors,
   } else {
     index_t = rep(0, length(driors$effort))
   }
+
+  if (log_bias_correct){
+    log_terminal_u <- driors$log_terminal_u - driors$log_terminal_u_cv^2/2
+      
+  } else {
+    
+    log_terminal_u <- driors$log_terminal_u
+  }
   
   sra_data <- list(
     catch_t = driors$catch,
@@ -133,7 +141,7 @@ fit_sraplus <- function(driors,
     use_terminal_u = as.numeric(!all(is.na(
       driors$log_terminal_u
     ))),
-    log_terminal_u = ifelse(log_bias_correct,  driors$log_terminal_u - driors$log_terminal_u_cv^2/2,driors$log_terminal_u),
+    log_terminal_u = log_terminal_u,
     log_terminal_u_cv = driors$log_terminal_u_cv,
     use_init =  !is.na(driors$initial_state),
     u_cv = driors$u_cv,
@@ -343,10 +351,9 @@ fit_sraplus <- function(driors,
       
       sir_index <- sra_data$index_t
     }
-    
     sra_fit <- sraplus::sraplus(
       catches = sra_data$catch_t,
-      rs = pmax(0.01,
+      rs = pmax(0.005,
                 rlnorm(
                   draws,
                   log(driors$growth_rate_prior),
@@ -419,7 +426,7 @@ fit_sraplus <- function(driors,
       }
       
       
-      state_breaks <- seq(0, 10, by = .025)
+      state_breaks <- seq(0, 10, by = .01)
       
       # state_bins <-
       #   cut(state_breaks,
@@ -438,9 +445,7 @@ fit_sraplus <- function(driors,
       #   dplyr::mutate(bin = as.character(bin))
       # 
       
-      log_like <- sra_fit$likelihood
-      
-      bin_frame <-
+        bin_frame <-
         data.frame(state = state, likelihood = sra_fit$likelihood) %>%
         dplyr::mutate(bin = as.character(
           cut(
@@ -453,6 +458,8 @@ fit_sraplus <- function(driors,
         dplyr::group_by(bin) %>%
         dplyr::summarise(p_bin = mean(likelihood, na.rm = TRUE))
       
+      #   browser()
+      #   
       # bin_frame %>%
       #   ggplot(aes(bin, p_bin)) +
       #   geom_col() +
