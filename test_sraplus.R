@@ -27,7 +27,7 @@ sim <-
     r = 0.2,
     years = 20,
     q = q,
-    m = 1.01,
+    m = 1.1,
     init_u_umsy = 1
   )
 
@@ -79,13 +79,14 @@ ml_driors <- format_driors(taxa = example_taxa,
                            index = pop$biomass * q * exp(rnorm(length(pop$biomass),-sigma_obs^2/2,sigma_obs)),
                            index_years = pop$year,
                            initial_state = 1,
-                           initial_state_cv = 0.025,
+                           initial_state_cv = .01,
                            terminal_state = NA,
-                           shape_prior = 2,
-                           growth_rate_prior = 0.4,
+                           terminal_state_cv = 0.1,
+                           shape_prior = 1.1,
+                           growth_rate_prior = NA,
                            growth_rate_prior_cv = 0.5,
                            sigma_ratio_prior = 1,
-                           sigma_ratio_prior_cv = .1,
+                           sigma_ratio_prior_cv = .1
 )
 
 plot_driors(ml_driors)
@@ -95,6 +96,7 @@ ml_fit <- fit_sraplus(driors = ml_driors,
                       engine = "tmb",
                       model = "sraplus_tmb",
                       estimate_proc_error = TRUE,
+                      estimate_initial_state = FALSE,
                       estimate_f = FALSE,
                       estimate_k = TRUE,
                       learn_rate = 2e-1,
@@ -103,7 +105,8 @@ ml_fit <- fit_sraplus(driors = ml_driors,
                       adapt_delta = 0.95,
                       analytical_q = FALSE,
                       max_treedepth = 12,
-                      ci  = 0.89)
+                      ci  = 0.89,
+                      tune_prior_predictive = TRUE)
 
 diagnose_sraplus(ml_fit, ml_driors)
 
@@ -113,7 +116,7 @@ plot_prior_posterior(ml_fit, ml_driors)
 
 sraplus::summarize_sralpus(ml_fit)
 
-
+a <- Sys.time()
 bayes_fit <- fit_sraplus(driors = ml_driors,
                       engine = "stan",
                       model = "sraplus_tmb",
@@ -121,12 +124,15 @@ bayes_fit <- fit_sraplus(driors = ml_driors,
                       estimate_f = FALSE,
                       estimate_k = TRUE,
                       learn_rate = 2e-1,
-                      n_keep = 5000,
+                      n_keep = 2000,
                       eps = 1e-2,
                       adapt_delta = 0.8,
                       analytical_q = FALSE,
                       max_treedepth = 12,
-                      refresh = 250)
+                      refresh = 250,
+                      estimate_initial_state = FALSE,
+                      workers = 8)
+Sys.time() - a
 
 diagnose_sraplus(bayes_fit, ml_driors)
   

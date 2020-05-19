@@ -2,5 +2,6 @@ useDynLib(sraplus, .registration=TRUE)
 importFrom(Rcpp, evalCpp)
 exportPattern("^[[:alpha:]]+")
 importFrom(magrittr,"%>%")
+importFrom(foreach,"%dopar%")
 
 importFrom(stats, "median", "quantile", "rnorm", "runif", "sd")

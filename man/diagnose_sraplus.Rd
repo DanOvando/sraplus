@@ -17,7 +17,3 @@ a list of diagnostics
 \description{
 Run minimal diagnostics on sraplus fits
 }
-\examples{
-
-diagnose_sraplus(sraplus_fit, sraplus_driors)
-}

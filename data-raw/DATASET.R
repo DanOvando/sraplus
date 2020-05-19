@@ -13,6 +13,9 @@ library(scales)
 library(hrbrthemes)
 library(here)
 library(recipes)
+library(kernlab)
+library(tidymodels)
+
 options(mc.cores = parallel::detectCores() / 2)
 rstan_options(auto_write = TRUE)
 theme_set(theme_classic() + theme(strip.background = element_rect(color = "transparent")))
@@ -828,7 +831,7 @@ test_rf$fit
 # catch priors ------------------------------------------------------------
 
 # random idea: can you classify catch series into groups and use that as a predictor?
-
+library(kernlab)
 
 ram_catches <- ram_data %>% 
   ungroup() %>% 
@@ -866,10 +869,14 @@ cluster <- as.vector(catch_pca)
 
 ram_catches$cluster <- cluster
 
-ram_catches <- ram_catches  %>% 
-  pivot_longer(c(-stockid,-cluster), names_to = "stock_year", values_to = "catch",
-               names_ptypes = list(stock_year = integer()))
 
+ram_catches <- ram_catches  %>%
+  pivot_longer(
+    c(-stockid, -cluster),
+    names_to = "stock_year",
+    values_to = "catch",
+  ) %>% 
+  mutate(stock_year = as.integer(stock_year))
 
 ram_catches %>% 
   ggplot(aes(stock_year, catch, group = stockid)) + 
@@ -931,8 +938,9 @@ status_model_data <- ram_data %>%
   group_by(stockid) %>%
   mutate(c_div_maxc = catch / max(catch, na.rm = TRUE),
          c_div_meanc = catch / mean(catch, na.rm = TRUE),
-         c_length = length(catch),
+         c_length = log(length(catch)),
          fishery_year = 1:length(catch)) %>%
+  mutate(c_roll_meanc = RcppRoll::roll_meanr(c_div_meanc,5)) %>% 
   gather(metric, value, b_v_bmsy, u_v_umsy,exploitation_rate) %>%
   select(stockid, year, contains('c_'), metric, value, predicted_cluster,fishery_year) %>%
   mutate(log_value = log(value + 1e-3)) %>%
@@ -944,16 +952,64 @@ status_model_data <- ram_data %>%
 
 
 initial_state_splits <-
-  initial_split(status_model_data %>% filter(fishery_year == 1, metric == "b_v_bmsy"))
+  initial_split(
+    status_model_data %>%  group_by(stockid) %>% filter(metric == "b_v_bmsy") %>% ungroup()
+  )
+
+status_model_data %>%  
+  group_by(stockid) %>% 
+  filter(fishery_year == max(fishery_year), metric == "b_v_bmsy") %>% 
+  ungroup() %>% 
+  ggplot(aes(log(c_div_meanc), log(value))) + 
+  geom_point() + 
+  geom_smooth(method = "lm")
+
+status_model_data %>%  
+  group_by(stockid) %>% 
+  filter(fishery_year == max(fishery_year), metric == "b_v_bmsy") %>% 
+  ungroup() %>% 
+  ggplot(aes(c_div_meanc, c_div_maxc, color = value)) + 
+  geom_point() + 
+  scale_color_viridis_c()
 
 
 with_cluster <-
-  stan_glm(
-    value ~ c_div_maxc*predicted_cluster + c_div_meanc + c_length,
+  stan_gamm4(
+    value ~  c_div_meanc + c_div_maxc + s(fishery_year) + predicted_cluster,
     data =  training(initial_state_splits),
-    family = Gamma
+    family = Gamma(link = "log")
   )
 
+
+witho_cluster <-
+  stan_glm(
+    value ~ predicted_cluster + c_div_meanc + c_div_maxc + c_length + log(fishery_year),
+    data =  training(initial_state_splits),
+    family = gaussian(link = "log")
+  )
+
+with_cluster$loo <- loo(with_cluster)
+
+witho_cluster$loo <- loo(witho_cluster)
+
+model_list <- stanreg_list(with_cluster, witho_cluster, model_names = c("With Clusters", "Without Clusters"))
+loo_compare(model_list)
+
+
+# 
+# 
+# with_cluster <- 
+#   rand_forest(trees = 1000) %>% 
+#   set_engine("ranger") %>% 
+#   set_mode("regression")
+
+# test_with_cluster <- with_cluster %>%
+#   fit(
+#     value ~ .,
+#     data = training(initial_state_splits) %>% select(value, c_div_maxc, c_div_meanc, c_length, predicted_cluster)
+#   )
+
+# test_rf$fit
 plot(with_cluster)
 
 training_with_cluster <- training(initial_state_splits) %>% 

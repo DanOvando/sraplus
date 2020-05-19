@@ -26,7 +26,7 @@ format_driors(
   use_heuristics = FALSE,
   use_b_reg = FALSE,
   growth_rate_prior = NA,
-  growth_rate_prior_cv = 0.1,
+  growth_rate_prior_cv = 0.25,
   fmi = c(research = NA, management = NA, enforcement = NA, socioeconomics = NA),
   fmi_cv = NA,
   sar = NA,
@@ -36,15 +36,17 @@ format_driors(
   m = NA,
   k_prior = NA,
   k_prior_cv = 2,
-  sigma_ratio_prior = 1,
-  sigma_ratio_prior_cv = 0.5,
+  sigma_ratio_prior = 0.5,
+  sigma_ratio_prior_cv = 0.25,
   shape_prior = 1.01,
   shape_prior_cv = 0.25,
   q_prior_cv = 1,
   sigma_obs_prior = 0.05,
   sigma_obs_prior_cv = 1,
   isscaap_group = NA,
-  prob = 0.9
+  f_prior_form = 0,
+  prob = 0.9,
+  use_fmsy_based_r = FALSE
 )
 }
 \arguments{

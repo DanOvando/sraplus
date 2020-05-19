@@ -23,7 +23,9 @@ Imports:
     tidybayes,
     rstan,
     rstanarm,
-    truncnorm
+    truncnorm,
+    doParallel,
+    foreach
 LinkingTo: Rcpp
 Suggests: 
     testthat,
