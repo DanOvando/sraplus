@@ -11,7 +11,7 @@ fit_sraplus(
   plim = 0.05,
   model_name = "sraplus_tmb",
   randos = "log_proc_errors",
-  draws = 1e+06,
+  draws = 1e+05,
   n_keep = 2000,
   engine = "sir",
   cores = 4,
@@ -22,6 +22,7 @@ fit_sraplus(
   estimate_shape = FALSE,
   estimate_qslope = FALSE,
   estimate_proc_error = TRUE,
+  estimate_initial_state = TRUE,
   estimate_k = TRUE,
   estimate_f = FALSE,
   learn_rate = 0.001,
@@ -38,7 +39,10 @@ fit_sraplus(
   loopnum = 1,
   newtonsteps = 1,
   tune_prior_predictive = TRUE,
+  index_fit_tuner = "sir",
   refresh = 250,
+  log_bias_correct = TRUE,
+  workers = workers,
   ...
 )
 }
@@ -80,39 +84,7 @@ If FALSE q_slope is held at the initial value, either default or supplied. if TR
 \item{estimate_proc_error}{logical indicating whether to estimate process errors.
 If FALSE process errors are not included in the model}
 
-\item{estimate_k}{}
-
-\item{estimate_f}{}
-
-\item{learn_rate}{}
-
-\item{analytical_q}{}
-
-\item{use_baranov}{}
-
-\item{include_m}{}
-
 \item{ci}{confidence/credible interval range for summaries}
-
-\item{try_again}{}
-
-\item{eps}{}
-
-\item{max_time}{}
-
-\item{eval.max}{}
-
-\item{iter.max}{}
-
-\item{rel.tol}{}
-
-\item{loopnum}{}
-
-\item{newtonsteps}{}
-
-\item{tune_prior_predictive}{}
-
-\item{refresh}{}
 
 \item{...}{}
 }
@@ -122,21 +94,4 @@ a fitted sraplus object
 \description{
 The main function for taking an object created by \code{format_driors} and fitting a
 model using \code{sraplus}
-}
-\examples{
-\dontrun{
-
-catch_only_driors <- sraplus::format_driors(
-taxa = example_taxa,
-catch = cod$catch,
-years = cod$year,
-use_heuristics = TRUE
-)
-
- catch_only_fit <- sraplus::fit_sraplus(driors = catch_only_driors,
-engine = "sir",
-draws = 1e6,
-n_keep = 2000)
-
-}
 }

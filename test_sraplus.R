@@ -17,7 +17,7 @@ sigma_obs = 0.025
 
 sigma_proc_ratio = 0.1
 
-q = 0.0067
+q = 1
 
 sim <-
   sraplus_simulator(
@@ -27,7 +27,7 @@ sim <-
     r = 0.2,
     years = 20,
     q = q,
-    m = 1.01,
+    m = 1.1,
     init_u_umsy = 1
   )
 
@@ -79,13 +79,16 @@ ml_driors <- format_driors(taxa = example_taxa,
                            index = pop$biomass * q * exp(rnorm(length(pop$biomass),-sigma_obs^2/2,sigma_obs)),
                            index_years = pop$year,
                            initial_state = 1,
-                           initial_state_cv = 0.025,
+                           initial_state_cv = .01,
                            terminal_state = NA,
-                           shape_prior = 2,
-                           growth_rate_prior = 0.4,
+                           terminal_state_cv = 0.1,
+                           shape_prior = 1.1,
+                           growth_rate_prior = NA,
                            growth_rate_prior_cv = 0.5,
                            sigma_ratio_prior = 1,
                            sigma_ratio_prior_cv = .1,
+                           q_prior = 1,
+                           q_prior_cv = 0.001
 )
 
 plot_driors(ml_driors)
@@ -95,15 +98,16 @@ ml_fit <- fit_sraplus(driors = ml_driors,
                       engine = "tmb",
                       model = "sraplus_tmb",
                       estimate_proc_error = TRUE,
-                      estimate_f = FALSE,
-                      estimate_k = TRUE,
+                      estimate_initial_state = TRUE,
+                      estimate_q = FALSE,
                       learn_rate = 2e-1,
                       n_keep = 2000,
                       eps = 1e-12,
                       adapt_delta = 0.95,
                       analytical_q = FALSE,
                       max_treedepth = 12,
-                      ci  = 0.89)
+                      ci  = 0.89,
+                      tune_prior_predictive = TRUE)
 
 diagnose_sraplus(ml_fit, ml_driors)
 
@@ -113,7 +117,7 @@ plot_prior_posterior(ml_fit, ml_driors)
 
 sraplus::summarize_sralpus(ml_fit)
 
-
+a <- Sys.time()
 bayes_fit <- fit_sraplus(driors = ml_driors,
                       engine = "stan",
                       model = "sraplus_tmb",
@@ -121,17 +125,21 @@ bayes_fit <- fit_sraplus(driors = ml_driors,
                       estimate_f = FALSE,
                       estimate_k = TRUE,
                       learn_rate = 2e-1,
-                      n_keep = 5000,
+                      n_keep = 2000,
                       eps = 1e-2,
                       adapt_delta = 0.8,
-                      analytical_q = FALSE,
+                      estimate_q = FALSE,
                       max_treedepth = 12,
-                      refresh = 250)
+                      refresh = 250,
+                      estimate_initial_state = FALSE,
+                      workers = 8)
+Sys.time() - a
 
 diagnose_sraplus(bayes_fit, ml_driors)
   
 plot_prior_posterior(bayes_fit, ml_driors)
 
+sraplus::summarize_sralpus(bayes_fit)
 
 test <- names(bayes_fit$fit)
 
@@ -215,8 +223,8 @@ r_hat <- rstan::extract(bayes_fit$fit, "log_anchor")
 # m_hat <- bayesplot::mcmc_hist(as.matrix(bayes_fit$fit), "log_m",transformations = "exp") +
 #   geom_vline(aes(xintercept = sim$params$m), color = "red")
 
-q_hat <- bayesplot::mcmc_hist(as.matrix(bayes_fit$fit), "log_q",transformations = "exp") + 
-  geom_vline(aes(xintercept = sim$pop$q[1]), color = "red")
+# q_hat <- bayesplot::mcmc_hist(as.matrix(bayes_fit$fit), "log_q",transformations = "exp") + 
+#   geom_vline(aes(xintercept = sim$pop$q[1]), color = "red")
 
 sigma_obs_hat <- bayesplot::mcmc_hist(as.matrix(bayes_fit$fit), "log_sigma_obs",transformations = "exp") +
   geom_vline(aes(xintercept = sigma_obs), color = "red")
@@ -259,9 +267,9 @@ log_sigma_obs_hat <- bayesplot::mcmc_hist(as.matrix(bayes_fit$fit), "log_sigma_o
 log_q_guess <- log(mean(ml_driors$index / ml_driors$catch))
 
 
-log_q_hat <- bayesplot::mcmc_hist(as.matrix(bayes_fit$fit), "log_q", freq = FALSE) + 
-  geom_density(data = data_frame(log_q = rnorm(1000,log_q_guess,.2)), aes(log_q), fill = "lightgrey",
-               alpha = 0.5)
+# log_q_hat <- bayesplot::mcmc_hist(as.matrix(bayes_fit$fit), "log_q", freq = FALSE) + 
+#   geom_density(data = data_frame(log_q = rnorm(1000,log_q_guess,.2)), aes(log_q), fill = "lightgrey",
+#                alpha = 0.5)
 
 
 
@@ -448,8 +456,8 @@ effort_ml_fit <- fit_sraplus(driors = effort_driors,
 
 plot_prior_posterior(effort_ml_fit, effort_driors)
 
-effort_q_hat <- bayesplot::mcmc_hist(as.matrix(effort_bayes_fit$fit), "log_q",transformations = "exp") + 
-  geom_vline(aes(xintercept = sim$pop$q[1]), color = "red")
+# effort_q_hat <- bayesplot::mcmc_hist(as.matrix(effort_bayes_fit$fit), "log_q",transformations = "exp") + 
+#   geom_vline(aes(xintercept = sim$pop$q[1]), color = "red")
 
 
 # a = tidybayes::gather_draws(effort_bayes_fit$fit,log_f_t[year]) %>% 

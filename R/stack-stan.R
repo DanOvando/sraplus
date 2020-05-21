@@ -11,6 +11,6 @@ stack_stan <- function(stack) {
   
   pars <- names(stack)
   
-  flatstack <- purrr::map2_df(pars,stack, ~dplyr::tibble(variable = .x, value = .y))
+  flatstack <- purrr::map2_df(pars,stack, ~data.frame(variable = .x, value = .y))
   
 }

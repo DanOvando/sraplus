@@ -61,6 +61,7 @@ fit_sraplus <- function(driors,
                         adapt_delta = 0.8,
                         estimate_shape = FALSE,
                         estimate_qslope = FALSE,
+                        estimate_q = TRUE,
                         estimate_proc_error = TRUE,
                         estimate_initial_state = TRUE,
                         estimate_k = TRUE,
@@ -82,6 +83,7 @@ fit_sraplus <- function(driors,
                         index_fit_tuner = "sir",
                         refresh = 250,
                         log_bias_correct = TRUE,
+                        workers = workers,
                         ...) {
   opts <- list(...)
   
@@ -168,7 +170,7 @@ fit_sraplus <- function(driors,
   )
   
   
-  if (sra_data$fit_index == 1 & sra_data$calc_cpue == 0) {
+  if (sra_data$fit_index == 1 & sra_data$calc_cpue == 0 & is.na(driors$q_prior)) {
     q_prior = pmin(1e-2, median((sra_data$index_t / sra_data$catch_t[sra_data$index_years])))
     
     
@@ -176,9 +178,7 @@ fit_sraplus <- function(driors,
     q_prior = pmin(1e-2, median(0.2 / sra_data$effort_t))
     
   } else {
-    q_prior <- 1e-2
-    
-    
+    q_prior <- driors$q_prior
   }
   
   if (estimate_qslope == TRUE & estimate_proc_error == TRUE) {
@@ -222,6 +222,13 @@ fit_sraplus <- function(driors,
     knockout$log_f_t <- rep(NA, time)
   }
   
+  
+  if (estimate_q == FALSE){
+    
+    knockout$log_q <- NA
+    
+  }
+  
   if (sra_data$fit_index == 0) {
     knockout$log_q <- NA
     # knockout$q <- NA
@@ -229,7 +236,6 @@ fit_sraplus <- function(driors,
     knockout$log_sigma_obs <- NA
     
     # knockout$sigma_obs <- NA
-    
     
   }
   
@@ -561,7 +567,7 @@ fit_sraplus <- function(driors,
     
     sraplus::get_tmb_model(model_name = model_name)
     
-    
+    lower_init_dep <- log(1e-3)
     
     if (estimate_k) {
       if (index_fit_tuner == "sir") {
@@ -571,6 +577,17 @@ fit_sraplus <- function(driors,
         implied_k_prior <- log(sra_fit$k[sra_fit$keepers])
         
         implied_r_prior <- log(sra_fit$r[sra_fit$keepers])
+        
+        implied_r_prior <- log(sra_fit$r[sra_fit$keepers])
+        if (driors$b_ref_type == "k") {
+          implied_init_dep_prior <- log(sra_fit$dep_t[1, sra_fit$keepers])
+        } else {
+          implied_init_dep_prior <- log(sra_fit$b_bmsy_t[1, sra_fit$keepers])
+        }
+        
+        sra_data$log_init_dep_prior <- mean(implied_init_dep_prior)
+        
+        sra_data$log_init_dep_prior_cv <- sd(implied_init_dep_prior)
         
         sra_data$log_r_prior <- mean(implied_r_prior)
         
@@ -587,6 +604,8 @@ fit_sraplus <- function(driors,
         driors$log_k_prior <- mean(implied_k_prior)
         
         upper_anchor <-   1.2 * max(implied_k_prior)
+        
+        # lower_init_dep <-  0.8 * min(implied_init_dep_prior)
         
       } else {
         temp_inits <- inits
@@ -696,13 +715,16 @@ fit_sraplus <- function(driors,
     if (estimate_initial_state == TRUE) {
       upper["log_init_dep"] <- log(1.05)
       
+      
+      # lower["log_init_dep"] <- lower_init_dep
+      
     }
     
     if (sra_data$fit_index == 1) {
       # lower["sigma_obs"] <- 0
     }
     
-    if (analytical_q == 0 & sra_data$fit_index == 1) {
+    if (analytical_q == 0 & sra_data$fit_index == 1 & estimate_q == TRUE) {
       upper['log_q'] <- log(1)
     }
     if (estimate_qslope == TRUE) {
@@ -733,27 +755,51 @@ fit_sraplus <- function(driors,
       
       draws = tidybayes::tidy_draws(fit) %>%
         dplyr::group_by(.chain, .iteration, .draw) %>%
-        tidyr::nest()
+        tidyr::nest() %>% 
+        dplyr::ungroup()
+
+      # a <- Sys.time()
+      doParallel::registerDoParallel(cores = workers)
+      
+      stacked_draws <- foreach::foreach(i = 1:nrow(draws),.packages = "TMB") %dopar% {
+      
+      qgp <-   purrr::quietly(get_posterior)
+        
+        
+      out <- qgp(draws = draws$data[[i]], inits = inits, sra_data = sra_data,     model_name = model_name,
+                 randos = randos,
+                 knockout = knockout)
+      
+      pars <- names(out$result)
+      
+      flatstack <- purrr::map2_df(pars,out$result, ~data.frame(variable = .x, value = .y))
+      
+      
+      }
+      
+      draws$stack <- stacked_draws
+      # d <- Sys.time() - a
+      
+      #       draws <- draws %>%
+      #   dplyr::mutate(
+      #     pars = purrr_map(
+      #       data,
+      #       purrr::quietly(get_posterior),
+      #       inits = inits,
+      #       sra_data = sra_data,
+      #       model_name = model_name,
+      #       randos = randos,
+      #       knockout = knockout
+      #     )
+      #   ) %>%
+      #   dplyr::select(-data)
+      # 
+      # draws$pars <- purrr::map(draws$pars, "result")
+      # 
       
       draws <- draws %>%
-        dplyr::mutate(
-          pars = purrr::map(
-            data,
-            purrr::quietly(get_posterior),
-            inits = inits,
-            sra_data = sra_data,
-            model_name = model_name,
-            randos = randos,
-            knockout = knockout
-          )
-        ) %>%
-        dplyr::select(-data)
-      
-      draws$pars <- purrr::map(draws$pars, "result")
-      
-      draws <- draws %>%
-        dplyr::mutate(stack = purrr::map(pars, stack_stan)) %>%
-        dplyr::select(-pars) %>%
+        # dplyr::mutate(stack = purrr::map(pars, stack_stan)) %>%
+        # dplyr::select(-pars) %>%
         tidyr::unnest(col = stack)
       
       draws <- draws %>%
