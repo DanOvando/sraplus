@@ -493,7 +493,7 @@ Or produce a summary table that can be saved to a .csv file.
 
 ```{r}
 summarize_sralpus(cpue_sar_proc_fit, output = "table") %>% 
-  knitr::kable()
+  knitr::kable(digits = 2)
 ```
 
 

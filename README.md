@@ -228,14 +228,14 @@ Let’s take a quick look at the `results` object.
 
 head(catch_only_fit$results)
 #> # A tibble: 6 x 6
-#>    year variable           mean            sd        lower        upper
-#>   <dbl> <chr>             <dbl>         <dbl>        <dbl>        <dbl>
-#> 1  1963 b_div_bmsy        0.602        0.0683       0.500         0.709
-#> 2  1963 b           9184555.    12777404.     2349382.     33908558.   
-#> 3  1963 c_div_msy         0.251        0.129        0.0400        0.450
-#> 4  1963 crashed           0            0            0             0    
-#> 5  1963 depletion         0.401        0.0401       0.337         0.472
-#> 6  1963 index_hat_t  442934.      830327.       23021.      1472352.
+#>    year variable            mean            sd        lower        upper
+#>   <dbl> <chr>              <dbl>         <dbl>        <dbl>        <dbl>
+#> 1  1963 b_div_bmsy         0.603        0.0724       0.492         0.727
+#> 2  1963 b           13526251.    31379112.     2603473.     35285524.   
+#> 3  1963 c_div_msy          0.227        0.123        0.0334        0.411
+#> 4  1963 crashed            0            0            0             0    
+#> 5  1963 depletion          0.397        0.0390       0.337         0.472
+#> 6  1963 index_hat_t   608512.     2154525.       20162.      1613431.
 ```
 
 `results` is organized as a dataframe tracking different variables over
@@ -250,13 +250,13 @@ object is the output of the SIR algorithm.
 
 ``` r
 head(catch_only_fit$fit)
-#>   variable year draw     value draw_id
-#> 1      b_t 1963    1  93734974   65522
-#> 2      b_t 1964    1  71601224   65522
-#> 3      b_t 1965    1  93463751   65522
-#> 4      b_t 1966    1  86785961   65522
-#> 5      b_t 1967    1 100871259   65522
-#> 6      b_t 1968    1 100690599   65522
+#>   variable year draw   value draw_id
+#> 1      b_t 1963    1 3624141    2610
+#> 2      b_t 1964    1 4835952    2610
+#> 3      b_t 1965    1 4835881    2610
+#> 4      b_t 1966    1 4857800    2610
+#> 5      b_t 1967    1 4119071    2610
+#> 6      b_t 1968    1 3268532    2610
 ```
 
 From there, we can generate some standard plots of B/Bmsy
@@ -346,7 +346,7 @@ sraplus::diagnose_sraplus(fit = fmi_sar_fit, driors = fmi_sar_driors )
 #> [1] "fishlife matched supplied species"
 #> 
 #> $distinct_sir_draws
-#> [1] 1618
+#> [1] 1970
 #> 
 #> $sir_convergence_plot
 ```
@@ -395,7 +395,7 @@ vector of the same length of `index` specifying which years index data
 are available. Well now use Template Model Builder (TMB) to estimate
 stock status based on this index of abundance. We’ll add in some priors
 on the growth rate and the shape of the Pella-Tomlinson model (1.01
-roughly corresponds to a Fox model, where Bmsy/K ~= 0.4). Note that we
+roughly corresponds to a Fox model, where Bmsy/K \~= 0.4). Note that we
 now set `engine = "tmb"` to fit the model via maximum likelihood using
 TMB.
 
@@ -593,6 +593,9 @@ cpue_sar_qslope_fit <- fit_sraplus(driors = cpue_sar_qslope_driors,
                              cores = 1,
                              estimate_qslope = TRUE,
                              estimate_proc_error = FALSE)
+#> #########################
+#> The model is likely not converged
+#> #########################
 
 plot_sraplus(cpue_sar_qslope_fit, years = cpue_sar_qslope_driors$years)
 ```
@@ -668,32 +671,33 @@ Or produce a summary table that can be saved to a .csv file.
 
 ``` r
 summarize_sralpus(cpue_sar_proc_fit, output = "table") %>% 
-  knitr::kable()
+  knitr::kable(digits = 2)
 ```
 
-| variable          |        mean |         sd |       lower |       upper | year |
-| :---------------- | ----------: | ---------: | ----------: | ----------: | ---: |
-| sigma\_proc       |   0.1062598 |  0.0192245 |   0.0755354 |   0.1369842 |    1 |
-| log\_ihat         |   4.9041927 |  0.0507805 |   4.8230357 |   4.9853496 |   25 |
-| log\_b\_div\_bmsy | \-0.3976039 |  0.1070781 | \-0.5687353 | \-0.2264725 |   25 |
-| log\_b            |   4.9041927 |  0.0507805 |   4.8230357 |   4.9853496 |   25 |
-| log\_depletion    | \-1.3926370 |  0.1070781 | \-1.5637684 | \-1.2215055 |   25 |
-| log\_u\_div\_umsy |   0.2930904 |  0.1232027 |   0.0961888 |   0.4899921 |   25 |
-| log\_c\_div\_msy  | \-0.1045135 |  0.0522813 | \-0.1880690 | \-0.0209579 |   25 |
-| proc\_errors      |   0.8297846 |  0.0795936 |   0.7025787 |   0.9569906 |   24 |
-| plim              |   0.0500000 |  0.0000000 |   0.0500000 |   0.0500000 |    1 |
-| b\_to\_k          |   0.3697112 |  0.0000000 |   0.3697112 |   0.3697112 |    1 |
-| crashed           |   0.0000000 |  0.0000000 |   0.0000000 |   0.0000000 |    1 |
-| index\_hat\_t     | 134.8539928 |  6.8479465 | 123.9096516 | 145.7983339 |   25 |
-| r                 |   0.4208657 |  0.0484504 |   0.3434327 |   0.4982987 |    1 |
-| m                 |   1.0100000 |  0.0000000 |   1.0100000 |   1.0100000 |    1 |
-| umsy              |   0.4166987 |  0.0479707 |   0.3400324 |   0.4933651 |    1 |
-| k                 | 542.8481424 | 52.9440508 | 458.2333235 | 627.4629612 |    1 |
-| q\_t              |   0.0047547 |  0.0006905 |   0.0036512 |   0.0058582 |   25 |
-| q\_slope          |   0.0000000 |  0.0000000 |   0.0000000 |   0.0000000 |    1 |
-| ihat              | 134.8539928 |  0.0507805 | 124.3419822 | 146.2547005 |   25 |
-| b\_div\_bmsy      |   0.6719281 |  0.1070781 |   0.5662411 |   0.7973413 |   25 |
-| b                 | 134.8539928 |  0.0507805 | 124.3419822 | 146.2547005 |   25 |
-| depletion         |   0.2484194 |  0.1070781 |   0.2093457 |   0.2947860 |   25 |
-| u\_div\_umsy      |   1.3405640 |  0.1232027 |   1.1009669 |   1.6323033 |   25 |
-| c\_div\_msy       |   0.9007627 |  0.0522813 |   0.8285575 |   0.9792602 |   25 |
+| variable          |   mean |    sd |  lower |  upper | year |
+| :---------------- | -----: | ----: | -----: | -----: | ---: |
+| sigma\_proc       |   0.11 |  0.02 |   0.08 |   0.14 |    1 |
+| log\_ihat         |   4.91 |  0.05 |   4.82 |   4.99 |   25 |
+| log\_b\_div\_bmsy | \-0.41 |  0.10 | \-0.57 | \-0.24 |   25 |
+| log\_b            |   4.91 |  0.05 |   4.82 |   4.99 |   25 |
+| log\_depletion    | \-1.40 |  0.10 | \-1.57 | \-1.24 |   25 |
+| log\_u\_div\_umsy |   0.30 |  0.12 |   0.11 |   0.50 |   25 |
+| log\_c\_div\_msy  | \-0.10 |  0.05 | \-0.19 | \-0.02 |   25 |
+| u\_t              |   0.56 |  0.03 |   0.51 |   0.60 |   25 |
+| proc\_errors      |   0.83 |  0.08 |   0.70 |   0.96 |   24 |
+| plim              |   0.05 |  0.00 |   0.05 |   0.05 |    1 |
+| b\_to\_k          |   0.37 |  0.00 |   0.37 |   0.37 |    1 |
+| crashed           |   0.00 |  0.00 |   0.00 |   0.00 |    1 |
+| index\_hat\_t     | 135.09 |  6.86 | 124.12 | 146.05 |   25 |
+| r                 |   0.42 |  0.05 |   0.34 |   0.49 |    1 |
+| m                 |   1.01 |  0.00 |   1.01 |   1.01 |    1 |
+| umsy              |   0.41 |  0.05 |   0.34 |   0.48 |    1 |
+| k                 | 548.67 | 51.34 | 466.62 | 630.71 |    1 |
+| q\_t              |   0.00 |  0.00 |   0.00 |   0.01 |   25 |
+| q\_slope          |   0.00 |  0.00 |   0.00 |   0.00 |    1 |
+| ihat              | 135.09 |  0.05 | 124.55 | 146.51 |   25 |
+| b\_div\_bmsy      |   0.67 |  0.10 |   0.56 |   0.79 |   25 |
+| b                 | 135.09 |  0.05 | 124.55 | 146.51 |   25 |
+| depletion         |   0.25 |  0.10 |   0.21 |   0.29 |   25 |
+| u\_div\_umsy      |   1.36 |  0.12 |   1.12 |   1.64 |   25 |
+| c\_div\_msy       |   0.90 |  0.05 |   0.83 |   0.98 |   25 |
