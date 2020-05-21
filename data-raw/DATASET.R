@@ -935,6 +935,7 @@ cluster_predictions %>%
 status_model_data <- ram_data %>% 
   filter(stockid %in% unique(cluster_predictions$stockid)) %>% 
   left_join(cluster_predictions %>% select(stockid, predicted_cluster), by = "stockid") %>% 
+  left_join(sraplus::fao_taxa$fao_species %>% select(scientific_name, isscaap_group), by = c("scientificname" = "scientific_name")) %>% 
   group_by(stockid) %>%
   mutate(c_div_maxc = catch / max(catch, na.rm = TRUE),
          c_div_meanc = catch / mean(catch, na.rm = TRUE),
@@ -942,7 +943,7 @@ status_model_data <- ram_data %>%
          fishery_year = 1:length(catch)) %>%
   mutate(c_roll_meanc = RcppRoll::roll_meanr(c_div_meanc,5)) %>% 
   gather(metric, value, b_v_bmsy, u_v_umsy,exploitation_rate) %>%
-  select(stockid, year, contains('c_'), metric, value, predicted_cluster,fishery_year) %>%
+  select(stockid, year, contains('c_'), metric, value, predicted_cluster,fishery_year, isscaap_group) %>%
   mutate(log_value = log(value + 1e-3)) %>%
   unique() %>%
   na.omit() %>%
@@ -955,6 +956,17 @@ initial_state_splits <-
   initial_split(
     status_model_data %>%  group_by(stockid) %>% filter(metric == "b_v_bmsy") %>% ungroup()
   )
+
+a <- status_model_data %>%  group_by(stockid) %>% filter(metric == "b_v_bmsy") %>% ungroup()
+
+training_stocks <- sample(unique(a$stockid), round(n_distinct(a$stockid) * .75), replace = FALSE)
+
+training <- a %>% 
+  filter(stockid %in% training_stocks)
+
+testing <- a %>% 
+  filter(!stockid %in% training_stocks)
+
 
 status_model_data %>%  
   group_by(stockid) %>% 
@@ -976,8 +988,8 @@ status_model_data %>%
 with_cluster <-
   stan_gamm4(
     value ~  c_div_meanc + c_div_maxc + s(fishery_year) + predicted_cluster,
-    data =  training(initial_state_splits),
-    family = Gamma(link = "log")
+    data =  training,
+    family = gaussian(link = "log")
   )
 
 
@@ -998,16 +1010,16 @@ loo_compare(model_list)
 
 # 
 # 
-# with_cluster <- 
-#   rand_forest(trees = 1000) %>% 
-#   set_engine("ranger") %>% 
-#   set_mode("regression")
+with_cluster <-
+  rand_forest(trees = 1000) %>%
+  set_engine("ranger") %>%
+  set_mode("regression")
 
-# test_with_cluster <- with_cluster %>%
-#   fit(
-#     value ~ .,
-#     data = training(initial_state_splits) %>% select(value, c_div_maxc, c_div_meanc, c_length, predicted_cluster)
-#   )
+test_with_cluster <- with_cluster %>%
+  fit(
+    value ~ .,
+    data = training(initial_state_splits) %>% select(value, c_div_maxc, c_div_meanc, c_length, predicted_cluster, fishery_year, isscaap_group)
+  )
 
 # test_rf$fit
 plot(with_cluster)

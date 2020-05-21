@@ -624,6 +624,10 @@ Type objective_function<Type>::operator() ()
   
   REPORT(log_u);
   
+  REPORT(u_t);
+  
+  ADREPORT(u_t);
+  
   REPORT(log_c_div_msy);
   
   REPORT(terminal_ref);

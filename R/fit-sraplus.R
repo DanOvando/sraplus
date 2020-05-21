@@ -61,6 +61,7 @@ fit_sraplus <- function(driors,
                         adapt_delta = 0.8,
                         estimate_shape = FALSE,
                         estimate_qslope = FALSE,
+                        estimate_q = TRUE,
                         estimate_proc_error = TRUE,
                         estimate_initial_state = TRUE,
                         estimate_k = TRUE,
@@ -169,7 +170,7 @@ fit_sraplus <- function(driors,
   )
   
   
-  if (sra_data$fit_index == 1 & sra_data$calc_cpue == 0) {
+  if (sra_data$fit_index == 1 & sra_data$calc_cpue == 0 & is.na(driors$q_prior)) {
     q_prior = pmin(1e-2, median((sra_data$index_t / sra_data$catch_t[sra_data$index_years])))
     
     
@@ -177,9 +178,7 @@ fit_sraplus <- function(driors,
     q_prior = pmin(1e-2, median(0.2 / sra_data$effort_t))
     
   } else {
-    q_prior <- 1e-2
-    
-    
+    q_prior <- driors$q_prior
   }
   
   if (estimate_qslope == TRUE & estimate_proc_error == TRUE) {
@@ -223,6 +222,13 @@ fit_sraplus <- function(driors,
     knockout$log_f_t <- rep(NA, time)
   }
   
+  
+  if (estimate_q == FALSE){
+    
+    knockout$log_q <- NA
+    
+  }
+  
   if (sra_data$fit_index == 0) {
     knockout$log_q <- NA
     # knockout$q <- NA
@@ -230,7 +236,6 @@ fit_sraplus <- function(driors,
     knockout$log_sigma_obs <- NA
     
     # knockout$sigma_obs <- NA
-    
     
   }
   
@@ -719,7 +724,7 @@ fit_sraplus <- function(driors,
       # lower["sigma_obs"] <- 0
     }
     
-    if (analytical_q == 0 & sra_data$fit_index == 1) {
+    if (analytical_q == 0 & sra_data$fit_index == 1 & estimate_q == TRUE) {
       upper['log_q'] <- log(1)
     }
     if (estimate_qslope == TRUE) {
@@ -751,7 +756,7 @@ fit_sraplus <- function(driors,
       draws = tidybayes::tidy_draws(fit) %>%
         dplyr::group_by(.chain, .iteration, .draw) %>%
         tidyr::nest() %>% 
-        ungroup()
+        dplyr::ungroup()
 
       # a <- Sys.time()
       doParallel::registerDoParallel(cores = workers)
