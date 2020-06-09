@@ -445,7 +445,7 @@ format_driors <-
         log_terminal_u_cv =  sqrt(log(log_terminal_u_cv^2 + 1)),
         terminal_u = exp(log_terminal_u),
         terminal_u_cv =  sqrt(log(log_terminal_u_cv^2 + 1)),
-        q_slope_prior = q_slope_prior + 1e-6,
+        q_slope_prior = q_slope_prior,
         q_slope_prior_cv = sqrt(log(q_slope_prior_cv^2 + 1)),
         shape_prior = shape_prior,
         shape_prior_cv =  sqrt(log(shape_prior_cv^2 + 1)),

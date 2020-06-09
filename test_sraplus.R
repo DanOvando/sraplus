@@ -4,7 +4,7 @@ library(sraplus)
 
 library(tmbstan)
 
-# Sys.unsetenv("PKG_CXXFLAGS")
+Sys.unsetenv("PKG_CXXFLAGS")
 example_taxa <- "gadus sdfg"
 
 # library(tmbstan)
@@ -374,7 +374,7 @@ effort_driors <- format_driors(taxa = example_taxa,
                            terminal_state = NA,
                            growth_rate_prior = 0.4,
                            growth_rate_prior_cv = 0.1,
-                           q_slope_prior = 0.025,
+                           q_slope_prior = 0.25,
                            q_slope_prior_cv = 0.01)
 
 plot_driors(effort_driors)
@@ -427,7 +427,7 @@ plot_sraplus(
   years = index_driors$years
 )
 
-effort_bayes_fit <- fit_sraplus(driors = effort_driors,
+effort_bayes_fit_slope <- fit_sraplus(driors = effort_driors,
                                engine = "stan",
                                model = "sraplus_tmb",
                                estimate_shape = FALSE, 

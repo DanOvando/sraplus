@@ -209,7 +209,7 @@ fit_sraplus <- function(driors,
         estimate_qslope == TRUE &&
           sra_data$calc_cpue == 1,
         0.025,
-        driors$q_slope_prior
+        driors$q_slope_prior + 1e-6
       )
     )
   )

@@ -205,7 +205,7 @@ Type objective_function<Type>::operator() ()
   
   vector<Type> temp_catch_t(time);
   
-  Type q_slope = 0;
+  Type q_slope = q_slope_prior;
   
   if (estimate_qslope == 1){
     
@@ -233,9 +233,7 @@ Type objective_function<Type>::operator() ()
   
   // proc_errors = exp(log_proc_errors * sigma_proc - pow(sigma_proc,2)/2);
   
-  
-  
-  catch_t = catch_t;
+  // catch_t = catch_t;
   
   Type r = exp(log_r);
   
@@ -438,7 +436,7 @@ Type objective_function<Type>::operator() ()
       if (calc_cpue == 1){
         
         Type ftemp = q_t(index_years(t) - 1) * effort_t(t);
-        
+      
         Type effective_f = (ftemp / (ftemp + nat_m)) * (1 - exp(-(ftemp + nat_m)));
         
         if (use_baranov == 1){

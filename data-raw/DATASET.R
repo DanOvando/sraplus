@@ -192,6 +192,8 @@ ram_data <- ram_data %>%
   ungroup()
 
 
+
+
 # process data ------------------------------------------------------------
 
 
@@ -281,7 +283,7 @@ usethis::use_data(fao_taxa, overwrite = TRUE)
 
 
 fao$fao_country_name <-
-  countrycode::countrycode(fao$country, "country.name", "fao.name")
+  countrycode::countrycode(fao$country, "country.name", "un.name.en")
 
 fao <- fao %>%
   mutate(country = case_when(is.na(fao_country_name) ~ country, TRUE ~ fao_country_name))
@@ -373,7 +375,7 @@ fmi <-
 
 
 fmi$fao_country_name <-
-  countrycode::countrycode(fmi$country_rfmo, "country.name", "fao.name")
+  countrycode::countrycode(fmi$country_rfmo, "country.name", "un.name.en")
 
 fmi$region <-   countrycode::countrycode(fmi$country_rfmo, "country.name", "region")
 
@@ -524,6 +526,62 @@ ram_v_fmi <- ram_data %>%
   mutate_at(c("research", "management", "enforcement", "socioeconomics"), ~ .x + 1e-6) %>% 
   filter(isscaap_group != "Tunas, bonitos, billfishes")
 
+
+
+ram_v_fmi %>% 
+  filter(metric == "mean_uumsy") %>% 
+  ggplot(aes(management, socioeconomics, color = value)) + 
+  geom_point(size = 4) + 
+  theme_classic() + 
+  scale_color_viridis_c()
+
+ram_v_fmi %>% 
+  filter(metric == "mean_bbmsy") %>% 
+  ggplot(aes(management, enforcement, color = value)) + 
+  geom_point(size = 4) + 
+  theme_classic() + 
+  scale_color_viridis_c()
+
+ram_v_fmi %>% 
+  filter(metric == "mean_uumsy") %>% 
+  ggplot(aes(socioeconomics, value, color = value)) + 
+  geom_point(size = 4) + 
+  geom_smooth(method = "lm") +
+  theme_classic() + 
+  scale_color_viridis_c()
+
+
+ram_v_fmi %>%
+  filter(metric == "mean_uumsy") %>%
+  pivot_longer(
+    c(mean_fmi, research, socioeconomics, management, enforcement),
+    names_to = "fmi_metric",
+    values_to = "fmi_score"
+  ) %>%
+  ggplot(aes(fmi_score, value, color = value)) +
+  geom_point(size = 4) +
+  geom_smooth(method = "lm") +
+  theme_ipsum() +
+  scale_color_viridis_c() +
+  facet_wrap( ~ fmi_metric)
+
+ram_v_fmi %>%
+  filter(metric == "mean_uumsy") %>%
+  pivot_longer(
+    c(mean_fmi, research, socioeconomics, management, enforcement),
+    names_to = "fmi_metric",
+    values_to = "fmi_score"
+  ) %>%
+  ggplot(aes(fmi_score, value, color = value)) +
+  geom_point(size = 4) +
+  geom_smooth(method = "lm") +
+  theme_ipsum() +
+  scale_color_viridis_c() +
+  facet_wrap( ~ fmi_metric)
+
+
+
+
 ram_fmi <- ram_v_fmi
 
 usethis::use_data(ram_fmi, overwrite = TRUE)
@@ -556,6 +614,109 @@ random_fmi_tests <- ram_v_fmi %>%
   select(-data) %>%
   unnest() %>%
   mutate(sampid  = 1:nrow(.))
+
+
+# fmi_splits <- initial_split(ram_v_fmi %>% filter(metric == "mean_bbmsy") %>% 
+#                        select(value,research, management,enforcement, socioeconomics, c_div_max_c,country_rfmo), prop = 0.75)
+# 
+# training_data <- training(fmi_splits)
+# 
+# testing_data <- testing(fmi_splits)
+# 
+# aa_splits <- rsample::group_vfold_cv(training_data, group = country_rfmo)
+# 
+# tune_grid <-
+#   parameters(
+#     min_n(range(2, 10)),
+#     tree_depth(range(4, 15)),
+#     learn_rate(range = c(-2, 0)),
+#     mtry(),
+#     loss_reduction(),
+#     sample_size(range = c(1, 1)),
+#     trees(range = c(500, 2000))
+#   ) %>%
+#   dials::finalize(mtry(), x = training_data %>% select(-(1:2)))
+# 
+# xgboost_grid <- grid_max_entropy(tune_grid, size = 30) 
+# 
+# xgboost_model <-
+#   parsnip::boost_tree(
+#     mode = "regression",
+#     mtry = tune(),
+#     min_n = tune(),
+#     loss_reduction = tune(),
+#     sample_size =tune(), 
+#     learn_rate = tune(),
+#     tree_depth = tune(),
+#     trees =tune()
+#   ) %>%
+#   parsnip::set_engine("xgboost") 
+# 
+# 
+# xgboost_workflow <- workflows::workflow() %>% 
+#   add_formula(value ~ research + management + enforcement + socioeconomics + c_div_max_c) %>% 
+#   add_model(xgboost_model)
+# 
+# 
+# set.seed(234)
+# doParallel::registerDoParallel(cores = parallel::detectCores() - 2)
+# 
+# xgboost_tuning <- tune_grid(
+#   xgboost_workflow,
+#   resamples = aa_splits,
+#   grid = xgboost_grid,
+#   control = control_grid(save_pred = TRUE)
+# )
+# 
+# # xgboost_tuning
+# 
+# collect_metrics(xgboost_tuning) %>%
+#   select(mean, mtry:sample_size, .metric) %>%
+#   pivot_longer(mtry:sample_size, names_to = "dial", values_to = "level") %>%
+#   ggplot(aes(level, mean)) +
+#   geom_point() +
+#   facet_grid(.metric ~ dial, scales = "free")
+# 
+# # show_best(xgboost_tuning, "rmse")
+# # 
+# 
+# best_rmse <- tune::select_best(xgboost_tuning, metric = "rmse")
+# 
+# final_workflow <- finalize_workflow(
+#   xgboost_workflow,
+#   best_rmse
+# )
+# 
+# fmi_fit <- last_fit(
+#   final_workflow,
+#   fmi_splits
+# )
+# 
+# fmi_fit$.predictions[[1]] %>% 
+#   ggplot(aes(value, .pred)) + 
+#   geom_point()
+# 
+# fmi_fit$.metrics
+# 
+# 
+# huh <- stan_glm(value ~ research + management + enforcement + socioeconomics + c_div_max_c, 
+#                 data = training_data, family = Gamma)
+# 
+# pp_huh <- posterior_predict(huh, newdata = testing_data, type = "response") %>% 
+#   colMeans()
+# 
+# fmi_fit$.predictions[[1]]$stan_fit <- pp_huh
+# 
+# fmi_fit$.predictions[[1]] %>% 
+#   pivot_longer(c(.pred,stan_fit),names_to = "model", values_to = "prediction") %>% 
+#   ggplot(aes(value, prediction, color = model)) + 
+#   geom_point()
+# 
+# 
+# fmi_fit$.predictions[[1]] %>% 
+#   pivot_longer(c(.pred,stan_fit),names_to = "model", values_to = "prediction") %>% 
+#   group_by(model) %>% 
+#   yardstick::rsq(truth = value, estimate = prediction)
 
 model_structures <-
   purrr::cross_df(list(
@@ -648,7 +809,7 @@ fmi_models <- best_fmi_models %>%
 
 usethis::use_data(fmi_models,overwrite = TRUE)
 
-
+# sraplus::fmi_models$fit[[1]] %>% rstanarm::launch_shinystan()
 # fit sar models --------------------------------------------------------------
 
 ram_v_sar <- sar_to_ram %>%
@@ -661,7 +822,7 @@ ram_v_sar <- sar_to_ram %>%
   na.omit()
 
 ram_v_sar %>% 
-  ggplot(aes(sar, log_value)) + 
+  ggplot(aes(log(sar), log_value)) + 
   geom_point() + 
   facet_wrap(~metric)
 
@@ -669,6 +830,9 @@ ram_v_sar <- recipe(log_value ~ ., data = ram_v_sar) %>%
   step_other(isscaap_group) %>%
   prep(data = sar_data, retain = TRUE) %>%
   juice()
+
+
+huh <- stan_gamm4(log_value ~ s(sar) + s(c_div_max_c), data = ram_v_sar)
 
 
 random_sar_tests <- ram_v_sar %>%
@@ -775,63 +939,8 @@ usethis::use_data(sar_models,overwrite = TRUE)
 
 
 # catch based initial state prior ----------------------------------------------
-catch_data <- ram_data %>%
-  group_by(stockid) %>%
-  mutate(c_div_maxc = catch / max(catch, na.rm = TRUE),
-         c_div_meanc = catch / mean(catch, na.rm = TRUE),
-         c_length = as.numeric(1:length(catch)),
-         depletion = ifelse(is.na(tb_v_tb0), ssb_v_ssb0, tb_v_tb0)) %>%
-  filter(!is.na(depletion)) %>%
-  gather(metric, value, depletion,  b_v_bmsy, u_v_umsy,exploitation_rate) %>%
-  select(stockid, year, contains('c_'), isscaap_group, metric, value) %>%
-  mutate(log_value = log(value + 1e-3)) %>%
-  unique() %>%
-  na.omit() %>%
-  ungroup() %>%
-  mutate(c_length = as.numeric(scale(c_length))) %>% 
-  group_by(stockid) %>% 
-  filter(year == min(year),
-         metric == "depletion",
-         value < 1.5) %>% 
-  ungroup() 
-
-
-samps <- rsample::initial_split(catch_data)
-
-training_fit <- stan_glm(value ~c_div_meanc*c_div_maxc + c_length , data= training(samps), family = Gamma(link = "log"))
-
-training_performance <-  training(samps) %>% 
-  mutate(pred = predict(training_fit, type= "response"))
-
-training_performance %>% 
-  ggplot(aes(value, pred)) + 
-  geom_point()
-
-yardstick::rsq(traing_performance, truth = value, estimate = .fitted)
-
-test_performance <-  testing(samps) %>% 
-  mutate(pred = colMeans(posterior_predict(training_fit, newdata = testing(samps))))
-
-test_performance %>% 
-  ggplot(aes(value, pred)) + 
-  geom_point()
-
-yardstick::rsq(test_performance, truth = value, estimate = pred)
-
-rf_mod <- 
-  rand_forest(trees = 1000) %>% 
-  set_engine("ranger") %>% 
-  set_mode("regression")
-
-test_rf <- rf_mod %>% 
-  fit(value ~ ., data = training(samps) %>% select(value, c_div_maxc,c_div_meanc, c_length))
-  
-test_rf$fit
-
-# catch priors ------------------------------------------------------------
 
 # random idea: can you classify catch series into groups and use that as a predictor?
-library(kernlab)
 
 ram_catches <- ram_data %>% 
   ungroup() %>% 
@@ -839,7 +948,7 @@ ram_catches <- ram_data %>%
   group_by(stockid) %>% 
   mutate(stock_year = 1:length(catch),
          n_years = length(catch)) %>% 
-  mutate(scaled_catch = (catch) / max(catch)) %>% 
+  mutate(scaled_catch = scale(catch)) %>% 
   ungroup() %>% 
   filter(n_years > 25,
          stock_year <= 25)
@@ -859,7 +968,7 @@ map_dbl(ram_catches, ~sum(is.na(.x)))
 
 a = ram_catches %>% select(-stockid) %>% as.matrix()
 
-catch_pca <- specc(a,centers = 5)
+catch_pca <- specc(a,centers = 8)
 
 centers(catch_pca)
 size(catch_pca)
@@ -943,7 +1052,7 @@ status_model_data <- ram_data %>%
          fishery_year = 1:length(catch)) %>%
   mutate(c_roll_meanc = RcppRoll::roll_meanr(c_div_meanc,5)) %>% 
   gather(metric, value, b_v_bmsy, u_v_umsy,exploitation_rate) %>%
-  select(stockid, year, contains('c_'), metric, value, predicted_cluster,fishery_year, isscaap_group) %>%
+  select(stockid, year, contains('c_'), metric, value, predicted_cluster,fishery_year) %>%
   mutate(log_value = log(value + 1e-3)) %>%
   unique() %>%
   na.omit() %>%
@@ -954,18 +1063,152 @@ status_model_data <- ram_data %>%
 
 initial_state_splits <-
   initial_split(
-    status_model_data %>%  group_by(stockid) %>% filter(metric == "b_v_bmsy") %>% ungroup()
+    status_model_data %>%  group_by(stockid) %>% filter(metric == "u_v_umsy") %>% ungroup()
   )
 
-a <- status_model_data %>%  group_by(stockid) %>% filter(metric == "b_v_bmsy") %>% ungroup()
+a <- status_model_data %>%  group_by(stockid) %>% filter(metric == "u_v_umsy") %>% ungroup()
 
 training_stocks <- sample(unique(a$stockid), round(n_distinct(a$stockid) * .75), replace = FALSE)
+
+a$training <- !a$stockid %in% training_stocks
+
+a <- a %>% 
+  arrange(training, stockid, year)
 
 training <- a %>% 
   filter(stockid %in% training_stocks)
 
 testing <- a %>% 
   filter(!stockid %in% training_stocks)
+
+
+catch_split <- initial_time_split(a, prop = last(which(a$training == FALSE)) / nrow(a))
+
+training_data <- training(catch_split)
+
+testing_data <- testing(catch_split)
+
+aa_splits <- rsample::group_vfold_cv(training_data, group = stockid)
+
+tune_grid <-
+  parameters(
+    min_n(range(2, 10)),
+    tree_depth(range(4, 15)),
+    learn_rate(range = c(-2, 0)),
+    mtry(),
+    loss_reduction(),
+    sample_size(range = c(1, 1)),
+    trees(range = c(500, 2000))
+  ) %>%
+  dials::finalize(mtry(), x = training_data %>% select(-(1:2)))
+
+xgboost_grid <- grid_max_entropy(tune_grid, size = 10)
+
+xgboost_model <-
+  parsnip::boost_tree(
+    mode = "regression",
+    mtry = tune(),
+    min_n = tune(),
+    loss_reduction = tune(),
+    sample_size =tune(),
+    learn_rate = tune(),
+    tree_depth = tune(),
+    trees =tune()
+  ) %>%
+  parsnip::set_engine("xgboost")
+
+
+xgboost_workflow <- workflows::workflow() %>%
+  add_formula(value ~ c_div_maxc + fishery_year + predicted_cluster + c_div_meanc + c_roll_meanc) %>%
+  add_model(xgboost_model)
+
+
+set.seed(234)
+doParallel::registerDoParallel(cores = parallel::detectCores() - 2)
+
+xgboost_tuning <- tune_grid(
+  xgboost_workflow,
+  resamples = aa_splits,
+  grid = xgboost_grid,
+  control = control_grid(save_pred = TRUE)
+)
+
+# xgboost_tuning
+
+collect_metrics(xgboost_tuning) %>%
+  select(mean, mtry:sample_size, .metric) %>%
+  pivot_longer(mtry:sample_size, names_to = "dial", values_to = "level") %>%
+  ggplot(aes(level, mean)) +
+  geom_point() +
+  facet_grid(.metric ~ dial, scales = "free")
+
+# show_best(xgboost_tuning, "rmse")
+#
+
+best_rmse <- tune::select_best(xgboost_tuning, metric = "rmse")
+
+final_workflow <- finalize_workflow(
+  xgboost_workflow,
+  best_rmse
+)
+
+
+
+catch_model <-
+  parsnip::boost_tree(
+    mode = "regression",
+    mtry = best_rmse$mtry,
+    min_n = best_rmse$min_n,
+    loss_reduction = best_rmse$loss_reduction,
+    sample_size = best_rmse$sample_size, 
+    learn_rate = best_rmse$learn_rate,
+    tree_depth = best_rmse$tree_depth,
+    trees = best_rmse$trees
+  ) %>%
+  parsnip::set_engine("xgboost") %>%
+  parsnip::fit(value ~ c_div_maxc + fishery_year + predicted_cluster + c_div_meanc + c_roll_meanc, data = training_data)
+
+
+catch_model %>%
+  vip::vi() %>% 
+  vip::vip(geom = "point")
+
+
+training_data$boost_fit <- predict(catch_model, new_data = training_data)$.pred
+
+testing_data$boost_fit <- predict(catch_model, new_data = testing_data)$.pred
+
+catch_model_predictions <- training_data %>% 
+  mutate(set = "training") %>% 
+  bind_rows(testing_data %>% mutate(set = "testing")) 
+
+catch_model_predictions %>% 
+  ggplot(aes(value, boost_fit)) + 
+  geom_point() + 
+  geom_smooth(method = "lm") +
+  facet_wrap(~set)
+
+
+huh <- stan_glm(value ~ research + management + enforcement + socioeconomics + c_div_max_c,
+                data = training_data, family = Gamma)
+
+pp_huh <- posterior_predict(huh, newdata = testing_data, type = "response") %>%
+  colMeans()
+
+fmi_fit$.predictions[[1]]$stan_fit <- pp_huh
+
+fmi_fit$.predictions[[1]] %>%
+  pivot_longer(c(.pred,stan_fit),names_to = "model", values_to = "prediction") %>%
+  ggplot(aes(value, prediction, color = model)) +
+  geom_point()
+
+
+fmi_fit$.predictions[[1]] %>%
+  pivot_longer(c(.pred,stan_fit),names_to = "model", values_to = "prediction") %>%
+  group_by(model) %>%
+  yardstick::rsq(truth = value, estimate = prediction)
+
+
 
 
 status_model_data %>%  
@@ -986,11 +1229,13 @@ status_model_data %>%
 
 
 with_cluster <-
-  stan_gamm4(
-    value ~  c_div_meanc + c_div_maxc + s(fishery_year) + predicted_cluster,
+  stan_glmer(
+    value ~  c_div_meanc + c_div_maxc + (1 |predicted_cluster),
     data =  training,
     family = gaussian(link = "log")
   )
+
+
 
 
 witho_cluster <-
