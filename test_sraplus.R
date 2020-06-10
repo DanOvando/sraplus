@@ -132,6 +132,7 @@ bayes_fit <- fit_sraplus(driors = ml_driors,
                       max_treedepth = 12,
                       refresh = 250,
                       estimate_initial_state = FALSE,
+                      thin_draws = TRUE,
                       workers = 8)
 Sys.time() - a
 
@@ -404,7 +405,8 @@ index_bayes_fit <- fit_sraplus(driors = index_driors,
                          eps = 1e-3,
                          adapt_delta = 0.95,
                          analytical_q = FALSE,
-                         max_treedepth = 12)
+                         max_treedepth = 12,
+                         thin_draws = TRUE)
 
 plot_sraplus(index_bayes_fit)
 
@@ -427,7 +429,7 @@ plot_sraplus(
   years = index_driors$years
 )
 
-effort_bayes_fit_slope <- fit_sraplus(driors = effort_driors,
+effort_bayes_fit <- fit_sraplus(driors = effort_driors,
                                engine = "stan",
                                model = "sraplus_tmb",
                                estimate_shape = FALSE, 
@@ -438,7 +440,8 @@ effort_bayes_fit_slope <- fit_sraplus(driors = effort_driors,
                                eps = 1e-3,
                                adapt_delta = 0.95,
                                analytical_q = FALSE,
-                               max_treedepth = 12)
+                               max_treedepth = 12,
+                               thin_draws = TRUE)
 
 
 effort_ml_fit <- fit_sraplus(driors = effort_driors,

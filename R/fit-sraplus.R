@@ -84,6 +84,8 @@ fit_sraplus <- function(driors,
                         refresh = 250,
                         log_bias_correct = TRUE,
                         workers = workers,
+                        thin_draws = FALSE,
+                        thin_rate = 0.5,
                         ...) {
   opts <- list(...)
   
@@ -757,6 +759,15 @@ fit_sraplus <- function(driors,
         dplyr::group_by(.chain, .iteration, .draw) %>%
         tidyr::nest() %>% 
         dplyr::ungroup()
+      
+      if (thin_draws){
+        
+        draws <- draws %>% 
+          dplyr::group_by(.chain) %>% 
+          dplyr::slice_sample(prop = thin_rate)
+        
+        
+      }
 
       # a <- Sys.time()
       doParallel::registerDoParallel(cores = workers)
