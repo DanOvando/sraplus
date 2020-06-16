@@ -95,7 +95,8 @@ format_driors <-
            f_prior_form = 0,
            prob = 0.9,
            use_fmsy_based_r = FALSE) {
-    if (use_b_reg == TRUE) {
+    require(kknn)
+    if (use_b_reg == TRUE | (is.na(initial_state) & use_heuristics == FALSE)) {
       b_ref_type <-  "b"
       
     }
@@ -129,6 +130,36 @@ format_driors <-
       }
       
       
+    }
+    
+    
+    # predict catch history cluster
+    
+    # create initial state prior
+    
+    if (is.na(initial_state) & use_heuristics == FALSE & length(catch) >= 25){
+    
+    # catch <- ram_data$catch[ram_data$stockid == ram_data$stockid[1]]
+    
+    tmp <- data.frame(year = 1:length(catch), catch = catch) %>% 
+      dplyr::mutate(c_div_meanc = catch / mean(catch, na.rm = TRUE),
+             log_fishery_length = log(length(catch))) %>% 
+      dplyr::mutate( scaled_catch = as.numeric(scale(catch)))
+    
+    wide_tmp <- tmp %>% 
+      dplyr::select(year, scaled_catch) %>% 
+      tidyr::pivot_wider(names_from = year, values_from = scaled_catch)
+    
+    tmp$predicted_cluster <- parsnip::predict.model_fit(class_fit, new_data = wide_tmp)[[1]]
+    
+    tmp <- tmp[tmp$year == 1, ]
+    
+    pred_init_state <- rstanarm::posterior_predict(init_state_model, newdata = tmp, type = "response")
+    
+    initial_state <- exp(mean(pred_init_state))
+    
+    initial_state_cv <- sd(pred_init_state)
+    
     }
     
     if (!is.na(sar)) {

@@ -162,7 +162,7 @@ ram_fits <- ram_data %>%
   nest()
 
 
-dat <- ram_fits$data[[42]] # pick a  stock to run
+dat <- ram_fits$data[[24]] # pick a  stock to run
 
 index_years <- dat$year[!is.na(dat$index)]
 
@@ -173,7 +173,7 @@ driors <- format_driors(taxa = dat$scientificname[1],
                            years = dat$year,
                            index =  dat$index[dat$year %in% index_years]* exp(rnorm(length(index_years),-sigma_obs^2/2,sigma_obs)),
                            index_years =index_years,
-                           initial_state = 1,
+                           initial_state = NA,
                            initial_state_cv = 0.05,
                            terminal_state = NA,
                            shape_prior = 1.01,

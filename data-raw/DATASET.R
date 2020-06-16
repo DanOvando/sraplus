@@ -938,6 +938,10 @@ usethis::use_data(sar_models,overwrite = TRUE)
 
 
 
+
+
+
+
 # catch based initial state prior ----------------------------------------------
 
 # random idea: can you classify catch series into groups and use that as a predictor?
@@ -968,7 +972,7 @@ map_dbl(ram_catches, ~sum(is.na(.x)))
 
 a = ram_catches %>% select(-stockid) %>% as.matrix()
 
-catch_pca <- specc(a,centers = 8)
+catch_pca <- specc(a,centers = 4)
 
 centers(catch_pca)
 size(catch_pca)
@@ -1037,7 +1041,7 @@ cluster_predictions %>%
   pivot_wider(names_from = "split", values_from = "accuracy") %>% 
   mutate(testing_loss = testing / training - 1)
 
-
+# catch based initial status ----------------------------------------------
 
 # fit a model now
 
@@ -1061,344 +1065,226 @@ status_model_data <- ram_data %>%
 # try and predict initial status
 
 
+init_status_data <- ram_data %>% 
+  filter(stockid %in% unique(cluster_predictions$stockid)) %>% 
+  left_join(cluster_predictions %>% select(stockid, predicted_cluster), by = "stockid") %>% 
+  left_join(sraplus::fao_taxa$fao_species %>% select(scientific_name, isscaap_group), by = c("scientificname" = "scientific_name")) %>% 
+  group_by(stockid) %>%
+  mutate(c_div_maxc = catch / max(catch, na.rm = TRUE),
+         c_div_meanc = catch / mean(catch, na.rm = TRUE),
+         c_length = log(length(catch)),
+         fishery_year = 1:length(catch),
+         fishery_length = length(catch),
+         log_fishery_length = log(length(catch))) %>%
+  mutate(c_roll_meanc = RcppRoll::roll_meanr(c_div_meanc,5)) %>% 
+  gather(metric, value, b_v_bmsy, u_v_umsy,exploitation_rate) %>%
+  select(stockid, year, contains('c_'), metric, value, predicted_cluster,fishery_year,log_fishery_length, fishery_length) %>%
+  mutate(log_value = log(value + 1e-3)) %>%
+  ungroup()  %>% 
+  filter(metric == "b_v_bmsy", fishery_year == 1, !is.na(value))
+
+
+init_status_data %>% 
+  ggplot(aes(value, fill = predicted_cluster)) + 
+  geom_histogram(position = "dodge") + 
+  facet_wrap(~predicted_cluster)
+
+init_status_data %>% 
+  ggplot(aes(c_div_meanc, value, color = predicted_cluster)) + 
+  geom_point(position = "dodge") + 
+  geom_smooth(method = "lm") +
+  facet_wrap(~predicted_cluster)
+
+init_status_data %>% 
+  ggplot(aes(fishery_length, value, color = predicted_cluster)) + 
+  geom_point(position = "dodge") + 
+  geom_smooth(method = "lm") +
+  facet_wrap(~predicted_cluster)
+
+
 initial_state_splits <-
   initial_split(
-    status_model_data %>%  group_by(stockid) %>% filter(metric == "u_v_umsy") %>% ungroup()
+    init_status_data %>%  group_by(stockid) %>% ungroup()
   )
 
-a <- status_model_data %>%  group_by(stockid) %>% filter(metric == "u_v_umsy") %>% ungroup()
+training_stocks <- sample(unique(init_status_data$stockid), round(n_distinct(init_status_data$stockid) * .75), replace = FALSE)
 
-training_stocks <- sample(unique(a$stockid), round(n_distinct(a$stockid) * .75), replace = FALSE)
+init_status_data$training <- !init_status_data$stockid %in% training_stocks
 
-a$training <- !a$stockid %in% training_stocks
-
-a <- a %>% 
+init_status_data <- init_status_data %>% 
   arrange(training, stockid, year)
 
-training <- a %>% 
+training <- init_status_data %>% 
   filter(stockid %in% training_stocks)
 
-testing <- a %>% 
+testing <- init_status_data %>% 
   filter(!stockid %in% training_stocks)
 
 
-catch_split <- initial_time_split(a, prop = last(which(a$training == FALSE)) / nrow(a))
+catch_split <- initial_time_split(init_status_data, prop = last(which(init_status_data$training == FALSE)) / nrow(init_status_data))
 
 training_data <- training(catch_split)
 
 testing_data <- testing(catch_split)
 
-aa_splits <- rsample::group_vfold_cv(training_data, group = stockid)
+# aa_splits <- rsample::group_vfold_cv(training_data, group = stockid)
+# 
+# tune_grid <-
+#   parameters(
+#     min_n(range(2, 10)),
+#     tree_depth(range(4, 15)),
+#     learn_rate(range = c(-2, 0)),
+#     mtry(),
+#     loss_reduction(),
+#     sample_prop(range = c(0.25, 1)),
+#     trees(range = c(500, 2000))
+#   ) %>%
+#   dials::finalize(mtry(), x = training_data %>% select(-(1:2)))
+# 
+# 
+# xgboost_grid <- grid_max_entropy(tune_grid, size = 10)
+# 
+# xgboost_model <-
+#   parsnip::boost_tree(
+#     mode = "regression",
+#     mtry = tune(),
+#     min_n = tune(),
+#     loss_reduction = tune(),
+#     sample_size =tune(),
+#     learn_rate = tune(),
+#     tree_depth = tune(),
+#     trees =tune()
+#   ) %>%
+#   parsnip::set_engine("xgboost")
+# 
+# 
+# xgboost_workflow <- workflows::workflow() %>%
+#   add_formula(value ~ c_div_maxc + fishery_length + predicted_cluster + c_div_meanc) %>%
+#   add_model(xgboost_model)
+# 
+# 
+# set.seed(234)
+# doParallel::registerDoParallel(cores = parallel::detectCores() - 2)
+# 
+# xgboost_tuning <- tune_grid(
+#   xgboost_workflow,
+#   resamples = aa_splits,
+#   grid = xgboost_grid,
+#   control = control_grid(save_pred = TRUE)
+# )
+# 
+# # xgboost_tuning
+# 
+# a = collect_metrics(xgboost_tuning) %>%
+#   select(mean, mtry:sample_size, .metric) %>%
+#   pivot_longer(mtry:sample_size, names_to = "dial", values_to = "level") %>%
+#   ggplot(aes(level, mean)) +
+#   geom_point() +
+#   facet_grid(.metric ~ dial, scales = "free")
+# 
+# # show_best(xgboost_tuning, "rmse")
+# #
+# 
+# best_rmse <- tune::select_best(xgboost_tuning, metric = "rmse")
+# 
+# final_workflow <- finalize_workflow(
+#   xgboost_workflow,
+#   best_rmse
+# )
+# 
+# 
+# 
+# catch_model <-
+#   parsnip::boost_tree(
+#     mode = "regression",
+#     mtry = best_rmse$mtry,
+#     min_n = best_rmse$min_n,
+#     loss_reduction = best_rmse$loss_reduction,
+#     sample_size = best_rmse$sample_size, 
+#     learn_rate = best_rmse$learn_rate,
+#     tree_depth = best_rmse$tree_depth,
+#     trees = best_rmse$trees
+#   ) %>%
+#   parsnip::set_engine("xgboost") %>%
+#   parsnip::fit(value ~ c_div_maxc + fishery_year + predicted_cluster + c_div_meanc, data = training_data)
+# 
+# 
+# catch_model %>%
+#   vip::vi() %>% 
+#   vip::vip(geom = "point")
+# 
+# 
+# training_data$boost_fit <- predict(catch_model, new_data = training_data)$.pred
+# 
+# testing_data$boost_fit <- predict(catch_model, new_data = testing_data)$.pred
+# 
+# catch_model_predictions <- training_data %>% 
+#   mutate(set = "training") %>% 
+#   bind_rows(testing_data %>% mutate(set = "testing")) 
+# 
+# catch_model_predictions %>% 
+#   ggplot(aes(value, boost_fit)) + 
+#   geom_point() + 
+#   geom_smooth(method = "lm") +
+#   facet_wrap(~set)
 
-tune_grid <-
-  parameters(
-    min_n(range(2, 10)),
-    tree_depth(range(4, 15)),
-    learn_rate(range = c(-2, 0)),
-    mtry(),
-    loss_reduction(),
-    sample_size(range = c(1, 1)),
-    trees(range = c(500, 2000))
-  ) %>%
-  dials::finalize(mtry(), x = training_data %>% select(-(1:2)))
-
-xgboost_grid <- grid_max_entropy(tune_grid, size = 10)
-
-xgboost_model <-
-  parsnip::boost_tree(
-    mode = "regression",
-    mtry = tune(),
-    min_n = tune(),
-    loss_reduction = tune(),
-    sample_size =tune(),
-    learn_rate = tune(),
-    tree_depth = tune(),
-    trees =tune()
-  ) %>%
-  parsnip::set_engine("xgboost")
 
 
-xgboost_workflow <- workflows::workflow() %>%
-  add_formula(value ~ c_div_maxc + fishery_year + predicted_cluster + c_div_meanc + c_roll_meanc) %>%
-  add_model(xgboost_model)
+# init_state_model <-
+#   stan_glmer(log_value ~ (c_div_meanc + fishery_length |
+#                         predicted_cluster),
+#              data = training,
+#              iter = 10000)
+
+init_state_model <-
+  stan_glm(
+    log_value ~ (c_div_meanc)*predicted_cluster + log_fishery_length:predicted_cluster,
+    data = training_data,
+    iter = 10000
+  )
+
+log_init_state_model <-
+  stan_glm(
+    log_value ~ log(c_div_meanc)*predicted_cluster,
+    data = training_data,
+    iter = 10000
+  )
+
+cmax_init_state_model <-
+  stan_glm(
+    log_value ~ c_div_maxc*predicted_cluster,
+    data = training_data,
+    iter = 10000
+  )
 
 
-set.seed(234)
-doParallel::registerDoParallel(cores = parallel::detectCores() - 2)
-
-xgboost_tuning <- tune_grid(
-  xgboost_workflow,
-  resamples = aa_splits,
-  grid = xgboost_grid,
-  control = control_grid(save_pred = TRUE)
+loo_compare(
+  loo(log_init_state_model, k_threshold = 0.7),
+  loo(init_state_model, k_threshold = 0.7),
+  loo(cmax_init_state_model, k_threshold = 0.7)
 )
 
-# xgboost_tuning
 
-collect_metrics(xgboost_tuning) %>%
-  select(mean, mtry:sample_size, .metric) %>%
-  pivot_longer(mtry:sample_size, names_to = "dial", values_to = "level") %>%
-  ggplot(aes(level, mean)) +
-  geom_point() +
-  facet_grid(.metric ~ dial, scales = "free")
+training_data$pred_value <- predict(init_state_model)
 
-# show_best(xgboost_tuning, "rmse")
-#
-
-best_rmse <- tune::select_best(xgboost_tuning, metric = "rmse")
-
-final_workflow <- finalize_workflow(
-  xgboost_workflow,
-  best_rmse
-)
-
-
-
-catch_model <-
-  parsnip::boost_tree(
-    mode = "regression",
-    mtry = best_rmse$mtry,
-    min_n = best_rmse$min_n,
-    loss_reduction = best_rmse$loss_reduction,
-    sample_size = best_rmse$sample_size, 
-    learn_rate = best_rmse$learn_rate,
-    tree_depth = best_rmse$tree_depth,
-    trees = best_rmse$trees
-  ) %>%
-  parsnip::set_engine("xgboost") %>%
-  parsnip::fit(value ~ c_div_maxc + fishery_year + predicted_cluster + c_div_meanc + c_roll_meanc, data = training_data)
-
-
-catch_model %>%
-  vip::vi() %>% 
-  vip::vip(geom = "point")
-
-
-training_data$boost_fit <- predict(catch_model, new_data = training_data)$.pred
-
-testing_data$boost_fit <- predict(catch_model, new_data = testing_data)$.pred
-
-catch_model_predictions <- training_data %>% 
-  mutate(set = "training") %>% 
-  bind_rows(testing_data %>% mutate(set = "testing")) 
-
-catch_model_predictions %>% 
-  ggplot(aes(value, boost_fit)) + 
-  geom_point() + 
-  geom_smooth(method = "lm") +
-  facet_wrap(~set)
-
-
-huh <- stan_glm(value ~ research + management + enforcement + socioeconomics + c_div_max_c,
-                data = training_data, family = Gamma)
-
-pp_huh <- posterior_predict(huh, newdata = testing_data, type = "response") %>%
+pp_huh <- posterior_predict(init_state_model, newdata = testing_data, type = "response") %>%
   colMeans()
 
-fmi_fit$.predictions[[1]]$stan_fit <- pp_huh
+testing_data$pred_value <- pp_huh
 
-fmi_fit$.predictions[[1]] %>%
-  pivot_longer(c(.pred,stan_fit),names_to = "model", values_to = "prediction") %>%
-  ggplot(aes(value, prediction, color = model)) +
-  geom_point()
+comparison <- training_data %>% 
+  mutate(set = "training") %>% 
+  bind_rows(testing_data %>% mutate(set = "testing"))
 
-
-fmi_fit$.predictions[[1]] %>%
-  pivot_longer(c(.pred,stan_fit),names_to = "model", values_to = "prediction") %>%
-  group_by(model) %>%
-  yardstick::rsq(truth = value, estimate = prediction)
-
-
-
-
-status_model_data %>%  
-  group_by(stockid) %>% 
-  filter(fishery_year == max(fishery_year), metric == "b_v_bmsy") %>% 
-  ungroup() %>% 
-  ggplot(aes(log(c_div_meanc), log(value))) + 
+comparison %>% 
+  ggplot(aes(exp(log_value), exp(pred_value))) + 
   geom_point() + 
-  geom_smooth(method = "lm")
+  geom_smooth(method = "lm") + 
+  geom_abline(aes(slope = 1, intercept = 0)) +
+  facet_wrap(~set)
 
-status_model_data %>%  
-  group_by(stockid) %>% 
-  filter(fishery_year == max(fishery_year), metric == "b_v_bmsy") %>% 
-  ungroup() %>% 
-  ggplot(aes(c_div_meanc, c_div_maxc, color = value)) + 
-  geom_point() + 
-  scale_color_viridis_c()
+usethis::use_data(init_state_model, overwrite = TRUE)
 
+usethis::use_data(class_fit, overwrite = TRUE)
 
-with_cluster <-
-  stan_glmer(
-    value ~  c_div_meanc + c_div_maxc + (1 |predicted_cluster),
-    data =  training,
-    family = gaussian(link = "log")
-  )
-
-
-
-
-witho_cluster <-
-  stan_glm(
-    value ~ predicted_cluster + c_div_meanc + c_div_maxc + c_length + log(fishery_year),
-    data =  training(initial_state_splits),
-    family = gaussian(link = "log")
-  )
-
-with_cluster$loo <- loo(with_cluster)
-
-witho_cluster$loo <- loo(witho_cluster)
-
-model_list <- stanreg_list(with_cluster, witho_cluster, model_names = c("With Clusters", "Without Clusters"))
-loo_compare(model_list)
-
-
-# 
-# 
-with_cluster <-
-  rand_forest(trees = 1000) %>%
-  set_engine("ranger") %>%
-  set_mode("regression")
-
-test_with_cluster <- with_cluster %>%
-  fit(
-    value ~ .,
-    data = training(initial_state_splits) %>% select(value, c_div_maxc, c_div_meanc, c_length, predicted_cluster, fishery_year, isscaap_group)
-  )
-
-# test_rf$fit
-plot(with_cluster)
-
-training_with_cluster <- training(initial_state_splits) %>% 
-  mutate(predicted_value = predict(with_cluster, type = "response")) %>% 
-  mutate(split = "training")
-
-pp <- posterior_predict(with_cluster, newdata =  testing(initial_state_splits), type = "response")
-
-testing_with_cluster <- testing(initial_state_splits) %>% 
-  mutate(predicted_value = colMeans(pp)) %>% 
-  mutate(split = "testing")
-
-
-
-with_cluster_performance <- training_with_cluster %>% 
-  bind_rows(testing_with_cluster)
-
-with_cluster_performance %>% 
-  ggplot(aes(value, predicted_value)) + 
-  geom_point() +
-  geom_abline(aes(slope = 1, intercept = 0)) + 
-  geom_smooth(method = "lm") +
-  facet_wrap(~split)
-
-with_cluster_performance %>% 
-  group_by(split) %>% 
-  yardstick::rmse(truth = value, estimate = predicted_value)
-
-without_cluster <-
-  stan_glm(
-    value ~ c_div_maxc + c_div_meanc +  c_length ,
-    data =  training(initial_state_splits),
-    family = Gamma
-  )
-
-plot(without_cluster)
-
-training_without_cluster <- training(initial_state_splits) %>% 
-  mutate(predicted_value = predict(without_cluster, type = "response")) %>% 
-  mutate(split = "training")
-
-pp <- posterior_predict(without_cluster, newdata =  testing(initial_state_splits), type = "response")
-
-testing_without_cluster <- testing(initial_state_splits) %>% 
-  mutate(predicted_value = colMeans(pp)) %>% 
-  mutate(split = "testing")
-
-without_cluster_performance <- training_without_cluster %>% 
-  bind_rows(testing_without_cluster)
-
-without_cluster_performance %>% 
-  ggplot(aes(value, predicted_value)) + 
-  geom_point() +
-  geom_abline(aes(slope = 1, intercept = 0)) + 
-  geom_smooth(method = "lm") +
-  facet_wrap(~split)
-
-without_cluster_performance %>% 
-  group_by(split) %>% 
-  yardstick::rmse(truth = value, estimate = predicted_value)
-
-
-
-
-#
-# model_structures <-
-#   purrr::cross_df(list(
-#     sampid = random_catch_tests$sampid,
-#     model_structure = c(
-#       "log_value ~ c_div_maxc + c_div_meanc + c_length")
-#   ))
-#
-# random_catch_tests <- model_structures %>%
-#   left_join(random_catch_tests, by = "sampid")
-#
-# random_catch_tests <- random_catch_tests %>%
-#   mutate(
-#     fit = map2(
-#       splits,
-#       model_structure,
-#       fit_prior_regressions,
-#       produce = "summary",
-#       refresh = 100
-#     )
-#   )
-#
-# random_catch_tests <- random_catch_tests %>%
-#   mutate(
-#     training_performance = map(fit, "training_summary"),
-#     testing_performance = map(fit, "testing_summary")
-#   )
-#
-# random_catch_tests <- random_catch_tests %>%
-#   mutate(
-#     training_rmse = map_dbl(
-#       training_performance,
-#       ~ yardstick::rmse_vec(truth = .x$observed,
-#                             estimate = .x$pp_pred)
-#     ),
-#     testing_rmse = map_dbl(
-#       testing_performance,
-#       ~ yardstick::rmse_vec(truth = .x$observed,
-#                             estimate = .x$pp_pred)
-#     )
-#   )
-#
-# random_catch_tests %>%
-#   ggplot(aes(model_structure, testing_rmse, color = metric)) +
-#   geom_point() +
-#   coord_flip()
-#
-# best_catch_tests <- random_catch_tests %>%
-#   group_by(metric, model_structure) %>%
-#   summarise(mean_rmse = mean(testing_rmse)) %>%
-#   group_by(metric) %>%
-#   filter(mean_rmse == min(mean_rmse))
-#
-# best_catch_tests <- best_catch_tests %>%
-#   mutate(splits = map(metric, ~ filter(catch_data, metric == .x))) %>%
-#   mutate(
-#     best_fit = map2(
-#       splits,
-#       model_structure,
-#       fit_prior_regressions,
-#       produce = "results",
-#       refresh = 100,
-#       use_splits = FALSE
-#     )
-#   )
-#
-#
-# best_catch_tests <- best_catch_tests %>%
-#   mutate(fit = map(best_fit, "fit")) %>%
-#   mutate(prior_plot = map2(fit, splits, plot_prior_fit))
 

@@ -21,6 +21,7 @@ fit_sraplus(
   adapt_delta = 0.8,
   estimate_shape = FALSE,
   estimate_qslope = FALSE,
+  estimate_q = TRUE,
   estimate_proc_error = TRUE,
   estimate_initial_state = TRUE,
   estimate_k = TRUE,
@@ -43,6 +44,8 @@ fit_sraplus(
   refresh = 250,
   log_bias_correct = TRUE,
   workers = workers,
+  thin_draws = FALSE,
+  thin_rate = 0.5,
   ...
 )
 }

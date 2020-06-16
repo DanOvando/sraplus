@@ -25,7 +25,8 @@ Imports:
     rstanarm,
     truncnorm,
     doParallel,
-    foreach
+    foreach,
+    kknn
 LinkingTo: Rcpp
 Suggests: 
     testthat,
