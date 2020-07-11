@@ -1,7 +1,7 @@
 #include <Rcpp.h>
 using namespace Rcpp;
 
-NumericVector popmodel(double r, double k, double m,double b0,double plim,int years, double sigma_proc,NumericVector catches){
+NumericVector popmodel(const double r, const double k, const double m,const double b0,const double plim,const int years,const double sigma_proc,const NumericVector catches){
   
   double growth_mult;
   

@@ -150,11 +150,11 @@ format_driors <-
       dplyr::select(year, scaled_catch) %>% 
       tidyr::pivot_wider(names_from = year, values_from = scaled_catch)
     
-    tmp$predicted_cluster <- parsnip::predict.model_fit(class_fit, new_data = wide_tmp)[[1]]
+    tmp$predicted_cluster <- parsnip::predict.model_fit(sraplus::class_fit, new_data = wide_tmp)[[1]]
     
     tmp <- tmp[tmp$year == 1, ]
     
-    pred_init_state <- rstanarm::posterior_predict(init_state_model, newdata = tmp, type = "response")
+    pred_init_state <- rstanarm::posterior_predict(sraplus::init_state_model, newdata = tmp, type = "response")
     
     initial_state <- exp(mean(pred_init_state))
     

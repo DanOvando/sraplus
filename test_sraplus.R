@@ -5,11 +5,9 @@ library(sraplus)
 library(tmbstan)
 
 Sys.unsetenv("PKG_CXXFLAGS")
+
 example_taxa <- "gadus sdfg"
 
-# library(tmbstan)
-# library(rstan)
-# rstan_options(auto_write = TRUE)
 
 set.seed(42)
 
@@ -139,6 +137,8 @@ Sys.time() - a
 diagnose_sraplus(bayes_fit, ml_driors)
   
 plot_prior_posterior(bayes_fit, ml_driors)
+
+a = get_prior_posterior(bayes_fit,ml_driors)
 
 sraplus::summarize_sralpus(bayes_fit)
 
