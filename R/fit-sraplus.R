@@ -772,10 +772,9 @@ fit_sraplus <- function(driors,
       # a <- Sys.time()
       doParallel::registerDoParallel(cores = workers)
       
-      stacked_draws <- foreach::foreach(i = 1:nrow(draws),.packages = "TMB") %dopar% {
+      stacked_draws <- foreach::foreach(i = 1:nrow(draws),.packages = c("TMB","tmbstan")) %dopar% {
       
-      qgp <-   purrr::quietly(get_posterior)
-        
+      qgp <-   purrr::quietly(sraplus::get_posterior)
         
       out <- qgp(draws = draws$data[[i]], inits = inits, sra_data = sra_data,     model_name = model_name,
                  randos = randos,
