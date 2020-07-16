@@ -2,9 +2,9 @@ library(tidyverse)
 
 library(sraplus)
 
-library(tmbstan)
+# library(tmbstan)
 
-Sys.unsetenv("PKG_CXXFLAGS")
+# Sys.unsetenv("PKG_CXXFLAGS")
 
 example_taxa <- "gadus sdfg"
 

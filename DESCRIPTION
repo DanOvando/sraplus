@@ -26,7 +26,8 @@ Imports:
     truncnorm,
     doParallel,
     foreach,
-    kknn
+    kknn,
+    parsnip
 LinkingTo: Rcpp
 Suggests: 
     testthat,
