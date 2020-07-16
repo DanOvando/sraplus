@@ -3,5 +3,5 @@ importFrom(Rcpp, evalCpp)
 exportPattern("^[[:alpha:]]+")
 importFrom(magrittr,"%>%")
 importFrom(foreach,"%dopar%")
-
+importFrom(foreach,"%do%")
 importFrom(stats, "median", "quantile", "rnorm", "runif", "sd")

@@ -770,9 +770,10 @@ fit_sraplus <- function(driors,
       }
 
       # a <- Sys.time()
-      doParallel::registerDoParallel(cores = workers)
+
+      if (.Platform$OS.type == "windows"){
       
-      stacked_draws <- foreach::foreach(i = 1:nrow(draws),.packages = c("TMB","tmbstan")) %dopar% {
+      stacked_draws <- foreach::foreach(i = 1:nrow(draws)) %do% {
       
       qgp <-   purrr::quietly(sraplus::get_posterior)
         
@@ -787,6 +788,27 @@ fit_sraplus <- function(driors,
       
       }
       
+      } else {
+        
+        doParallel::registerDoParallel(cores = workers)
+        
+        stacked_draws <- foreach::foreach(i = 1:nrow(draws)) %dopar% {
+          
+          qgp <-   purrr::quietly(sraplus::get_posterior)
+          
+          out <- qgp(draws = draws$data[[i]], inits = inits, sra_data = sra_data,     model_name = model_name,
+                     randos = randos,
+                     knockout = knockout)
+          
+          pars <- names(out$result)
+          
+          flatstack <- purrr::map2_df(pars,out$result, ~data.frame(variable = .x, value = .y))
+          
+          
+        }
+        
+        
+      }
       draws$stack <- stacked_draws
       # d <- Sys.time() - a
       
