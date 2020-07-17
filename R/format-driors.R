@@ -94,9 +94,18 @@ format_driors <-
            isscaap_group = NA,
            f_prior_form = 0,
            prob = 0.9,
-           use_fmsy_based_r = FALSE) {
+           use_fmsy_based_r = FALSE,
+           use_catch_priors = FALSE) {
     require(kknn)
-    if (use_b_reg == TRUE | (is.na(initial_state) & use_heuristics == FALSE)) {
+    
+    if (use_b_reg == TRUE | (is.na(initial_state) & use_heuristics == FALSE) |(is.na(terminal_state) & use_heuristics == FALSE & use_catch_priors == TRUE)) {
+      
+      if (!is.na(initial_state) & b_ref_type == "k"){
+        
+        initial_state <- initial_state * (1 / shape_prior^(-1 / (shape_prior - 1)))
+        
+      }
+      
       b_ref_type <-  "b"
       
     }
@@ -161,6 +170,36 @@ format_driors <-
     initial_state_cv <- sd(pred_init_state)
     
     }
+    
+    
+    if (is.na(terminal_state) & use_heuristics == FALSE & length(catch) >= 25 & use_catch_priors == TRUE){
+      
+      # catch <- ram_data$catch[ram_data$stockid == ram_data$stockid[1]]
+      
+      tmp <- data.frame(year = 1:length(catch), catch = catch) %>% 
+        dplyr::mutate(c_div_maxc = catch / max(catch, na.rm = TRUE),
+               c_div_meanc = catch / mean(catch, na.rm = TRUE),
+               c_length = log(length(catch)),
+               fishery_year = 1:length(catch)) %>%
+        mutate(c_roll_meanc = RcppRoll::roll_meanr(c_div_meanc,5))  %>% 
+        dplyr::mutate( scaled_catch = as.numeric(scale(catch)))
+      
+      wide_tmp <- tmp %>% 
+        dplyr::select(year, scaled_catch) %>% 
+        tidyr::pivot_wider(names_from = year, values_from = scaled_catch)
+      
+      tmp$predicted_cluster <- parsnip::predict.model_fit(sraplus::class_fit, new_data = wide_tmp)[[1]]
+      
+      tmp <- tmp[tmp$year == max(tmp$year), ]
+      
+      pred_init_state <- rstanarm::posterior_predict(sraplus::catch_b_model, newdata = tmp, type = "response")
+      
+      terminal_state <- exp(mean(pred_init_state))
+      
+      terminal_state_cv <- sd(pred_init_state)
+      
+    }
+    
     
     if (!is.na(sar)) {
       if (f_ref_type == "fmsy") {
@@ -360,7 +399,7 @@ format_driors <-
       
     }
     if (is.na(initial_state)) {
-      initial_state <- ifelse(b_ref_type == "k", 1, 2.5)
+      initial_state <- ifelse(b_ref_type == "k", 1, (1 / shape_prior^(-1 / (shape_prior - 1))))
     }
     
     if (is.na(initial_state)) {
@@ -407,7 +446,7 @@ format_driors <-
         0.4
       
       initial_state <-  dplyr::case_when(b_ref_type == "k" ~ temp,
-                                         TRUE ~ temp * 2.5)
+                                         TRUE ~ temp * (1 / shape_prior^(-1 / (shape_prior - 1))))
       
       initial_state_cv <-
         ifelse(is.na(initial_state_cv), 0.2, initial_state_cv)
@@ -417,7 +456,7 @@ format_driors <-
       
       terminal_state <-
         dplyr::case_when(b_ref_type == "k" ~ temp_terminal,
-                         TRUE ~ temp_terminal * 2.5)
+                         TRUE ~ temp_terminal * (1 / shape_prior^(-1 / (shape_prior - 1))))
       
       terminal_state_cv <-
         ifelse(is.na(terminal_state_cv), 0.2, terminal_state_cv)

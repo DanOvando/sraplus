@@ -82,13 +82,13 @@ ram_dirs <- list.files("data-raw")
 
 ram_dirs <- ram_dirs[str_detect(ram_dirs,"RAM v\\d")]
 
-ram_files <- list.files(ram_dirs, recursive = TRUE)
+ram_files <- list.files(file.path("data-raw",ram_dirs), recursive = TRUE)
 
 ram_files <- ram_files[str_detect(ram_files,".RData")]
 
 ram_files <- ram_files[str_detect(ram_files,"Model Fit")]
 
-load(here(ram_dirs,ram_files[1]))
+load(file.path("data-raw",ram_dirs,ram_files[1]))
 
 stock <- stock %>%
   left_join(area, by = "areaid")
@@ -942,7 +942,7 @@ usethis::use_data(sar_models,overwrite = TRUE)
 
 
 
-# catch based initial state prior ----------------------------------------------
+# classify stocks by stock history shape  ----------------------------------------------
 
 # random idea: can you classify catch series into groups and use that as a predictor?
 
@@ -1041,9 +1041,6 @@ cluster_predictions %>%
   pivot_wider(names_from = "split", values_from = "accuracy") %>% 
   mutate(testing_loss = testing / training - 1)
 
-# catch based initial status ----------------------------------------------
-
-# fit a model now
 
 status_model_data <- ram_data %>% 
   filter(stockid %in% unique(cluster_predictions$stockid)) %>% 
@@ -1061,6 +1058,11 @@ status_model_data <- ram_data %>%
   unique() %>%
   na.omit() %>%
   ungroup() 
+
+
+# catch based initial status ----------------------------------------------
+
+# fit a model now
 
 # try and predict initial status
 
@@ -1287,4 +1289,60 @@ usethis::use_data(init_state_model, overwrite = TRUE)
 
 usethis::use_data(class_fit, overwrite = TRUE)
 
+
+
+
+
+# continuous catch status ---------------------------------------------------
+
+
+cont_status_data <- status_model_data %>% 
+  filter(metric == "b_v_bmsy")
+
+
+training_stocks <- sample(unique(status_model_data$stockid), round(n_distinct(status_model_data$stockid) * .75), replace = FALSE)
+
+cont_status_data$training <- !cont_status_data$stockid %in% training_stocks
+
+cont_status_data <- cont_status_data %>% 
+  arrange(training, stockid, year)
+
+catch_split <- initial_time_split(cont_status_data, prop = last(which(cont_status_data$training == FALSE)) / nrow(cont_status_data))
+
+training_data <- training(catch_split)
+
+testing_data <- testing(catch_split)
+
+testing_data %>% 
+  ggplot(aes(year, value, color = stockid)) + 
+  geom_line(show.legend = FALSE)
+
+
+catch_b_model <-
+  stan_gamm4(log_value ~ s(fishery_year, by = predicted_cluster) + s(c_div_maxc) + s(c_roll_meanc) + predicted_cluster,
+             data = training_data)
+
+
+rstanarm::launch_shinystan(catch_b_model)
+
+training_data$pred_value <- predict(catch_b_model)
+
+pp_huh <- posterior_predict(catch_b_model, newdata = testing_data, type = "response") %>%
+  colMeans()
+
+testing_data$pred_value <- pp_huh
+
+comparison <- training_data %>% 
+  mutate(set = "training") %>% 
+  bind_rows(testing_data %>% mutate(set = "testing"))
+
+comparison %>% 
+  ggplot(aes(exp(log_value), exp(pred_value))) + 
+  geom_point(alpha = 0.25) + 
+  geom_smooth(method = "lm") + 
+  geom_abline(aes(slope = 1, intercept = 0)) +
+  facet_wrap(~set)
+
+
+usethis::use_data(catch_b_model, overwrite = TRUE)
 

@@ -47,7 +47,8 @@ format_driors(
   isscaap_group = NA,
   f_prior_form = 0,
   prob = 0.9,
-  use_fmsy_based_r = FALSE
+  use_fmsy_based_r = FALSE,
+  use_catch_priors = FALSE
 )
 }
 \arguments{
