@@ -748,8 +748,8 @@ model_structures <-
     sampid = random_fmi_tests$sampid,
     model_structure = c(
       "log_value ~ s(research) + s(management) + s(enforcement) + s(socioeconomics) + s(c_div_max_c)" ,
-      "log_value ~ research + management + enforcement + socioeconomics + c_div_max_c",
-      "log_value ~ s(mean_fmi) + s(c_div_max_c)"
+      "log_value ~ research + management + enforcement + socioeconomics + c_div_max_c"
+      # "log_value ~ s(mean_fmi) + s(c_div_max_c)"
       # "log_value ~ (research + management + enforcement + socioeconomics + c_div_max_c - 1|isscaap_group)",
       # "log_value ~ c_div_max_c  + (research + management + enforcement + socioeconomics - 1|isscaap_group)",
       # "log_value ~ research + management + enforcement + socioeconomics"
@@ -874,6 +874,10 @@ loo_compare(loo(huh, k_threshold = 0.7), loo(huh2, k_threshold = 0.7), loo(huh3,
 
 plot_nonlinear(huh)
 
+# huh <- sar_models$fit[[3]]
+
+udat <- huh$data
+
 bayesplot::ppc_intervals(
   y = exp(udat$log_value),
   yrep = exp(posterior_predict(huh)),
@@ -894,7 +898,7 @@ model_structures <-
     model_structure = c(
       # "log_value ~  (log(sar) + log(sar_2) - 1|isscaap_group)",
       "log_value ~ s(sar, k = 3) + s(c_div_max_c)",
-      "log_value ~ poly(sar,2) + s(c_div_max_c)",
+      # "log_value ~ poly(sar,2) + s(c_div_max_c)",
       "log_value ~ sar + c_div_max_c"
       # "log_value ~ c_div_max_c + (sar - 1|isscaap_group)",
       # "log_value ~ c_div_max_c + (sar + sar_2 - 1|isscaap_group)",
@@ -990,8 +994,6 @@ usethis::use_data(sar_models,overwrite = TRUE)
 
 # classify stocks by stock history shape  ----------------------------------------------
 
-# random idea: can you classify catch series into groups and use that as a predictor?
-
 ram_catches <- ram_data %>% 
   ungroup() %>% 
   select(stockid, year, catch) %>% 
@@ -1017,8 +1019,8 @@ nstocks <- nrow(ram_catches)
 map_dbl(ram_catches, ~sum(is.na(.x)))
 
 a = ram_catches %>% select(-stockid) %>% as.matrix()
-
-catch_pca <- specc(a,centers = 4)
+set.seed(42)
+catch_pca <- specc(a,centers = 3)
 
 # centers(catch_pca)
 # size(catch_pca)
@@ -1044,34 +1046,82 @@ ram_catches %>%
 
 
 
-class_data <- ram_catches %>%
+cluster_data <- ram_catches %>%
   pivot_wider(names_from = stock_year, values_from = catch) %>%
   ungroup() %>%
-  mutate(cluster = as.factor(cluster))
+  mutate(cluster = as.factor(cluster)) %>% 
+  janitor::clean_names()
 
-class_splits <- rsample::initial_split(class_data,strata = cluster)
+cluster_splits <- rsample::initial_split(cluster_data,strata = cluster)
+# 
+# class_model <- parsnip::nearest_neighbor(neighbors = 15,
+#                                          mode = "classification") %>% 
+#   set_engine(engine = 'kknn')
 
-class_model <- parsnip::nearest_neighbor(neighbors = 15,
-                                         mode = "classification") %>% 
-  set_engine(engine = 'kknn')
+cluster_model <-
+  rand_forest(mtry = tune(),
+              min_n = tune(),
+              trees = 1000) %>%
+  set_engine("ranger", num.threads = 8) %>%
+  set_mode("classification")
 
-class_fit <- class_model %>% 
-  parsnip::fit(cluster ~ . , data = training(class_splits) %>% select(-stockid))
 
-class_fit$fit %>% summary()
+cluster_recipe <-
+  recipes::recipe(cluster ~ ., data = training(cluster_splits) %>% select(-stockid)) %>%
+  themis::step_upsample(cluster)
 
-training_data <- training(class_splits) %>% 
-  bind_cols(predict(class_fit, new_data = .)) %>% 
+cluster_workflow <- 
+  workflows::workflow() %>% 
+  workflows::add_model(cluster_model) %>% 
+  workflows::add_recipe(cluster_recipe)
+
+val_set <- training(cluster_splits) %>% select(-stockid) %>% 
+  rsample::vfold_cv()
+
+set.seed(345)
+cluster_tuning <- 
+  cluster_workflow %>% 
+  tune_grid(val_set,
+            grid = 20,
+            control = control_grid(save_pred = TRUE),
+            metrics = metric_set(roc_auc))
+
+cluster_tuning %>% 
+  collect_metrics()
+
+best_forest <- cluster_tuning %>%
+  select_best("roc_auc")
+
+final_workflow <- 
+  cluster_workflow %>% 
+  finalize_workflow(best_forest)
+
+cluster_fit <- 
+  final_workflow %>%
+  fit(data = training(cluster_splits) %>% select(-stockid))
+
+
+# cluster_fit <- class_model %>% 
+#   parsnip::fit(cluster ~ . , data = training(cluster_splits) %>% select(-stockid))
+
+cluster_fit$fit %>% summary()
+
+training_data <- training(cluster_splits) %>% 
+  bind_cols(predict(cluster_fit, new_data = .)) %>% 
   mutate(split = "training")
 
 
-testing_data <- testing(class_splits) %>% 
-  bind_cols(predict(class_fit, new_data = .)) %>% 
+testing_data <- testing(cluster_splits) %>% 
+  bind_cols(predict(cluster_fit, new_data = .)) %>% 
   mutate(split = "testing")
 
 cluster_predictions <- training_data %>% 
   bind_rows(testing_data) %>% 
   rename(predicted_cluster = .pred_class)
+
+cluster_predictions %>% 
+  group_by(cluster) %>% 
+  count()
 
 cluster_model_performance <- cluster_predictions %>%
   group_by(split, cluster) %>% 
@@ -1289,7 +1339,7 @@ s_init_state_model <-
   stan_gamm4(
     log_value ~ s(c_div_maxc, by = predicted_cluster) + s(log_fishery_length, by = predicted_cluster),
     data = training_data,
-    iter = 10000
+    iter = 5000
   )
 
 
@@ -1297,21 +1347,21 @@ init_state_model <-
   stan_glm(
     log_value ~ (c_div_meanc)*predicted_cluster + log_fishery_length:predicted_cluster,
     data = training_data,
-    iter = 10000
+    iter = 5000
   )
 
 log_init_state_model <-
   stan_glm(
     log_value ~ log(c_div_meanc + 1e-3)*predicted_cluster,
     data = training_data,
-    iter = 10000
+    iter = 5000
   )
 
 cmax_init_state_model <-
   stan_glm(
     log_value ~ c_div_maxc*predicted_cluster,
     data = training_data,
-    iter = 10000
+    iter = 5000
   )
 
 
@@ -1343,7 +1393,7 @@ comparison %>%
 
 usethis::use_data(init_state_model, overwrite = TRUE)
 
-usethis::use_data(class_fit, overwrite = TRUE)
+usethis::use_data(cluster_fit, overwrite = TRUE)
 
 
 
@@ -1394,7 +1444,7 @@ comparison <- training_data %>%
   bind_rows(testing_data %>% mutate(set = "testing"))
 
 comparison %>% 
-  ggplot(aes(exp(log_value), exp(pred_value))) + 
+  ggplot(aes((log_value), (pred_value))) + 
   geom_point(alpha = 0.25) + 
   geom_smooth(method = "lm") + 
   geom_abline(aes(slope = 1, intercept = 0)) +

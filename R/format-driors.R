@@ -157,9 +157,10 @@ format_driors <-
     
     wide_tmp <- tmp %>% 
       dplyr::select(year, scaled_catch) %>% 
-      tidyr::pivot_wider(names_from = year, values_from = scaled_catch)
+      tidyr::pivot_wider(names_from = year, values_from = scaled_catch) %>% 
+      janitor::clean_names()
     
-    tmp$predicted_cluster <- parsnip::predict.model_fit(sraplus::class_fit, new_data = wide_tmp)[[1]]
+    tmp$predicted_cluster <- parsnip::predict.model_fit(sraplus::cluster_fit, new_data = wide_tmp)[[1]]
     
     tmp <- tmp[tmp$year == 1, ]
     
@@ -186,9 +187,10 @@ format_driors <-
       
       wide_tmp <- tmp %>% 
         dplyr::select(year, scaled_catch) %>% 
-        tidyr::pivot_wider(names_from = year, values_from = scaled_catch)
-      
-      tmp$predicted_cluster <- parsnip::predict.model_fit(sraplus::class_fit, new_data = wide_tmp)[[1]]
+        tidyr::pivot_wider(names_from = year, values_from = scaled_catch) %>% 
+        janitor::clean_names()
+      browser()
+      tmp$predicted_cluster <- parsnip::predict.model_fit(sraplus::cluster_fit, new_data = wide_tmp)[[1]]
       
       tmp <- tmp[tmp$year == max(tmp$year), ]
       
