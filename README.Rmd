@@ -206,17 +206,17 @@ fmi_sar_driors <- format_driors(
   use_b_reg = FALSE,
   b_ref_type = "k")
 
-fmi_sar_driors <- format_driors(
-  taxa = example_taxa,
-  catch = cod$catch,
-  years = cod$year,
-  use_heuristics = FALSE,
-  initial_state = NA,
-  initial_state_cv = NA,
-  b_ref_type = "k",
-  use_catch_prior = TRUE
-)
-
+# fmi_sar_driors <- format_driors(
+#   taxa = example_taxa,
+#   catch = cod$catch,
+#   years = cod$year,
+#   use_heuristics = FALSE,
+#   initial_state = NA,
+#   initial_state_cv = NA,
+#   b_ref_type = "k",
+#   use_catch_prior = TRUE
+# )
+# 
 
 
 sraplus::plot_driors(fmi_sar_driors)

@@ -26,6 +26,8 @@ min_years_catch <- 20
 
 draws <- 3000
 
+crazy_b <- 5
+
 min_draws <- 2000 # minimum number of unique SIR draws
 
 n_cores <- 6 # number of cores for parallel processing
@@ -70,6 +72,12 @@ if (!file.exists(here("data-raw","ram.zip"))) {
   
 }
 
+
+# load in thorson data ----------------------------------------------------
+
+ssb0msy_to_ssb0 <- read_csv(here("data-raw","thorson_2012_data.csv"))
+
+usethis::use_data(ssb0msy_to_ssb0, overwrite = TRUE, internal = FALSE)
 
 
 # process RAM data --------------------------------------------------------
@@ -162,7 +170,8 @@ ram_data <- ram_data %>%
   mutate(
     has_tb0 = !all(is.na(TB0)),
     has_tb = !all(is.na(total_biomass)),
-    first_catch_year = year[which(catch > 0)[1]]
+    first_catch_year = year[which(catch > 0)[1]],
+    b_v_bmsy = pmin(b_v_bmsy, crazy_b)
   ) %>%
   mutate(
     pchange_effort = lead(u_v_umsy) / (u_v_umsy + 1e-6),
@@ -1100,6 +1109,7 @@ cluster_fit <-
   final_workflow %>%
   fit(data = training(cluster_splits) %>% select(-stockid))
 
+cluster_fit <- workflows::pull_workflow_fit(cluster_fit)
 
 # cluster_fit <- class_model %>% 
 #   parsnip::fit(cluster ~ . , data = training(cluster_splits) %>% select(-stockid))
@@ -1337,10 +1347,28 @@ testing_data <- testing(catch_split)
 
 s_init_state_model <-
   stan_gamm4(
-    log_value ~ s(c_div_maxc, by = predicted_cluster) + s(log_fishery_length, by = predicted_cluster),
+    log_value ~ s(c_div_maxc, by = predicted_cluster) + predicted_cluster,
     data = training_data,
     iter = 5000
   )
+
+# plot_nonlinear(s_init_state_model)
+
+bayesplot::ppc_intervals(
+  y = exp(training_data$log_value),
+  yrep = exp(posterior_predict(s_init_state_model)),
+  x = training_data$c_div_maxc,
+  prob = 0.5
+)
+
+
+# s_init_state_model <-
+#   stan_gamm4(
+#     log_value ~ s(c_div_maxc, by = predicted_cluster) + s(log_fishery_length, by = predicted_cluster),
+#     data = training_data,
+#     iter = 5000
+#   )
+# 
 
 
 init_state_model <-
@@ -1429,6 +1457,13 @@ catch_b_model <-
     log_value ~ s(fishery_year, by = predicted_cluster) + s(c_div_maxc,  by = predicted_cluster) + s(c_roll_meanc, by = predicted_cluster) + predicted_cluster,
     data = training_data
   )
+
+bayesplot::ppc_intervals(
+  y = exp(training_data$log_value),
+  yrep = exp(posterior_predict(catch_b_model)),
+  x = training_data$c_div_maxc,
+  prob = 0.5
+)
 
 # rstanarm::launch_shinystan(catch_b_model)
 

@@ -6,7 +6,7 @@ library(sraplus)
 
 Sys.unsetenv("PKG_CXXFLAGS")
 
-example_taxa <- "gadus sdfg"
+example_taxa <- "gadus morhua"
 
 
 set.seed(42)
@@ -57,7 +57,8 @@ com_driors <-
     terminal_state_cv = 0.1,
     b_ref_type = "k",
     use_catch_prior = TRUE,
-    taxa = example_taxa
+    taxa = example_taxa,
+    shape_prior_source = "thorson"
   )
 
 plot_driors(com_driors)
