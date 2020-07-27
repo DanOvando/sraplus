@@ -97,7 +97,7 @@ format_driors <-
            prob = 0.9,
            use_fmsy_based_r = FALSE,
            use_catch_priors = FALSE) {
-    require(kknn)
+    # require(kknn)
     
     if (use_b_reg == TRUE |
         (is.na(initial_state) &
