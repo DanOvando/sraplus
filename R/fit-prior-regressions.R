@@ -81,20 +81,36 @@ fit_prior_regressions <-
     
     if (str_detect(model_structure, "\\|")) {
       fit <-
-        stan_glmer(model,
-                   data = training,
-                   chains = chains,
-                   cores = cores,
-                   refresh = refresh,
-                   iter = iter)
+        stan_glmer(
+          model,
+          data = training,
+          chains = chains,
+          cores = cores,
+          refresh = refresh,
+          iter = iter
+        )
+    } else if ((str_detect(model_structure, "s\\("))) {
+      
+      fit <-
+        stan_gamm4(
+          model,
+          data = training,
+          chains = chains,
+          cores = cores,
+          refresh = refresh,
+          iter = iter
+        )
+      
     } else {
       fit <-
-        stan_glm(model,
-                 data = training,
-                 chains = chains,
-                 cores = cores,
-                 refresh = refresh,
-                 iter = iter)
+        stan_glm(
+          model,
+          data = training,
+          chains = chains,
+          cores = cores,
+          refresh = refresh,
+          iter = iter
+        )
       
     }
     

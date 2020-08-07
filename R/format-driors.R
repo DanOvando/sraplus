@@ -40,8 +40,8 @@
 #' @param q_slope_prior_cv the cv on the prior on q_slope
 #' @param isscaap_group the isscaap group of the stock. If NA will try and find
 #' @param prob the probability range of the posterior predictive to use in construction of the priors
-#' @param sigma_ratio_prior 
-#' @param sigma_ratio_prior_cv 
+#' @param sigma_ratio_prior
+#' @param sigma_ratio_prior_cv
 #'
 #' @return a list of data and priors
 #' @export
@@ -85,7 +85,7 @@ format_driors <-
            k_prior_cv = 2,
            sigma_ratio_prior = 0.5,
            sigma_ratio_prior_cv = 0.25,
-           shape_prior = 1.01,
+           shape_prior = NA,
            shape_prior_cv = 0.25,
            q_prior = 1e-3,
            q_prior_cv = 1,
@@ -93,23 +93,40 @@ format_driors <-
            sigma_obs_prior_cv = 1,
            isscaap_group = NA,
            f_prior_form = 0,
+           shape_prior_source = "thorson",
            prob = 0.9,
-           use_fmsy_based_r = FALSE) {
-    require(kknn)
-    if (use_b_reg == TRUE | (is.na(initial_state) & use_heuristics == FALSE)) {
+           use_fmsy_based_r = FALSE,
+           use_catch_priors = FALSE) {
+    # require(kknn)
+    
+    if (use_b_reg == TRUE |
+        (is.na(initial_state) &
+         use_heuristics == FALSE) |
+        (is.na(terminal_state) &
+         use_heuristics == FALSE & use_catch_priors == TRUE)) {
+      if (!is.na(initial_state) & b_ref_type == "k") {
+        initial_state <-
+          initial_state * (1 / shape_prior ^ (-1 / (shape_prior - 1)))
+        
+      }
+      
       b_ref_type <-  "b"
       
     }
     
     if (use_heuristics == TRUE) {
-      warning("You are using catch heursitics as your stock assessment. Consider manually setting priors on terminal depletion based on expert opinion, or using a proxy such as swept area ratio")
+      warning(
+        "You are using catch heursitics as your stock assessment. Consider manually setting priors on terminal depletion based on expert opinion, or using a proxy such as swept area ratio"
+      )
       
     }
     
     delta_years <- years - lag(years)
     
-    if (any(delta_years[!is.na(delta_years)] > 1)){
-      stop("You have missing years in your catch data. sraplus needs continuous catch data at this time: either interpolate missing years or locate missing data")
+    if (any(delta_years[!is.na(delta_years)] > 1)) {
+      stop(
+        "You have missing years in your catch data. sraplus needs continuous catch data at this time: either interpolate missing years or locate missing data"
+      )
     }
     
     genus <- tolower(strsplit(taxa, split = ' ')[[1]][1])
@@ -121,7 +138,10 @@ format_driors <-
       ))) {
         isscaap_group = sraplus::fao_taxa$fao_species$isscaap_group[tolower(sraplus::fao_taxa$fao_species$scientific_name) == tolower(taxa)][1]
         
-      } else if (any(grepl(tolower(genus), tolower(sraplus::fao_taxa$fao_genus$genus)))) {
+      } else if (any(grepl(
+        tolower(genus),
+        tolower(sraplus::fao_taxa$fao_genus$genus)
+      ))) {
         isscaap_group = sraplus::fao_taxa$fao_genus$isscaap_group[tolower(sraplus::fao_taxa$fao_genus$genus) == genus][1]
         
         
@@ -137,30 +157,75 @@ format_driors <-
     
     # create initial state prior
     
-    if (is.na(initial_state) & use_heuristics == FALSE & length(catch) >= 25){
-    
-    # catch <- ram_data$catch[ram_data$stockid == ram_data$stockid[1]]
-    
-    tmp <- data.frame(year = 1:length(catch), catch = catch) %>% 
-      dplyr::mutate(c_div_meanc = catch / mean(catch, na.rm = TRUE),
-             log_fishery_length = log(length(catch))) %>% 
-      dplyr::mutate( scaled_catch = as.numeric(scale(catch)))
-    
-    wide_tmp <- tmp %>% 
-      dplyr::select(year, scaled_catch) %>% 
-      tidyr::pivot_wider(names_from = year, values_from = scaled_catch)
-    
-    tmp$predicted_cluster <- parsnip::predict.model_fit(sraplus::class_fit, new_data = wide_tmp)[[1]]
-    
-    tmp <- tmp[tmp$year == 1, ]
-    
-    pred_init_state <- rstanarm::posterior_predict(sraplus::init_state_model, newdata = tmp, type = "response")
-    
-    initial_state <- exp(mean(pred_init_state))
-    
-    initial_state_cv <- sd(pred_init_state)
-    
+    if (is.na(initial_state) &
+        use_heuristics == FALSE & length(catch) >= 25) {
+      # catch <- ram_data$catch[ram_data$stockid == ram_data$stockid[1]]
+      
+      tmp <- data.frame(year = 1:length(catch), catch = catch) %>%
+        dplyr::mutate(
+          c_div_meanc = catch / mean(catch, na.rm = TRUE),
+          log_fishery_length = log(length(catch))
+        ) %>%
+        dplyr::mutate(scaled_catch = as.numeric(scale(catch)))
+      
+      wide_tmp <- tmp %>%
+        dplyr::select(year, scaled_catch) %>%
+        tidyr::pivot_wider(names_from = year, values_from = scaled_catch) %>%
+        janitor::clean_names()
+      
+      tmp$predicted_cluster <-
+        parsnip::predict.model_fit(sraplus::cluster_fit, new_data = wide_tmp)[[1]]
+      
+      tmp <- tmp[tmp$year == 1,]
+      
+      pred_init_state <-
+        rstanarm::posterior_predict(sraplus::init_state_model,
+                                    newdata = tmp,
+                                    type = "response")
+      
+      initial_state <- exp(mean(pred_init_state))
+      
+      initial_state_cv <- sd(pred_init_state)
+      
     }
+    
+    
+    if (is.na(terminal_state) &
+        use_heuristics == FALSE &
+        length(catch) >= 25 & use_catch_priors == TRUE) {
+      # catch <- ram_data$catch[ram_data$stockid == ram_data$stockid[1]]
+      
+      tmp <- data.frame(year = 1:length(catch), catch = catch) %>%
+        dplyr::mutate(
+          c_div_maxc = catch / max(catch, na.rm = TRUE),
+          c_div_meanc = catch / mean(catch, na.rm = TRUE),
+          c_length = log(length(catch)),
+          fishery_year = 1:length(catch)
+        ) %>%
+        mutate(c_roll_meanc = RcppRoll::roll_meanr(c_div_meanc, 5))  %>%
+        dplyr::mutate(scaled_catch = as.numeric(scale(catch)))
+      
+      wide_tmp <- tmp %>%
+        dplyr::select(year, scaled_catch) %>%
+        tidyr::pivot_wider(names_from = year, values_from = scaled_catch) %>%
+        janitor::clean_names()
+      
+      tmp$predicted_cluster <-
+        parsnip::predict.model_fit(sraplus::cluster_fit, new_data = wide_tmp)[[1]]
+      
+      tmp <- tmp[tmp$year == max(tmp$year),]
+      
+      pred_init_state <-
+        rstanarm::posterior_predict(sraplus::catch_b_model,
+                                    newdata = tmp,
+                                    type = "response")
+      
+      terminal_state <- exp(mean(pred_init_state))
+      
+      terminal_state_cv <- sd(pred_init_state)
+      
+    }
+    
     
     if (!is.na(sar)) {
       if (f_ref_type == "fmsy") {
@@ -256,7 +321,7 @@ format_driors <-
     
     genus_species <-
       taxa %>% stringr::str_split(" ", simplify = TRUE)
-
+    
     safe <- purrr::safely(FishLife::Search_species)
     
     shh <- purrr::quietly(safe)
@@ -270,7 +335,6 @@ format_driors <-
         unlist()
       
     } else{
-    
       taxon <-
         shh(Genus = genus_species[1])$result$result$match_taxonomy[1] %>%
         stringr::str_split("_") %>%
@@ -309,13 +373,13 @@ format_driors <-
       
       # taxa_location <-
       #   grep(sp, FishLifeData$ParentChild_gz[, "ChildName"])[1]
-      # 
+      #
       
-      mean_lh <- FishLife::FishBase_and_RAM$beta_gv[taxa_location,]
+      mean_lh <- FishLife::FishBase_and_RAM$beta_gv[taxa_location, ]
       
       # mean_lh <- FishLifeData$beta_gv[taxa_location,]
       
-      cov_lh <- FishLife::FishBase_and_RAM$Cov_gvv[taxa_location, ,]
+      cov_lh <- FishLife::FishBase_and_RAM$Cov_gvv[taxa_location, , ]
       
       # cov_lh <- FishLifeData$Cov_gvv[taxa_location, ,]
       
@@ -326,41 +390,129 @@ format_driors <-
       
       f_msy <- exp(mean_lh["ln_Fmsy"] + 0.5 * cov_lh["ln_Fmsy"])
       
-      r_implied = (f_msy / (1 - 1 / shape_prior)) * (shape_prior- 1)
- 
-      if (use_fmsy_based_r){
+      r_implied <-  (f_msy / (1 - 1 / shape_prior)) * (shape_prior - 1)
+      
+      if (shape_prior_source == "thorson" & is.na(shape_prior)) {
+        if (tolower(taxon$Order) %in% tolower(sraplus::ssb0msy_to_ssb0$tax_group)) {
+          # pull MSY
+          msy_k <-
+            sraplus::ssb0msy_to_ssb0$ssbmsy_to_ssb0[tolower(sraplus::ssb0msy_to_ssb0$tax_group) == tolower(taxon$Order)]
+          
+          shape_prior_cv <-
+            sraplus::ssb0msy_to_ssb0$ssbmsy_to_ssb0_sd[tolower(sraplus::ssb0msy_to_ssb0$tax_group) == tolower(taxon$Order)]
+        } else {
+          msy_k <-
+            sraplus::ssb0msy_to_ssb0$ssbmsy_to_ssb0[tolower(sraplus::ssb0msy_to_ssb0$tax_group) == "other"]
+          
+          shape_prior_cv <-
+            sraplus::ssb0msy_to_ssb0$ssbmsy_to_ssb0_sd[tolower(sraplus::ssb0msy_to_ssb0$tax_group) == "other"]
+          
+        }
+        
+        shapefoo <- function(log_m, msy_k) {
+          m <- exp(log_m)
+          
+          msy_k_hat <- m ^ (-1 / (m - 1))
+          
+          obj <- (log(msy_k_hat) - log(msy_k)) ^ 2
+          
+        }
+        
+        implied_shape <-
+          nlminb(log(1.001), shapefoo, msy_k = msy_k)
+        
+        shape_prior <- exp(implied_shape$par)
+        
+        
+      } # close thorson shape prior
+      
+      if (shape_prior_source == "fishlife" & is.na(shape_prior)){
+        
+        if (f_msy ==  mean_lh["r"]){
+          fudge <- 1e-3
+        } else {
+          fudge <- 0
+        }
+        
+        shape_prior <-   as.numeric(mean_lh["r"]  / (f_msy + fudge))
+        
+      }
+      
+      
+      if (use_fmsy_based_r & shape_prior_source != "fishlife") {
         
         mean_lh["r"] <- r_implied
         
       }
     } else {
-      
       mean_lh <-
         c("r" = median(FishLife::FishBase_and_RAM$beta_gv[, "r"]),
-          m = exp(median(FishLife::FishBase_and_RAM$beta_gv[, "M"])))
+          m = exp(median(
+            FishLife::FishBase_and_RAM$beta_gv[, "M"]
+          )))
       
-      f_msy <- median(FishLife::FishBase_and_RAM$beta_gv[,"ln_Fmsy"])
+      f_msy <- exp(median(FishLife::FishBase_and_RAM$beta_gv[, "ln_Fmsy"]))
       
-      r_implied = (f_msy / (1 - 1 / shape_prior)) * (shape_prior- 1)
       
-      if (use_fmsy_based_r){
+      r_implied <-  (f_msy / (1 - 1 / shape_prior)) * (shape_prior - 1)
+      
+      cov_lh <-
+        c(
+          "r" = sd(FishLife::FishBase_and_RAM$beta_gv[, "r"]),
+          m = sd(FishLife::FishBase_and_RAM$beta_gv[, "M"])
+        )
+      
+      if (shape_prior_source == "thorson" & is.na(shape_prior)) {
+        
+          msy_k <-
+            sraplus::ssb0msy_to_ssb0$ssbmsy_to_ssb0[tolower(sraplus::ssb0msy_to_ssb0$tax_group) == "other"]
+          
+          shape_prior_cv <-
+            sraplus::ssb0msy_to_ssb0$ssbmsy_to_ssb0_sd[tolower(sraplus::ssb0msy_to_ssb0$tax_group) == "other"]
+          
+        shapefoo <- function(log_m, msy_k) {
+          m <- exp(log_m)
+          
+          msy_k_hat <- m ^ (-1 / (m - 1))
+          
+          obj <- (log(msy_k_hat) - log(msy_k)) ^ 2
+          
+        }
+        
+        implied_shape <-
+          nlminb(log(1.001), shapefoo, msy_k = msy_k)
+        
+        shape_prior <- exp(implied_shape$par)
+        
+        
+      } # close thorson shape prior
+      
+      if (shape_prior_source == "fishlife" & is.na(shape_prior)){
+        
+        if (f_msy ==  mean_lh["r"]){
+          fudge <- 1e-3
+        } else {
+          fudge <- 0
+        }
+        
+        shape_prior <-   mean_lh["r"]  / (f_msy + fudge)
+        
+      }
+      
+      if (use_fmsy_based_r & shape_prior_source != "fishlife") {
         
         mean_lh["r"] <- r_implied
         
       }
       
-      # mean_lh <-
-      #   c("r" = mean(FishLifeData$beta_gv[, "r"]),
-      #     m = exp(mean(FishLifeData$beta_gv[, "M"])))
-      # 
-      cov_lh <-
-        c("r" = sd(FishLife::FishBase_and_RAM$beta_gv[, "r"]),
-          m = sd(FishLife::FishBase_and_RAM$beta_gv[, "M"]))
-      
-      
-    }
+    } # close if/else match in fishlife
+    
+    
+    
+    
     if (is.na(initial_state)) {
-      initial_state <- ifelse(b_ref_type == "k", 1, 2.5)
+      initial_state <-
+        ifelse(b_ref_type == "k", 1, (1 / shape_prior ^ (-1 / (shape_prior - 1))))
     }
     
     if (is.na(initial_state)) {
@@ -407,7 +559,8 @@ format_driors <-
         0.4
       
       initial_state <-  dplyr::case_when(b_ref_type == "k" ~ temp,
-                                         TRUE ~ temp * 2.5)
+                                         TRUE ~ temp * (1 / shape_prior ^
+                                                          (-1 / (shape_prior - 1))))
       
       initial_state_cv <-
         ifelse(is.na(initial_state_cv), 0.2, initial_state_cv)
@@ -417,7 +570,7 @@ format_driors <-
       
       terminal_state <-
         dplyr::case_when(b_ref_type == "k" ~ temp_terminal,
-                         TRUE ~ temp_terminal * 2.5)
+                         TRUE ~ temp_terminal * (1 / shape_prior ^ (-1 / (shape_prior - 1))))
       
       terminal_state_cv <-
         ifelse(is.na(terminal_state_cv), 0.2, terminal_state_cv)
@@ -439,21 +592,20 @@ format_driors <-
     # normally distributed on the log variance ratio, centered at zero
     # thorson munch ono 2014
     
-    if (use_b_reg == TRUE){
-      
+    if (use_b_reg == TRUE) {
       log_terminal_u = NA
-    
+      
     }
     driors <-
       list(
         catch = catch,
         years = years,
         k_prior = ifelse(is.na(k_prior), 10 * max(catch), k_prior),
-        k_prior_cv = sqrt(log(k_prior_cv^2 + 1)),
+        k_prior_cv = sqrt(log(k_prior_cv ^ 2 + 1)),
         terminal_state = terminal_state,
-        terminal_state_cv = sqrt(log(terminal_state_cv^2 + 1)),
+        terminal_state_cv = sqrt(log(terminal_state_cv ^ 2 + 1)),
         initial_state = initial_state,
-        initial_state_cv = sqrt(log(initial_state_cv^2 + 1)),
+        initial_state_cv = sqrt(log(initial_state_cv ^ 2 + 1)),
         index = index,
         effort = effort,
         u = u,
@@ -468,22 +620,22 @@ format_driors <-
           growth_rate_prior_cv
         ),
         sigma_ratio_prior = sigma_ratio_prior ,
-        sigma_ratio_prior_cv = sqrt(log(sigma_ratio_prior_cv^2 + 1)),
+        sigma_ratio_prior_cv = sqrt(log(sigma_ratio_prior_cv ^ 2 + 1)),
         # sigma_r_prior = ifelse(is.na(sigma_r_prior), exp(mean_lh["ln_var"]) / 2, sigma_r_prior),
         # sigma_r_prior_cv = ifelse(is.na(sigma_r_prior_cv), sqrt(cov_lh["ln_var"]), sigma_r_prior_cv),
         m =  ifelse(is.na(m), exp(mean_lh["M"]), m),
         log_terminal_u = log_terminal_u,
-        log_terminal_u_cv =  sqrt(log(log_terminal_u_cv^2 + 1)),
+        log_terminal_u_cv =  sqrt(log(log_terminal_u_cv ^ 2 + 1)),
         terminal_u = exp(log_terminal_u),
-        terminal_u_cv =  sqrt(log(log_terminal_u_cv^2 + 1)),
+        terminal_u_cv =  sqrt(log(log_terminal_u_cv ^ 2 + 1)),
         q_slope_prior = q_slope_prior,
-        q_slope_prior_cv = sqrt(log(q_slope_prior_cv^2 + 1)),
+        q_slope_prior_cv = sqrt(log(q_slope_prior_cv ^ 2 + 1)),
         shape_prior = shape_prior,
-        shape_prior_cv =  sqrt(log(shape_prior_cv^2 + 1)),
+        shape_prior_cv =  sqrt(log(shape_prior_cv ^ 2 + 1)),
         q_prior = q_prior,
-        q_prior_cv = sqrt(log(q_prior_cv^2 + 1)),
+        q_prior_cv = sqrt(log(q_prior_cv ^ 2 + 1)),
         sigma_obs_prior = sigma_obs_prior,
-        sigma_obs_prior_cv = sqrt(log(sigma_obs_prior_cv^2 + 1)),
+        sigma_obs_prior_cv = sqrt(log(sigma_obs_prior_cv ^ 2 + 1)),
         fishlife_taxa = fishlife_taxa,
         input_taxa = taxa,
         f_prior_form = f_prior_form

@@ -1,7 +1,7 @@
 Package: sraplus
 Type: Package
 Title: Run sraplus Assessments
-Version: 3.6.3
+Version: 3.7.0
 Date: 2019-01-09
 Author: Dan Ovando
 Maintainer: Dan Ovando <danovan@uw.edu>
@@ -26,7 +26,6 @@ Imports:
     truncnorm,
     doParallel,
     foreach,
-    kknn,
     parsnip
 LinkingTo: Rcpp
 Suggests: 
@@ -37,9 +36,8 @@ VignetteBuilder: knitr
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.1.1
 Remotes: 
-    james-thorson/FishLife,
-    kaskr/TMB_contrib_R/TMBhelper,
-    thomasp85/patchwork
+    James-Thorson-NOAA/FishLife,
+    kaskr/TMB_contrib_R/TMBhelper
 LazyData: true
 Depends: 
     R (>= 2.10)

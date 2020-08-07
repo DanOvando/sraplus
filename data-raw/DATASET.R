@@ -24,11 +24,9 @@ theme_set(theme_classic() + theme(strip.background = element_rect(color = "trans
 
 min_years_catch <- 20
 
-crazy_b <- 4 # threshold for suspect B/Bmsy value
-
-crazy_u <- 5 # threshold for suspect U/Umsy value
-
 draws <- 3000
+
+crazy_b <- 5
 
 min_draws <- 2000 # minimum number of unique SIR draws
 
@@ -75,6 +73,12 @@ if (!file.exists(here("data-raw","ram.zip"))) {
 }
 
 
+# load in thorson data ----------------------------------------------------
+
+ssb0msy_to_ssb0 <- read_csv(here("data-raw","thorson_2012_data.csv"))
+
+usethis::use_data(ssb0msy_to_ssb0, overwrite = TRUE, internal = FALSE)
+
 
 # process RAM data --------------------------------------------------------
 
@@ -82,13 +86,13 @@ ram_dirs <- list.files("data-raw")
 
 ram_dirs <- ram_dirs[str_detect(ram_dirs,"RAM v\\d")]
 
-ram_files <- list.files(ram_dirs, recursive = TRUE)
+ram_files <- list.files(file.path("data-raw",ram_dirs), recursive = TRUE)
 
 ram_files <- ram_files[str_detect(ram_files,".RData")]
 
 ram_files <- ram_files[str_detect(ram_files,"Model Fit")]
 
-load(here(ram_dirs,ram_files[1]))
+load(file.path("data-raw",ram_dirs,ram_files[1]))
 
 stock <- stock %>%
   left_join(area, by = "areaid")
@@ -163,23 +167,12 @@ ram_data <- ram_data %>%
 ram_data <- ram_data %>%
   filter(is.na(catch) == FALSE) %>%
   group_by(stockid) %>%
-  mutate(delta_year = year - lag(year)) %>%
-  mutate(delta_year = case_when(year == min(year) ~ as.integer(1),
-                                TRUE ~ delta_year)) %>%
-  mutate(missing_gaps = any(delta_year > 1)) %>%
-  filter(missing_gaps == FALSE) %>%
-  mutate(n_years = n_distinct(year)) %>%
-  filter(n_years >= min_years_catch) %>%
-  filter(all(b_v_bmsy < crazy_b, na.rm = TRUE),
-         all(u_v_umsy < crazy_u, na.rm = TRUE)) %>%
-  ungroup() %>%
-  group_by(stockid) %>%
   mutate(
     has_tb0 = !all(is.na(TB0)),
     has_tb = !all(is.na(total_biomass)),
-    first_catch_year = year[which(catch > 0)[1]]
+    first_catch_year = year[which(catch > 0)[1]],
+    b_v_bmsy = pmin(b_v_bmsy, crazy_b)
   ) %>%
-  filter(year >= first_catch_year) %>%
   mutate(
     pchange_effort = lead(u_v_umsy) / (u_v_umsy + 1e-6),
     cs_effort = (u_v_umsy - mean(u_v_umsy)) / sd(u_v_umsy),
@@ -451,7 +444,8 @@ fmi <-
   mutate(genus = map_chr(scientificname,~str_split(.x," ", simplify = TRUE)[,1])) %>%
   left_join(fao_species, by = c("scientificname" = "scientific_name")) %>%
   left_join(fao_genus, by = "genus") %>%
-  mutate(isscaap_group = ifelse(is.na(isscaap_group.x), isscaap_group.y, isscaap_group.x)) %>%
+  mutate(isscaap_group = ifelse(is.na(isscaap_group.x), isscaap_group.y, isscaap_group.x),
+         total_fmi = research + management + enforcement + socioeconomics) %>%
   select(-isscaap_group.x,-isscaap_group.y)
 
 usethis::use_data(fmi, overwrite = TRUE)
@@ -492,7 +486,8 @@ sar_to_ram <-
   mutate(isscaap_group = ifelse(is.na(isscaap_group.x), isscaap_group.y, isscaap_group.x)) %>%
   select(-isscaap_group.x, -isscaap_group.y) %>%
   left_join(sar_coverage, by = "stockid") %>%
-  left_join(recent_ram, by = "stockid")
+  left_join(recent_ram, by = "stockid") %>% 
+  mutate(mean_uumsy = ifelse(is.na(mean_uumsy), fstatus,mean_uumsy ))
 
 sar = sar_to_ram
 
@@ -608,9 +603,16 @@ ram_v_fmi %>%
   facet_wrap(~metric)  +
   geom_smooth()
 
+ram_v_fmi %>%
+  ggplot(aes(total_fmi, log_value)) +
+  geom_point() +
+  facet_wrap(~metric)  +
+  geom_smooth()
+
+
 random_fmi_tests <- ram_v_fmi %>%
   nest(-metric) %>%
-  mutate(splits = map(data, ~ rsample:: vfold_cv(.x, v = 3, repeats = 5))) %>%
+  mutate(splits = map(data, ~ rsample:: vfold_cv(.x, v = 3, repeats = 2))) %>%
   select(-data) %>%
   unnest() %>%
   mutate(sampid  = 1:nrow(.))
@@ -718,16 +720,49 @@ random_fmi_tests <- ram_v_fmi %>%
 #   group_by(model) %>% 
 #   yardstick::rsq(truth = value, estimate = prediction)
 
+udata <- ram_v_fmi %>% 
+  filter(metric == "mean_uumsy")
+
+huh <-
+  stan_gamm4(
+    log_value ~ s(research) + s(management) + s(enforcement) + s(socioeconomics) + s(c_div_max_c),
+    data = udata,
+    iter = 5000,
+    adapt_delta = 0.97
+  )
+
+huh3 <-
+  stan_gamm4(
+    log_value ~ s(mean_fmi) + s(c_div_max_c),
+    data = udata,
+    iter = 5000,
+    adapt_delta = 0.97
+  )
+
+huh4 <-
+  stan_gamm4(
+    log_value ~ s(research) + s(management) + s(enforcement) + s(socioeconomics) + s(c_div_max_c),
+    data = udata,
+    iter = 5000,
+    adapt_delta = 0.97
+  )
+
+
+loo_compare(loo(huh), loo(huh3), loo(huh4))
+
+plot_nonlinear(huh)
+
 model_structures <-
   purrr::cross_df(list(
     sampid = random_fmi_tests$sampid,
     model_structure = c(
-      "log_value ~ research + management + enforcement + socioeconomics + c_div_max_c" ,
+      "log_value ~ s(research) + s(management) + s(enforcement) + s(socioeconomics) + s(c_div_max_c)" ,
+      "log_value ~ research + management + enforcement + socioeconomics + c_div_max_c"
+      # "log_value ~ s(mean_fmi) + s(c_div_max_c)"
       # "log_value ~ (research + management + enforcement + socioeconomics + c_div_max_c - 1|isscaap_group)",
       # "log_value ~ c_div_max_c  + (research + management + enforcement + socioeconomics - 1|isscaap_group)",
-      "log_value ~ research + management + enforcement + socioeconomics",
+      # "log_value ~ research + management + enforcement + socioeconomics"
       # "log_value ~ (research + management + enforcement + socioeconomics - 1|isscaap_group)",
-      "log_value ~ + management + enforcement + socioeconomics + c_div_max_c"
       # "log_value ~ (log(research) + log(management) + log(enforcement) + log(socioeconomics) - 1|isscaap_group)"
       
     )
@@ -817,7 +852,7 @@ ram_v_sar <- sar_to_ram %>%
   mutate(log_value = log(value + 1e-3)) %>%
   mutate(sar_2 = sar ^ 2) %>%
   select(stockid, sar, sar_2, isscaap_group, metric, value, log_value, c_div_max_c,mean_stock_in_tbp) %>% 
-  filter(mean_stock_in_tbp > 25 | is.na(mean_stock_in_tbp)) %>% 
+  # filter(mean_stock_in_tbp > 25 | is.na(mean_stock_in_tbp)) %>%
   select(-mean_stock_in_tbp) %>% 
   na.omit()
 
@@ -831,13 +866,37 @@ ram_v_sar <- recipe(log_value ~ ., data = ram_v_sar) %>%
   prep(data = sar_data, retain = TRUE) %>%
   juice()
 
+udat <- ram_v_sar %>% 
+  filter(metric == "mean_uumsy")
 
-huh <- stan_gamm4(log_value ~ s(sar) + s(c_div_max_c), data = ram_v_sar)
+huh <- stan_gamm4(log_value ~ s(sar,k = 3) + s(c_div_max_c), data = udat)
+
+huh2 <- stan_gamm4(log_value ~ sar + s(c_div_max_c), data = udat)
+
+huh3 <- stan_gamm4(log_value ~ poly(sar,2) + s(c_div_max_c), data = udat)
+
+huh4 <- stan_glm(log_value ~ poly(sar,2), data = udat)
+
+loo_compare(loo(huh, k_threshold = 0.7), loo(huh2, k_threshold = 0.7), loo(huh3, k_threshold = 0.7),
+            loo(huh4, k_threshold = 0.7))
 
 
+plot_nonlinear(huh)
+
+# huh <- sar_models$fit[[3]]
+
+udat <- huh$data
+
+bayesplot::ppc_intervals(
+  y = exp(udat$log_value),
+  yrep = exp(posterior_predict(huh)),
+  x = udat$sar,
+  prob = 0.5
+)
+  
 random_sar_tests <- ram_v_sar %>%
   nest(-metric) %>%
-  mutate(splits = map(data, ~ rsample::vfold_cv(.x, v = 3, repeats = 5))) %>%
+  mutate(splits = map(data, ~ rsample::vfold_cv(.x, v = 3, repeats = 2))) %>%
   select(-data) %>%
   unnest() %>%
   mutate(sampid  = 1:nrow(.))
@@ -847,8 +906,8 @@ model_structures <-
     sampid = random_sar_tests$sampid,
     model_structure = c(
       # "log_value ~  (log(sar) + log(sar_2) - 1|isscaap_group)",
-      "log_value ~ poly(sar,2) + c_div_max_c",
-      "log_value ~ log(sar) + c_div_max_c",
+      "log_value ~ s(sar, k = 3) + s(c_div_max_c)",
+      # "log_value ~ poly(sar,2) + s(c_div_max_c)",
       "log_value ~ sar + c_div_max_c"
       # "log_value ~ c_div_max_c + (sar - 1|isscaap_group)",
       # "log_value ~ c_div_max_c + (sar + sar_2 - 1|isscaap_group)",
@@ -942,9 +1001,7 @@ usethis::use_data(sar_models,overwrite = TRUE)
 
 
 
-# catch based initial state prior ----------------------------------------------
-
-# random idea: can you classify catch series into groups and use that as a predictor?
+# classify stocks by stock history shape  ----------------------------------------------
 
 ram_catches <- ram_data %>% 
   ungroup() %>% 
@@ -971,12 +1028,12 @@ nstocks <- nrow(ram_catches)
 map_dbl(ram_catches, ~sum(is.na(.x)))
 
 a = ram_catches %>% select(-stockid) %>% as.matrix()
+set.seed(42)
+catch_pca <- specc(a,centers = 3)
 
-catch_pca <- specc(a,centers = 4)
-
-centers(catch_pca)
-size(catch_pca)
-withinss(catch_pca)
+# centers(catch_pca)
+# size(catch_pca)
+# withinss(catch_pca)
 
 cluster <- as.vector(catch_pca)
 
@@ -998,34 +1055,83 @@ ram_catches %>%
 
 
 
-class_data <- ram_catches %>%
+cluster_data <- ram_catches %>%
   pivot_wider(names_from = stock_year, values_from = catch) %>%
   ungroup() %>%
-  mutate(cluster = as.factor(cluster))
+  mutate(cluster = as.factor(cluster)) %>% 
+  janitor::clean_names()
 
-class_splits <- rsample::initial_split(class_data,strata = cluster)
+cluster_splits <- rsample::initial_split(cluster_data,strata = cluster)
+# 
+# class_model <- parsnip::nearest_neighbor(neighbors = 15,
+#                                          mode = "classification") %>% 
+#   set_engine(engine = 'kknn')
 
-class_model <- parsnip::nearest_neighbor(neighbors = 15,
-                                         mode = "classification") %>% 
-  set_engine(engine = 'kknn')
+cluster_model <-
+  rand_forest(mtry = tune(),
+              min_n = tune(),
+              trees = 1000) %>%
+  set_engine("ranger", num.threads = 8) %>%
+  set_mode("classification")
 
-class_fit <- class_model %>% 
-  parsnip::fit(cluster ~ . , data = training(class_splits) %>% select(-stockid))
 
-class_fit$fit %>% summary()
+cluster_recipe <-
+  recipes::recipe(cluster ~ ., data = training(cluster_splits) %>% select(-stockid)) %>%
+  themis::step_upsample(cluster)
 
-training_data <- training(class_splits) %>% 
-  bind_cols(predict(class_fit, new_data = .)) %>% 
+cluster_workflow <- 
+  workflows::workflow() %>% 
+  workflows::add_model(cluster_model) %>% 
+  workflows::add_recipe(cluster_recipe)
+
+val_set <- training(cluster_splits) %>% select(-stockid) %>% 
+  rsample::vfold_cv()
+
+set.seed(345)
+cluster_tuning <- 
+  cluster_workflow %>% 
+  tune_grid(val_set,
+            grid = 20,
+            control = control_grid(save_pred = TRUE),
+            metrics = metric_set(roc_auc))
+
+cluster_tuning %>% 
+  collect_metrics()
+
+best_forest <- cluster_tuning %>%
+  select_best("roc_auc")
+
+final_workflow <- 
+  cluster_workflow %>% 
+  finalize_workflow(best_forest)
+
+cluster_fit <- 
+  final_workflow %>%
+  fit(data = training(cluster_splits) %>% select(-stockid))
+
+cluster_fit <- workflows::pull_workflow_fit(cluster_fit)
+
+# cluster_fit <- class_model %>% 
+#   parsnip::fit(cluster ~ . , data = training(cluster_splits) %>% select(-stockid))
+
+cluster_fit$fit %>% summary()
+
+training_data <- training(cluster_splits) %>% 
+  bind_cols(predict(cluster_fit, new_data = .)) %>% 
   mutate(split = "training")
 
 
-testing_data <- testing(class_splits) %>% 
-  bind_cols(predict(class_fit, new_data = .)) %>% 
+testing_data <- testing(cluster_splits) %>% 
+  bind_cols(predict(cluster_fit, new_data = .)) %>% 
   mutate(split = "testing")
 
 cluster_predictions <- training_data %>% 
   bind_rows(testing_data) %>% 
   rename(predicted_cluster = .pred_class)
+
+cluster_predictions %>% 
+  group_by(cluster) %>% 
+  count()
 
 cluster_model_performance <- cluster_predictions %>%
   group_by(split, cluster) %>% 
@@ -1041,9 +1147,6 @@ cluster_predictions %>%
   pivot_wider(names_from = "split", values_from = "accuracy") %>% 
   mutate(testing_loss = testing / training - 1)
 
-# catch based initial status ----------------------------------------------
-
-# fit a model now
 
 status_model_data <- ram_data %>% 
   filter(stockid %in% unique(cluster_predictions$stockid)) %>% 
@@ -1061,6 +1164,11 @@ status_model_data <- ram_data %>%
   unique() %>%
   na.omit() %>%
   ungroup() 
+
+
+# catch based initial status ----------------------------------------------
+
+# fit a model now
 
 # try and predict initial status
 
@@ -1236,38 +1344,66 @@ testing_data <- testing(catch_split)
 #              data = training,
 #              iter = 10000)
 
+
+s_init_state_model <-
+  stan_gamm4(
+    log_value ~ s(c_div_maxc, by = predicted_cluster) + predicted_cluster,
+    data = training_data,
+    iter = 5000
+  )
+
+# plot_nonlinear(s_init_state_model)
+
+bayesplot::ppc_intervals(
+  y = exp(training_data$log_value),
+  yrep = exp(posterior_predict(s_init_state_model)),
+  x = training_data$c_div_maxc,
+  prob = 0.5
+)
+
+
+# s_init_state_model <-
+#   stan_gamm4(
+#     log_value ~ s(c_div_maxc, by = predicted_cluster) + s(log_fishery_length, by = predicted_cluster),
+#     data = training_data,
+#     iter = 5000
+#   )
+# 
+
+
 init_state_model <-
   stan_glm(
     log_value ~ (c_div_meanc)*predicted_cluster + log_fishery_length:predicted_cluster,
     data = training_data,
-    iter = 10000
+    iter = 5000
   )
 
 log_init_state_model <-
   stan_glm(
-    log_value ~ log(c_div_meanc)*predicted_cluster,
+    log_value ~ log(c_div_meanc + 1e-3)*predicted_cluster,
     data = training_data,
-    iter = 10000
+    iter = 5000
   )
 
 cmax_init_state_model <-
   stan_glm(
     log_value ~ c_div_maxc*predicted_cluster,
     data = training_data,
-    iter = 10000
+    iter = 5000
   )
 
 
 loo_compare(
+  loo(s_init_state_model, k_threshold = 0.7),
   loo(log_init_state_model, k_threshold = 0.7),
   loo(init_state_model, k_threshold = 0.7),
   loo(cmax_init_state_model, k_threshold = 0.7)
 )
 
 
-training_data$pred_value <- predict(init_state_model)
+training_data$pred_value <- predict(s_init_state_model)
 
-pp_huh <- posterior_predict(init_state_model, newdata = testing_data, type = "response") %>%
+pp_huh <- posterior_predict(s_init_state_model, newdata = testing_data, type = "response") %>%
   colMeans()
 
 testing_data$pred_value <- pp_huh
@@ -1285,6 +1421,70 @@ comparison %>%
 
 usethis::use_data(init_state_model, overwrite = TRUE)
 
-usethis::use_data(class_fit, overwrite = TRUE)
+usethis::use_data(cluster_fit, overwrite = TRUE)
 
+
+
+
+
+# continuous catch status ---------------------------------------------------
+
+
+cont_status_data <- status_model_data %>% 
+  filter(metric == "b_v_bmsy")
+
+
+training_stocks <- sample(unique(status_model_data$stockid), round(n_distinct(status_model_data$stockid) * .75), replace = FALSE)
+
+cont_status_data$training <- !cont_status_data$stockid %in% training_stocks
+
+cont_status_data <- cont_status_data %>% 
+  arrange(training, stockid, year)
+
+catch_split <- initial_time_split(cont_status_data, prop = last(which(cont_status_data$training == FALSE)) / nrow(cont_status_data))
+
+training_data <- training(catch_split)
+
+testing_data <- testing(catch_split)
+
+testing_data %>% 
+  ggplot(aes(year, value, color = stockid)) + 
+  geom_line(show.legend = FALSE)
+
+
+catch_b_model <-
+  stan_gamm4(
+    log_value ~ s(fishery_year, by = predicted_cluster) + s(c_div_maxc,  by = predicted_cluster) + s(c_roll_meanc, by = predicted_cluster) + predicted_cluster,
+    data = training_data
+  )
+
+bayesplot::ppc_intervals(
+  y = exp(training_data$log_value),
+  yrep = exp(posterior_predict(catch_b_model)),
+  x = training_data$c_div_maxc,
+  prob = 0.5
+)
+
+# rstanarm::launch_shinystan(catch_b_model)
+
+training_data$pred_value <- predict(catch_b_model)
+
+pp_huh <- posterior_predict(catch_b_model, newdata = testing_data, type = "response") %>%
+  colMeans()
+
+testing_data$pred_value <- pp_huh
+
+comparison <- training_data %>% 
+  mutate(set = "training") %>% 
+  bind_rows(testing_data %>% mutate(set = "testing"))
+
+comparison %>% 
+  ggplot(aes((log_value), (pred_value))) + 
+  geom_point(alpha = 0.25) + 
+  geom_smooth(method = "lm") + 
+  geom_abline(aes(slope = 1, intercept = 0)) +
+  facet_wrap(~set)
+
+
+usethis::use_data(catch_b_model, overwrite = TRUE)
 

@@ -4,9 +4,9 @@ library(sraplus)
 
 # library(tmbstan)
 
-# Sys.unsetenv("PKG_CXXFLAGS")
+Sys.unsetenv("PKG_CXXFLAGS")
 
-example_taxa <- "gadus sdfg"
+example_taxa <- "gadus morhua"
 
 
 set.seed(42)
@@ -46,30 +46,33 @@ pop %>%
 
 
 
-# driors <- format_driors(
-#   taxa =
-#     example_taxa,
-#   catch = pop$catch,
-#   years = pop$year,
-#   initial_state = pop$depletion[1],
-#   initial_state_cv = 0.05,
-#   terminal_state = dplyr::last(pop$depletion),
-#   terminal_state_cv = 0.01,
-#   growth_rate_prior = 0.4,
-#   growth_rate_prior_cv = 0.1,
-#   use_heuristics = FALSE,
-#   shape_prior = 2
-# )
-# 
-# 
-# plot_driors(driors)
-# 
-# sir_fit <- fit_sraplus(driors = driors,
-#                        engine = 'sir',
-#                        draws = 1e5,
-#                        estimate_k = FALSE)
-# 
-# sir_diagnostics <- diagnose_sraplus(sir_fit, driors)
+com_driors <-
+  format_driors(
+    catch = pop$catch,
+    years = pop$year,
+    use_heuristics = FALSE,
+    initial_state = NA,
+    initial_state_cv = .2,
+    terminal_state = NA,
+    terminal_state_cv = 0.1,
+    b_ref_type = "k",
+    use_catch_prior = TRUE,
+    taxa = example_taxa,
+    shape_prior_source = "thorson"
+  )
+
+plot_driors(com_driors)
+
+com_fit <-
+  fit_sraplus(
+    driors = com_driors,
+    include_fit = TRUE,
+    engine = "sir",
+    draws = 1e6,
+    tune_prior_predictive = FALSE
+  )
+
+plot_prior_posterior(com_fit, com_driors)
 
 ml_driors <- format_driors(taxa = example_taxa,
                            catch = pop$catch,
