@@ -899,6 +899,7 @@ fit_sraplus <- function(driors,
       
     } else if (engine == "tmb") {
       set.seed(seed)
+      
       fit <- TMBhelper::fit_tmb(
         sra_model,
         fn = sra_model$fn,
@@ -914,6 +915,22 @@ fit_sraplus <- function(driors,
           rel.tol = rel.tol
         )
       )
+      # 
+      # fit2 <-
+      #   nlminb(
+      #     sra_model$par,
+      #     sra_model$fn,
+      #     sra_model$gr,
+      #     loopnum = loopnum,
+      #     newtonsteps = newtonsteps,
+      #     lower = lower,
+      #     upper = upper,
+      #     getsd = FALSE,
+      #     control = list(
+      #       eval.max = eval.max,
+      #       iter.max = iter.max,
+      #       rel.tol = rel.tol
+      #   ))
       
       if (fit$max_gradient > 1e-3 & try_again == TRUE) {
         fit <- TMBhelper::fit_tmb(

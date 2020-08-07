@@ -38,7 +38,7 @@ format_driors(
   k_prior_cv = 2,
   sigma_ratio_prior = 0.5,
   sigma_ratio_prior_cv = 0.25,
-  shape_prior = 1.01,
+  shape_prior = NA,
   shape_prior_cv = 0.25,
   q_prior = 0.001,
   q_prior_cv = 1,
@@ -46,6 +46,7 @@ format_driors(
   sigma_obs_prior_cv = 1,
   isscaap_group = NA,
   f_prior_form = 0,
+  shape_prior_source = "thorson",
   prob = 0.9,
   use_fmsy_based_r = FALSE,
   use_catch_priors = FALSE
@@ -115,8 +116,6 @@ when \code{initial_state} is 1, implies either B/K = 1 or B/Bmsy = 1}
 \item{k_prior}{prior on carrying capacity}
 
 \item{k_prior_cv}{CV of prior on carrying capacity}
-
-\item{sigma_ratio_prior}{}
 
 \item{sigma_ratio_prior_cv}{}
 
