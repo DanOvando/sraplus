@@ -363,8 +363,13 @@ double learn_rate
 
 NumericVector scaled_like = (log_like) / (sum(log_like) + 1e-6);
 
+NumericVector keepers(n_keep);
   
-NumericVector keepers = sample(drawdex, n_keep, 1, scaled_like) + 1;
+  if (sum(scaled_like) > 0){
+  
+    keepers = sample(drawdex, n_keep, 1, scaled_like) + 1;
+    
+  } 
 
 
     return Rcpp::List::create(

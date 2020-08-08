@@ -81,21 +81,16 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// testpopmodel
-NumericVector testpopmodel(double r, double k, double m, double b0, double plim, int years, double sigma_proc, NumericVector catches);
-RcppExport SEXP _sraplus_testpopmodel(SEXP rSEXP, SEXP kSEXP, SEXP mSEXP, SEXP b0SEXP, SEXP plimSEXP, SEXP yearsSEXP, SEXP sigma_procSEXP, SEXP catchesSEXP) {
+// test
+NumericVector test(NumericVector drawdex, int n_keep, NumericVector scaled_like);
+RcppExport SEXP _sraplus_test(SEXP drawdexSEXP, SEXP n_keepSEXP, SEXP scaled_likeSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< double >::type r(rSEXP);
-    Rcpp::traits::input_parameter< double >::type k(kSEXP);
-    Rcpp::traits::input_parameter< double >::type m(mSEXP);
-    Rcpp::traits::input_parameter< double >::type b0(b0SEXP);
-    Rcpp::traits::input_parameter< double >::type plim(plimSEXP);
-    Rcpp::traits::input_parameter< int >::type years(yearsSEXP);
-    Rcpp::traits::input_parameter< double >::type sigma_proc(sigma_procSEXP);
-    Rcpp::traits::input_parameter< NumericVector >::type catches(catchesSEXP);
-    rcpp_result_gen = Rcpp::wrap(testpopmodel(r, k, m, b0, plim, years, sigma_proc, catches));
+    Rcpp::traits::input_parameter< NumericVector >::type drawdex(drawdexSEXP);
+    Rcpp::traits::input_parameter< int >::type n_keep(n_keepSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type scaled_like(scaled_likeSEXP);
+    rcpp_result_gen = Rcpp::wrap(test(drawdex, n_keep, scaled_like));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -103,7 +98,7 @@ END_RCPP
 static const R_CallMethodDef CallEntries[] = {
     {"_sraplus_sraplus", (DL_FUNC) &_sraplus_sraplus, 29},
     {"_sraplus_sraplus_reserve", (DL_FUNC) &_sraplus_sraplus_reserve, 27},
-    {"_sraplus_testpopmodel", (DL_FUNC) &_sraplus_testpopmodel, 8},
+    {"_sraplus_test", (DL_FUNC) &_sraplus_test, 3},
     {NULL, NULL, 0}
 };
 

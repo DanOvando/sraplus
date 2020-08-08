@@ -494,10 +494,14 @@ fit_sraplus <- function(driors,
                replace = TRUE,
                prob = draws$weight)
       
-    }
+    } # close tune prior predictive
     
     keepers <- sra_fit$keepers
     
+    if (sum(keepers) == 0){
+      stop("No viable trajectories found in SIR: consider revising priors")
+    }
+
     outs <- stringr::str_detect(names(sra_fit), "_t")
     
     #     sra_fit$b_t[, keepers] -> a
