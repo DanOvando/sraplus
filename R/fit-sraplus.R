@@ -796,7 +796,7 @@ fit_sraplus <- function(driors,
         
         doParallel::registerDoParallel(cores = workers)
         
-        stacked_draws <- foreach::foreach(i = 1:nrow(draws)) %dopar% {
+        stacked_draws <- foreach::foreach(i = 1:nrow(draws), .export = c("sraplus","purrr")) %dopar% {
           
           qgp <-   purrr::quietly(sraplus::get_posterior)
           

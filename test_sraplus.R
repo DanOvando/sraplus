@@ -279,9 +279,9 @@ log_q_guess <- log(mean(ml_driors$index / ml_driors$catch))
 
 # test effort -------------------------------------------------------------
 
-set.seed(42)
+set.seed(24)
 
-sigma_obs <- 0.05
+sigma_obs <- 0.1
 
 sigma_proc_ratio <- 1
 
@@ -290,13 +290,13 @@ q = 0.006
 sim <-
   sraplus_simulator(
     sigma_proc = sigma_obs * sigma_proc_ratio,
-    sigma_u = 0.1,
-    q_slope = 0.05,
+    sigma_u = 0.2,
+    q_slope = 0,
     r = 0.4,
     years = 25,
     q = 1e-3,
     m = 1.01,
-    init_u_umsy = 1
+    init_u_umsy = .2
   )
 
 pop <- sim$pop  
