@@ -162,7 +162,7 @@ ram_fits <- ram_data %>%
   nest()
 
 
-dat <- ram_fits$data[[24]] # pick a  stock to run
+dat <- ram_fits$data[[2]] # pick a  stock to run
 
 index_years <- dat$year[!is.na(dat$index)]
 

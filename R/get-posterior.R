@@ -30,7 +30,6 @@ get_posterior <-  function(draws,
     tidyr::nest() %>% 
     dplyr::ungroup()
   
-  
   # SERIOUSLY annoying step to put back in things that you knocked out with map
   if (length(knockout) >= 1) {
     for (i in 1:length(knockout)) {
@@ -60,7 +59,6 @@ get_posterior <-  function(draws,
       hessian = FALSE,
       map = knockout
     )
-  
   full_pars <- temp$report()
   
   

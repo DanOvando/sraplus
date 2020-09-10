@@ -83,8 +83,8 @@ format_driors <-
            m = NA,
            k_prior = NA,
            k_prior_cv = 2,
-           sigma_ratio_prior = 0.5,
-           sigma_ratio_prior_cv = 0.25,
+           sigma_ratio_prior = 1,
+           sigma_ratio_prior_cv = 0.05,
            shape_prior = NA,
            shape_prior_cv = 0.25,
            q_prior = 1e-3,
@@ -176,7 +176,7 @@ format_driors <-
       tmp$predicted_cluster <-
         parsnip::predict.model_fit(sraplus::cluster_fit, new_data = wide_tmp)[[1]]
       
-      tmp <- tmp[tmp$year == 1,]
+      tmp <- tmp[tmp$year == 1, ]
       
       pred_init_state <-
         rstanarm::posterior_predict(sraplus::init_state_model,
@@ -213,7 +213,7 @@ format_driors <-
       tmp$predicted_cluster <-
         parsnip::predict.model_fit(sraplus::cluster_fit, new_data = wide_tmp)[[1]]
       
-      tmp <- tmp[tmp$year == max(tmp$year),]
+      tmp <- tmp[tmp$year == max(tmp$year), ]
       
       pred_init_state <-
         rstanarm::posterior_predict(sraplus::catch_b_model,
@@ -375,11 +375,12 @@ format_driors <-
       #   grep(sp, FishLifeData$ParentChild_gz[, "ChildName"])[1]
       #
       
-      mean_lh <- FishLife::FishBase_and_RAM$beta_gv[taxa_location, ]
+      mean_lh <- FishLife::FishBase_and_RAM$beta_gv[taxa_location,]
       
       # mean_lh <- FishLifeData$beta_gv[taxa_location,]
       
-      cov_lh <- FishLife::FishBase_and_RAM$Cov_gvv[taxa_location, , ]
+      cov_lh <-
+        FishLife::FishBase_and_RAM$Cov_gvv[taxa_location, ,]
       
       # cov_lh <- FishLifeData$Cov_gvv[taxa_location, ,]
       
@@ -390,7 +391,8 @@ format_driors <-
       
       f_msy <- exp(mean_lh["ln_Fmsy"] + 0.5 * cov_lh["ln_Fmsy"])
       
-      r_implied <-  (f_msy / (1 - 1 / shape_prior)) * (shape_prior - 1)
+      r_implied <-
+        (f_msy / (1 - 1 / shape_prior)) * (shape_prior - 1)
       
       if (shape_prior_source == "thorson" & is.na(shape_prior)) {
         if (tolower(taxon$Order) %in% tolower(sraplus::ssb0msy_to_ssb0$tax_group)) {
@@ -426,9 +428,8 @@ format_driors <-
         
       } # close thorson shape prior
       
-      if (shape_prior_source == "fishlife" & is.na(shape_prior)){
-        
-        if (f_msy ==  mean_lh["r"]){
+      if (shape_prior_source == "fishlife" & is.na(shape_prior)) {
+        if (f_msy ==  mean_lh["r"]) {
           fudge <- 1e-3
         } else {
           fudge <- 0
@@ -440,7 +441,6 @@ format_driors <-
       
       
       if (use_fmsy_based_r & shape_prior_source != "fishlife") {
-        
         mean_lh["r"] <- r_implied
         
       }
@@ -451,10 +451,12 @@ format_driors <-
             FishLife::FishBase_and_RAM$beta_gv[, "M"]
           )))
       
-      f_msy <- exp(median(FishLife::FishBase_and_RAM$beta_gv[, "ln_Fmsy"]))
+      f_msy <-
+        exp(median(FishLife::FishBase_and_RAM$beta_gv[, "ln_Fmsy"]))
       
       
-      r_implied <-  (f_msy / (1 - 1 / shape_prior)) * (shape_prior - 1)
+      r_implied <-
+        (f_msy / (1 - 1 / shape_prior)) * (shape_prior - 1)
       
       cov_lh <-
         c(
@@ -463,13 +465,12 @@ format_driors <-
         )
       
       if (shape_prior_source == "thorson" & is.na(shape_prior)) {
+        msy_k <-
+          sraplus::ssb0msy_to_ssb0$ssbmsy_to_ssb0[tolower(sraplus::ssb0msy_to_ssb0$tax_group) == "other"]
         
-          msy_k <-
-            sraplus::ssb0msy_to_ssb0$ssbmsy_to_ssb0[tolower(sraplus::ssb0msy_to_ssb0$tax_group) == "other"]
-          
-          shape_prior_cv <-
-            sraplus::ssb0msy_to_ssb0$ssbmsy_to_ssb0_sd[tolower(sraplus::ssb0msy_to_ssb0$tax_group) == "other"]
-          
+        shape_prior_cv <-
+          sraplus::ssb0msy_to_ssb0$ssbmsy_to_ssb0_sd[tolower(sraplus::ssb0msy_to_ssb0$tax_group) == "other"]
+        
         shapefoo <- function(log_m, msy_k) {
           m <- exp(log_m)
           
@@ -487,9 +488,8 @@ format_driors <-
         
       } # close thorson shape prior
       
-      if (shape_prior_source == "fishlife" & is.na(shape_prior)){
-        
-        if (f_msy ==  mean_lh["r"]){
+      if (shape_prior_source == "fishlife" & is.na(shape_prior)) {
+        if (f_msy ==  mean_lh["r"]) {
           fudge <- 1e-3
         } else {
           fudge <- 0
@@ -500,7 +500,6 @@ format_driors <-
       }
       
       if (use_fmsy_based_r & shape_prior_source != "fishlife") {
-        
         mean_lh["r"] <- r_implied
         
       }

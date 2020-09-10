@@ -69,7 +69,7 @@ com_fit <-
     include_fit = TRUE,
     engine = "sir",
     draws = 1e6,
-    tune_prior_predictive = FALSE
+    tune_prior_predictive = TRUE
   )
 
 plot_prior_posterior(com_fit, com_driors)

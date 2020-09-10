@@ -800,6 +800,11 @@ random_fmi_tests <- random_fmi_tests %>%
       testing_performance,
       ~ yardstick::rmse_vec(truth = .x$observed,
                             estimate = .x$pp_pred)
+    ),
+    testing_r2 = map_dbl(
+      testing_performance,
+      ~ yardstick::rsq_vec(truth = .x$observed,
+                            estimate = .x$pp_pred)
     )
   )
 
@@ -946,6 +951,11 @@ random_sar_tests <- random_sar_tests %>%
       testing_performance,
       ~ yardstick::rmse_vec(truth = .x$observed,
                             estimate = .x$pp_pred)
+    ),
+    testing_r2 = map_dbl(
+      testing_performance,
+      ~ yardstick::rsq_vec(truth = .x$observed,
+                           estimate = .x$pp_pred)
     )
   )
 

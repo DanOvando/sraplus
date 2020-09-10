@@ -108,6 +108,8 @@ double learn_rate
   
   NumericVector ks(draws);
   
+  NumericVector sigma_ratios = sigma_procs / sigma_obs;
+  
   for (int i = 0; i < draws; i++) {
 
   double terminal_ref;
@@ -387,6 +389,10 @@ NumericVector keepers(n_keep);
       Rcpp::Named("k") = ks,
       Rcpp::Named("umsy") = umsy,
       Rcpp::Named("msy") = msy,
-      Rcpp::Named("likelihood") = log_like);
+      Rcpp::Named("likelihood") = log_like,
+      Rcpp::Named("sigma_obs") = sigma_obs,
+      Rcpp::Named("sigma_proc") = sigma_procs,
+      Rcpp::Named("sigma_ratio") = sigma_ratios
+      );
 
 } // close popmodel

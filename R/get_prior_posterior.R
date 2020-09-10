@@ -156,7 +156,6 @@ get_prior_posterior <- function(fit, driors,
   vars <- names(driors)
   
   var_count <- table(stringr::str_replace_all(vars, "_cv", ""))
-  
   plot_vars <- names(var_count)[var_count == 2]
   
   has_values <-
@@ -207,7 +206,7 @@ get_prior_posterior <- function(fit, driors,
                      lower = quantile(draws,probs = c((1 - prob) / 2)),
                      upper = quantile(draws,probs = c(1 - (1 - prob) / 2))) %>% 
     dplyr::mutate(source = "Prior")
-  
+
   if ("initial_state" %in% priors$variable) {
     
     if (driors$b_ref_type == "b") {
@@ -331,8 +330,7 @@ get_prior_posterior <- function(fit, driors,
   } # close if terminal state
   
   
-  
-  posteriors <- fits %>% 
+posteriors <- fits %>% 
     dplyr::filter(variable %in% priors$variable) %>% 
     dplyr::mutate(source = "Posterior")
   

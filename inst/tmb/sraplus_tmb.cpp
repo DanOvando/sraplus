@@ -223,6 +223,7 @@ Type objective_function<Type>::operator() ()
   
   // Type sigma_proc = exp(log_sigma_obs) * exp(log_sigma_ratio);
   
+
   Type sigma_proc = sigma_obs * exp(log_sigma_ratio);
   
   vector<Type> proc_errors(time - 1);
@@ -592,9 +593,23 @@ Type objective_function<Type>::operator() ()
   
   vector<Type> ck = catch_t / k;
   
+  Type sigma_ratio = exp(log_sigma_ratio);
+  
   REPORT(sigma_proc);
   
   ADREPORT(sigma_proc);
+  
+  ADREPORT(sigma_obs);
+
+  REPORT(sigma_obs);
+  
+  ADREPORT(log_sigma_ratio);
+  
+  REPORT(log_sigma_ratio);
+
+  ADREPORT(sigma_ratio);
+  
+  REPORT(sigma_ratio);
   
   REPORT(umsy);
   

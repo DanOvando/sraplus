@@ -359,6 +359,15 @@ fit_sraplus <- function(driors,
       
       sir_index <- sra_data$index_t
     }
+    
+    sir_sigma_obs <- rlnorm(draws,
+                            log(driors$sigma_obs_prior),
+                            driors$sigma_obs_prior_cv)
+    
+    sir_sigma_proc =    estimate_proc_error * rlnorm(draws,
+                                        log(driors$sigma_ratio_prior),
+                                        driors$sigma_ratio_prior_cv) * sir_sigma_obs
+    
     sra_fit <- sraplus::sraplus(
       catches = sra_data$catch_t,
       rs = pmax(0.005,
@@ -374,7 +383,7 @@ fit_sraplus <- function(driors,
       ),
       init_dep = init_dep,
       anchors = anchors,
-      sigma_procs = runif(draws, 0, ifelse(estimate_proc_error, 0.2, 0)),
+      sigma_procs = sir_sigma_proc,
       draws = draws,
       log_terminal_ref = ifelse(
         is.na(sra_data$log_terminal_dep_prior),
@@ -398,7 +407,7 @@ fit_sraplus <- function(driors,
       index_t = sir_index,
       index_years = sra_data$index_years,
       fit_index = sir_fit_index,
-      sigma_obs = exp(rnorm(draws, log(0.2), 0.1)),
+      sigma_obs = sir_sigma_obs,
       plim = plim,
       use_terminal_u = sra_data$use_terminal_u,
       use_terminal_state = sra_data$use_terminal_state,
@@ -533,6 +542,7 @@ fit_sraplus <- function(driors,
       keepers = keepers,
       .id = "variable"
     )
+    
     out <- tidy_fits %>%
       dplyr::bind_rows(tidy_static_fits) %>%
       dplyr::group_by(year, variable) %>%
@@ -883,8 +893,7 @@ fit_sraplus <- function(driors,
       
       out <- out %>%
         dplyr::bind_rows(logs)
-      
-      
+
       if (include_fit == FALSE) {
         fit = NA
       }
