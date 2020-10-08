@@ -7,6 +7,6 @@
 #'
 theme_sraplus <- function(base_size = 14){
   
-  out <- theme_bw(base_size = base_size)
+  out <- ggplot2::theme_bw(base_size = base_size)
   
 }
