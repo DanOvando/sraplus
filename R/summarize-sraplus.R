@@ -92,7 +92,7 @@ summarize_sralpus <- function(fit, output = "table"){
 
     result_summary <- fit$results %>% 
       dplyr::group_by(variable) %>% 
-      filter(year == max(year)) 
+      dplyr::filter(year == max(year)) 
     
     result_summary_plot <- result_summary %>% 
       ggplot2::ggplot(aes(variable, mean, ymin = lower, ymax = upper)) + 
@@ -101,8 +101,8 @@ summarize_sralpus <- function(fit, output = "table"){
       ggplot2::labs(x = '', y = "Estimate", caption = "Point is mean estimated value, bars are 95% interval. Values are in the most recent year") + 
       theme_sraplus() + 
       ggplot2::theme(
-        strip.background = element_blank(),
-        strip.text.x = element_blank()
+        strip.background = ggplot2::element_blank(),
+        strip.text.x = ggplot2::element_blank()
       )  
     
     if (output == "table"){
