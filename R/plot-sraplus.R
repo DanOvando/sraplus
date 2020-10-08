@@ -57,7 +57,7 @@ plot_sraplus <- function(..., fontsize = 14,
                        labeller = ggplot2::labeller(variable = facet_labeller)) + 
     sraplus::theme_sraplus(base_size = fontsize) + 
    ggplot2::scale_y_continuous( name = "", limits = c(0,NA)) +
-    labs(x = "Year") +
+    ggplot2::labs(x = "Year") +
    ggplot2::scale_fill_discrete(name = "Fit") + 
    ggplot2::scale_color_discrete(name = "Fit")
   
