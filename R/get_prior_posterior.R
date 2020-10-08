@@ -335,7 +335,7 @@ posteriors <- fits %>%
     dplyr::mutate(source = "Posterior")
   
   prior_posterior <- posteriors[,colnames(priors)] %>% 
-    rbind(priors %>% filter(variable %in% posteriors$variable))
+    rbind(priors %>% dplyr::filter(variable %in% posteriors$variable))
   
   
   return(list(prior_posterior = prior_posterior,
