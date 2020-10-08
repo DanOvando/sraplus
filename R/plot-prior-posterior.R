@@ -53,7 +53,7 @@ plot_prior_posterior <- function(fit, driors,
       ymax = upper,
       color = source
     ),
-    position = position_dodge(width = 0.1)) +
+    position = ggplot2::position_dodge(width = 0.1)) +
     ggplot2::facet_wrap( ~ variable, scales = "free") +
     ggplot2::theme_classic() + 
     ggplot2::theme(legend.position = "top")
