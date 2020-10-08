@@ -32,8 +32,8 @@ get_prior_posterior <- function(fit, driors,
       dplyr::select(mean, lower, upper) %>%
       dplyr::mutate(metric = "index",
                     year = driors$years) %>%
-      filter(year %in% driors$index_years) %>%
-      mutate(meanmean = mean(mean),
+      dplyr::filter(year %in% driors$index_years) %>%
+      dplyr::mutate(meanmean = mean(mean),
              sdmean = sd(mean)) %>%
       dplyr::mutate(
         mean = (mean - meanmean) / sdmean,
