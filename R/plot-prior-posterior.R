@@ -27,7 +27,7 @@ plot_prior_posterior <- function(fit, driors,
     ggplot2::scale_y_continuous(name = "") +
     ggplot2::labs(x = "Year")  +
     theme_sraplus(base_size = 12)  +
-    theme(legend.position = "top")
+    ggplot2::theme(legend.position = "top")
   } else {
     
    
@@ -39,7 +39,7 @@ plot_prior_posterior <- function(fit, driors,
       ggplot2::scale_y_continuous(name = "") +
       ggplot2::labs(x = "Year")  +
       theme_sraplus(base_size = 12)  +
-      theme(legend.position = "top")
+      ggplot2::theme(legend.position = "top")
     
   }
   
@@ -56,7 +56,7 @@ plot_prior_posterior <- function(fit, driors,
     position = position_dodge(width = 0.1)) +
     ggplot2::facet_wrap( ~ variable, scales = "free") +
     ggplot2::theme_classic() + 
-    theme(legend.position = "top")
+    ggplot2::theme(legend.position = "top")
   
   
   patchwork::wrap_plots(timeseries_plot,
