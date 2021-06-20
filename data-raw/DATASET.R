@@ -66,7 +66,12 @@ purrr::walk(functions, ~ source(here::here("R", .x)))
 
 if (!file.exists(here("data-raw","ram.zip"))) {
   
-  download.file("https://www.dropbox.com/s/jpgz0a5s5of3qev/RAM%20v4.491%20Files%20(1-14-20).zip?dl=1", destfile = here::here("data-raw","ram.zip"))
+  download.file(
+    "https://www.dropbox.com/s/jpgz0a5s5of3qev/RAM%20v4.491%20Files%20(1-14-20).zip?dl=1",
+    destfile = here::here("data-raw", "ram.zip"),
+    mode = "wb"
+  )
+  
   
   unzip(here::here("data-raw","ram.zip"), exdir = "data-raw")
   
@@ -1039,7 +1044,7 @@ map_dbl(ram_catches, ~sum(is.na(.x)))
 
 a = ram_catches %>% select(-stockid) %>% as.matrix()
 set.seed(42)
-catch_pca <- specc(a,centers = 3)
+catch_pca <- specc(a,centers = 5)
 
 # centers(catch_pca)
 # size(catch_pca)
@@ -1060,7 +1065,7 @@ ram_catches <- ram_catches  %>%
 
 ram_catches %>% 
   ggplot(aes(stock_year, catch, group = stockid)) + 
-  geom_line() + 
+  geom_line(alpha = 0.5) + 
   facet_wrap(~cluster)
 
 

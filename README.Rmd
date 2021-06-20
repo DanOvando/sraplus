@@ -200,7 +200,7 @@ fmi_sar_driors <- format_driors(
   initial_state = 1,
   initial_state_cv = 0.25,
   use_heuristics = FALSE,
-  sar = 8,
+  sar = 10,
   fmi = c("research" = 0.5, "management" = 0.5, "socioeconomics" = 0.5, 'enforcement' = 0.5),
   sar_cv = NA,
   use_b_reg = FALSE,

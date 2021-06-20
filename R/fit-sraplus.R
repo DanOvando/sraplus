@@ -313,8 +313,8 @@ fit_sraplus <- function(driors,
     
     if (estimate_k == TRUE) {
       anchors <- rlnorm(draws,
-                        log(10 * max(sra_data$catch_t)),
-                        2)
+                        sra_data$log_k_prior,
+                        sra_data$log_k_prior_cv)
       
       
       
@@ -367,7 +367,6 @@ fit_sraplus <- function(driors,
     sir_sigma_proc =    estimate_proc_error * rlnorm(draws,
                                         log(driors$sigma_ratio_prior),
                                         driors$sigma_ratio_prior_cv) * sir_sigma_obs
-    
     sra_fit <- sraplus::sraplus(
       catches = sra_data$catch_t,
       rs = pmax(0.005,
