@@ -10,23 +10,27 @@
 
 
 <!-- jquery -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
 <!-- Bootstrap -->
 
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha256-916EbMg70RQy9LHiGkXzG8hSg9EdNy97GazNG/aiY1w=" crossorigin="anonymous" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.4.1/css/bootstrap.min.css" integrity="sha256-bZLfwXAP04zRMK2BjiO8iu9pf4FbLqX6zitd+tIvLhE=" crossorigin="anonymous" />
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha256-U5ZEeKfGNOja007MMD3YBI0A3OSZOQbeG6z2f2Y0hu8=" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.4.1/js/bootstrap.min.js" integrity="sha256-nuL8/2cJ5NDSSwnKD8VqreErSWHtnEP9E7AySL+1ev4=" crossorigin="anonymous"></script>
+
+<!-- bootstrap-toc -->
+<link rel="stylesheet" href="../bootstrap-toc.css">
+<script src="../bootstrap-toc.js"></script>
 
 <!-- Font Awesome icons -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.7.1/css/all.min.css" integrity="sha256-nAmazAk6vS34Xqo0BSrTb+abbtFlgsFK7NKSi6o7Y78=" crossorigin="anonymous" />
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.7.1/css/v4-shims.min.css" integrity="sha256-6qHlizsOWFskGlwVOKuns+D1nB6ssZrHQrNj1wGplHc=" crossorigin="anonymous" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css" integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk=" crossorigin="anonymous" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/v4-shims.min.css" integrity="sha256-wZjR52fzng1pJHwx4aV2AO3yyTOXrcDW7jBpJtTwVxw=" crossorigin="anonymous" />
 
 <!-- clipboard.js -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.4/clipboard.min.js" integrity="sha256-FiZwavyI2V6+EXO1U+xzLG3IKldpiTFf3153ea9zikQ=" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script>
 
 <!-- headroom.js -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.9.4/headroom.min.js" integrity="sha256-DJFC1kqIhelURkuza0AvYal5RxMtpzLjFhsnVIeuk+U=" crossorigin="anonymous"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.9.4/jQuery.headroom.min.js" integrity="sha256-ZX/yNShbjqsohH1k95liqY9Gd8uOiE1S4vZc+9KQ1K4=" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/headroom.min.js" integrity="sha256-AsUX4SJE1+yuDu5+mAVzJbuYNPHj/WroHuZ8Ir/CkE0=" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/jQuery.headroom.min.js" integrity="sha256-ZX/yNShbjqsohH1k95liqY9Gd8uOiE1S4vZc+9KQ1K4=" crossorigin="anonymous"></script>
 
 <!-- pkgdown -->
 <link href="../pkgdown.css" rel="stylesheet">
@@ -38,7 +42,6 @@
 <meta property="og:title" content="Run sraplus — fit_sraplus" />
 <meta property="og:description" content="The main function for taking an object created by format_driors and fitting a
 model using sraplus" />
-<meta name="twitter:card" content="summary" />
 
 
 
@@ -56,7 +59,7 @@ model using sraplus" />
 
   </head>
 
-  <body>
+  <body data-spy="scroll" data-target="#toc">
     <div class="container template-reference-topic">
       <header>
       <div class="navbar navbar-default navbar-fixed-top" role="navigation">
@@ -70,7 +73,7 @@ model using sraplus" />
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">sraplus</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">3.1.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">3.7.3</span>
       </span>
     </div>
 
@@ -78,7 +81,7 @@ model using sraplus" />
       <ul class="nav navbar-nav">
         <li>
   <a href="../index.html">
-    <span class="fas fa fas fa-home fa-lg"></span>
+    <span class="fas fa-home fa-lg"></span>
      
   </a>
 </li>
@@ -87,6 +90,18 @@ model using sraplus" />
 </li>
 <li>
   <a href="../reference/index.html">Reference</a>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+    Articles
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="../articles/prior-tuning.html">prior-tuning</a>
+    </li>
+  </ul>
 </li>
 <li>
   <a href="../news/index.html">Changelog</a>
@@ -117,15 +132,50 @@ model using sraplus" />
 model using <code>sraplus</code></p>
     </div>
 
-    <pre class="usage"><span class='fu'>fit_sraplus</span>(<span class='no'>driors</span>, <span class='kw'>include_fit</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>, <span class='kw'>seed</span> <span class='kw'>=</span> <span class='fl'>42</span>, <span class='kw'>plim</span> <span class='kw'>=</span> <span class='fl'>0.2</span>,
-  <span class='kw'>model_name</span> <span class='kw'>=</span> <span class='st'>"sraplus_tmb"</span>, <span class='kw'>randos</span> <span class='kw'>=</span> <span class='st'>"log_proc_errors"</span>,
-  <span class='kw'>draws</span> <span class='kw'>=</span> <span class='fl'>1e+06</span>, <span class='kw'>n_keep</span> <span class='kw'>=</span> <span class='fl'>2000</span>, <span class='kw'>engine</span> <span class='kw'>=</span> <span class='st'>"sir"</span>, <span class='kw'>cores</span> <span class='kw'>=</span> <span class='fl'>4</span>,
-  <span class='kw'>chains</span> <span class='kw'>=</span> <span class='fl'>1</span>, <span class='kw'>cleanup</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>max_treedepth</span> <span class='kw'>=</span> <span class='fl'>10</span>,
-  <span class='kw'>adapt_delta</span> <span class='kw'>=</span> <span class='fl'>0.8</span>, <span class='kw'>estimate_shape</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>estimate_qslope</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
-  <span class='kw'>estimate_proc_error</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>, <span class='kw'>marginalize_q</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
-  <span class='kw'>use_baranov</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>, <span class='kw'>include_m</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>ci</span> <span class='kw'>=</span> <span class='fl'>0.89</span>,
-  <span class='kw'>try_again</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>eps</span> <span class='kw'>=</span> <span class='fl'>1e-06</span>, <span class='kw'>max_time</span> <span class='kw'>=</span> <span class='fl'>Inf</span>, <span class='kw'>eval.max</span> <span class='kw'>=</span> <span class='fl'>200</span>,
-  <span class='kw'>iter.max</span> <span class='kw'>=</span> <span class='fl'>150</span>, <span class='kw'>rel.tol</span> <span class='kw'>=</span> <span class='fl'>1e-10</span>, <span class='kw'>loopnum</span> <span class='kw'>=</span> <span class='fl'>1</span>, <span class='kw'>newtonsteps</span> <span class='kw'>=</span> <span class='fl'>1</span>)</pre>
+    <pre class="usage"><span class='fu'>fit_sraplus</span><span class='op'>(</span>
+  <span class='va'>driors</span>,
+  include_fit <span class='op'>=</span> <span class='cn'>TRUE</span>,
+  seed <span class='op'>=</span> <span class='fl'>42</span>,
+  plim <span class='op'>=</span> <span class='fl'>0.05</span>,
+  model_name <span class='op'>=</span> <span class='st'>"sraplus_tmb"</span>,
+  randos <span class='op'>=</span> <span class='st'>"log_proc_errors"</span>,
+  draws <span class='op'>=</span> <span class='fl'>1e+05</span>,
+  n_keep <span class='op'>=</span> <span class='fl'>2000</span>,
+  engine <span class='op'>=</span> <span class='st'>"sir"</span>,
+  cores <span class='op'>=</span> <span class='fl'>4</span>,
+  chains <span class='op'>=</span> <span class='fl'>1</span>,
+  cleanup <span class='op'>=</span> <span class='cn'>FALSE</span>,
+  max_treedepth <span class='op'>=</span> <span class='fl'>10</span>,
+  adapt_delta <span class='op'>=</span> <span class='fl'>0.8</span>,
+  estimate_shape <span class='op'>=</span> <span class='cn'>FALSE</span>,
+  estimate_qslope <span class='op'>=</span> <span class='cn'>FALSE</span>,
+  estimate_q <span class='op'>=</span> <span class='cn'>TRUE</span>,
+  estimate_proc_error <span class='op'>=</span> <span class='cn'>TRUE</span>,
+  estimate_initial_state <span class='op'>=</span> <span class='cn'>TRUE</span>,
+  estimate_k <span class='op'>=</span> <span class='cn'>TRUE</span>,
+  estimate_f <span class='op'>=</span> <span class='cn'>FALSE</span>,
+  learn_rate <span class='op'>=</span> <span class='fl'>0.001</span>,
+  analytical_q <span class='op'>=</span> <span class='cn'>FALSE</span>,
+  use_baranov <span class='op'>=</span> <span class='cn'>TRUE</span>,
+  include_m <span class='op'>=</span> <span class='cn'>FALSE</span>,
+  ci <span class='op'>=</span> <span class='fl'>0.89</span>,
+  try_again <span class='op'>=</span> <span class='cn'>FALSE</span>,
+  eps <span class='op'>=</span> <span class='fl'>1e-06</span>,
+  max_time <span class='op'>=</span> <span class='cn'>Inf</span>,
+  eval.max <span class='op'>=</span> <span class='fl'>200</span>,
+  iter.max <span class='op'>=</span> <span class='fl'>150</span>,
+  rel.tol <span class='op'>=</span> <span class='fl'>1e-10</span>,
+  loopnum <span class='op'>=</span> <span class='fl'>1</span>,
+  newtonsteps <span class='op'>=</span> <span class='fl'>1</span>,
+  tune_prior_predictive <span class='op'>=</span> <span class='cn'>TRUE</span>,
+  index_fit_tuner <span class='op'>=</span> <span class='st'>"sir"</span>,
+  refresh <span class='op'>=</span> <span class='fl'>250</span>,
+  log_bias_correct <span class='op'>=</span> <span class='cn'>TRUE</span>,
+  workers <span class='op'>=</span> <span class='va'>workers</span>,
+  thin_draws <span class='op'>=</span> <span class='cn'>FALSE</span>,
+  thin_rate <span class='op'>=</span> <span class='fl'>0.5</span>,
+  <span class='va'>...</span>
+<span class='op'>)</span></pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
@@ -205,37 +255,21 @@ If FALSE process errors are not included in the model</p></td>
       <th>ci</th>
       <td><p>confidence/credible interval range for summaries</p></td>
     </tr>
+    <tr>
+      <th>...</th>
+      <td></td>
+    </tr>
     </table>
 
     <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
 
     <p>a fitted sraplus object</p>
 
-    <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
-    <pre class="examples"><div class='input'><span class='kw'>if</span> (<span class='fl'>FALSE</span>) {
-
-<span class='no'>catch_only_driors</span> <span class='kw'>&lt;-</span> <span class='kw pkg'>sraplus</span><span class='kw ns'>::</span><span class='fu'><a href='https://rdrr.io/pkg/sraplus/man/format_driors.html'>format_driors</a></span>(
-<span class='kw'>taxa</span> <span class='kw'>=</span> <span class='no'>example_taxa</span>,
-<span class='kw'>catch</span> <span class='kw'>=</span> <span class='no'>cod</span>$<span class='no'>catch</span>,
-<span class='kw'>years</span> <span class='kw'>=</span> <span class='no'>cod</span>$<span class='no'>year</span>,
-<span class='kw'>use_heuristics</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>
-)
-
- <span class='no'>catch_only_fit</span> <span class='kw'>&lt;-</span> <span class='kw pkg'>sraplus</span><span class='kw ns'>::</span><span class='fu'><a href='https://rdrr.io/pkg/sraplus/man/fit_sraplus.html'>fit_sraplus</a></span>(<span class='kw'>driors</span> <span class='kw'>=</span> <span class='no'>catch_only_driors</span>,
-<span class='kw'>engine</span> <span class='kw'>=</span> <span class='st'>"sir"</span>,
-<span class='kw'>draws</span> <span class='kw'>=</span> <span class='fl'>1e6</span>,
-<span class='kw'>n_keep</span> <span class='kw'>=</span> <span class='fl'>2000</span>)
-
-}</div></pre>
   </div>
-  <div class="col-md-3 hidden-xs hidden-sm" id="sidebar">
-    <h2>Contents</h2>
-    <ul class="nav nav-pills nav-stacked">
-      <li><a href="#arguments">Arguments</a></li>
-      <li><a href="#value">Value</a></li>
-      <li><a href="#examples">Examples</a></li>
-    </ul>
-
+  <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
+    <nav id="toc" data-toggle="toc" class="sticky-top">
+      <h2 data-toc-skip>Contents</h2>
+    </nav>
   </div>
 </div>
 
@@ -246,7 +280,7 @@ If FALSE process errors are not included in the model</p></td>
 </div>
 
 <div class="pkgdown">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.4.1.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.6.1.</p>
 </div>
 
       </footer>

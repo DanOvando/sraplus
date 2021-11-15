@@ -14,13 +14,16 @@ knitr::opts_chunk$set(
 )
 ```
 
-**THIS PACKAGE IS UNDER ACTIVE DEVELOPMENT AND SHOULD NOT BE USED FOR INDIVIDUAL STOCK ASSESSMENT AT THIS TIME**
+# sraplus
 
-`sraplus` is a flexible assessment package based around Ovando et al. 2019. At the most "data limited" end, the model approximates the behavior of catch-msy, sampling from prior distributions to obtain parameter values that given a catch history do not crash the population and satisfy supplied priors on initial and final depletion. At the most data rich end the model can be fit to an abundance index or catch-per-unit-effort data, while incorporating priors on recent stock status based on Fisheries Management Index (FMI) scores or swept-area ratio data. 
+<!-- [![Build Status](https://travis-ci.org/DanOvando/sraplus.svg?branch=v2.0)](https://travis-ci.org/DanOvando/sraplus) -->
+<!-- README.md is generated from README.Rmd. Please edit that file -->
+
+`sraplus` is a flexible assessment package based developed in [Ovando et al. 2021](https://onlinelibrary.wiley.com/doi/abs/10.1111/faf.12593) At the most "data limited" end, the model approximates the behavior of catch-msy, sampling from prior distributions to obtain parameter values that given a catch history do not crash the population and satisfy supplied priors on initial and final depletion. At the most data rich end the model can be fit to an abundance index or catch-per-unit-effort data, while incorporating priors on recent stock status based on Fisheries Management Index (FMI) scores or swept-area ratio data. 
 
 ## Installing
 
-This is an in-development package hosted on github, so you will need to do a few things to install it.
+This is an in-development package hosted on GitHub, so you will need to do a few things to install it.
 
 1. open R
 
@@ -200,6 +203,19 @@ fmi_sar_driors <- format_driors(
   sar_cv = NA,
   use_b_reg = FALSE,
   b_ref_type = "k")
+
+# fmi_sar_driors <- format_driors(
+#   taxa = example_taxa,
+#   catch = cod$catch,
+#   years = cod$year,
+#   use_heuristics = FALSE,
+#   initial_state = NA,
+#   initial_state_cv = NA,
+#   b_ref_type = "k",
+#   use_catch_prior = TRUE
+# )
+# 
+
 
 sraplus::plot_driors(fmi_sar_driors)
 ```
@@ -488,6 +504,10 @@ Or produce a summary table that can be saved to a .csv file.
 
 ```{r}
 summarize_sralpus(cpue_sar_proc_fit, output = "table") %>% 
-  knitr::kable()
+  knitr::kable(digits = 2)
 ```
+
+# Implementing References
+Ovando, D., Hilborn, R., Monnahan, C., Rudd, M., Sharma, R., Thorson, J.T., Rousseau, Y., Ye, Y., 2021. Improving estimates of the state of global fisheries depends on better data. Fish and Fisheries n/a. https://doi.org/10.1111/faf.12593
+
 

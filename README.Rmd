@@ -5,11 +5,11 @@ output: github_document
 ```{r, echo = FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
+  message= FALSE,
+  warning = FALSE,
   comment = "#>",
-  message = FALSE,
-  warnings = FALSE,
-  eval = TRUE
-  # dev = "svg"
+  fig.path = "man/figures/README-",
+  out.width = "100%"
 )
 ```
 
