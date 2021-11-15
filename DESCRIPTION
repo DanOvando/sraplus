@@ -5,7 +5,7 @@ Version: 3.7.3
 Date: 2019-01-09
 Author: Dan Ovando
 Maintainer: Dan Ovando <danovan@uw.edu>
-Description: Runs assessments in the manner of Ovando et al 2019. Allows for SIR, Maximum LIkelihood, or HMC based fitting.
+Description: Runs assessments in the manner of Ovando et al (2021). Allows for SIR, Maximum Likelihood, or HMC based fitting.
 License: MIT + file LICENSE
 Imports: 
     Rcpp,
@@ -41,5 +41,6 @@ Remotes:
     kaskr/TMB_contrib_R/TMBhelper,
     James-Thorson-NOAA/FishLife
 LazyData: true
+URL: https://danovando.github.io/sraplus/,https://github.com/DanOvando/sraplus
 Depends: 
     R (>= 2.10)

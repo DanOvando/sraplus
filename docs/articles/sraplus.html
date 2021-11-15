@@ -65,7 +65,14 @@
   <a href="../news/index.html">Changelog</a>
 </li>
       </ul>
-<ul class="nav navbar-nav navbar-right"></ul>
+<ul class="nav navbar-nav navbar-right">
+<li>
+  <a href="https://github.com/DanOvando/sraplus/">
+    <span class="fab fa-github fa-lg"></span>
+     
+  </a>
+</li>
+      </ul>
 </div>
 <!--/.nav-collapse -->
   </div>
@@ -81,7 +88,7 @@
       <h1 data-toc-skip>Surplus Production Modeling and Estimation with sraplus</h1>
             
       
-      
+      <small class="dont-index">Source: <a href="https://github.com/DanOvando/sraplus/blob/master/vignettes/sraplus.Rmd"><code>vignettes/sraplus.Rmd</code></a></small>
       <div class="hidden name"><code>sraplus.Rmd</code></div>
 
     </div>
@@ -152,7 +159,7 @@
 <span class="co">#&gt; The following objects are masked from 'package:base':</span>
 <span class="co">#&gt; </span>
 <span class="co">#&gt;     intersect, setdiff, setequal, union</span>
-<span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va">sraplus</span><span class="op">)</span>
+<span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://danovando.github.io/sraplus/">sraplus</a></span><span class="op">)</span>
 <span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va">tmbstan</span><span class="op">)</span>
 <span class="co">#&gt; Loading required package: rstan</span>
 <span class="co">#&gt; Loading required package: StanHeaders</span>
@@ -238,25 +245,25 @@
 <code class="sourceCode R">
 <span class="fu"><a href="https://rdrr.io/r/utils/head.html">head</a></span><span class="op">(</span><span class="va">catch_only_fit</span><span class="op">$</span><span class="va">results</span><span class="op">)</span>
 <span class="co">#&gt; # A tibble: 6 × 6</span>
-<span class="co">#&gt;    year variable           mean            sd        lower        upper</span>
-<span class="co">#&gt;   &lt;dbl&gt; &lt;chr&gt;             &lt;dbl&gt;         &lt;dbl&gt;        &lt;dbl&gt;        &lt;dbl&gt;</span>
-<span class="co">#&gt; 1  1963 b_div_bmsy        0.613        0.0890       0.492         0.759</span>
-<span class="co">#&gt; 2  1963 b           6775481.    13677692.     2132627.     20845362.   </span>
-<span class="co">#&gt; 3  1963 c_div_msy         0.299        0.112        0.0515        0.438</span>
-<span class="co">#&gt; 4  1963 crashed           0            0            0             0    </span>
-<span class="co">#&gt; 5  1963 depletion         0.401        0.0440       0.334         0.476</span>
-<span class="co">#&gt; 6  1963 index_hat_t  404193.     1281421.       25197.       743690.</span></code></pre></div>
+<span class="co">#&gt;    year variable           mean            sd        lower       upper</span>
+<span class="co">#&gt;   &lt;dbl&gt; &lt;chr&gt;             &lt;dbl&gt;         &lt;dbl&gt;        &lt;dbl&gt;       &lt;dbl&gt;</span>
+<span class="co">#&gt; 1  1963 b_div_bmsy        0.619        0.102        0.506        0.741</span>
+<span class="co">#&gt; 2  1963 b           5344332.    11715335.     2400228.     9746081.   </span>
+<span class="co">#&gt; 3  1963 c_div_msy         0.299        0.108        0.0961       0.450</span>
+<span class="co">#&gt; 4  1963 crashed           0            0            0            0    </span>
+<span class="co">#&gt; 5  1963 depletion         0.403        0.0372       0.347        0.463</span>
+<span class="co">#&gt; 6  1963 index_hat_t  323427.     1117737.       29205.      614149.</span></code></pre></div>
 <p><code>results</code> is organized as a dataframe tracking different variables over years. <code>mean</code> is the mean value for a given variable, <code>sd</code> the estimated standard deviation around the mean, and <code>lower</code> and <code>upper</code> being the 10th and 90th percentiles of the estimates.</p>
 <p>You can access other variables from the raw <code>fit</code> object, though this is not standardized by engine and so requires knowing how to for example get outputs out of <code>stanfit</code> objects. In the <code>catch_only_fit</code>, the <code>fit</code> object is the output of the SIR algorithm.</p>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/utils/head.html">head</a></span><span class="op">(</span><span class="va">catch_only_fit</span><span class="op">$</span><span class="va">fit</span><span class="op">)</span>
 <span class="co">#&gt;   variable year draw   value draw_id</span>
-<span class="co">#&gt; 1      b_t 1963    1 4344896   35363</span>
-<span class="co">#&gt; 2      b_t 1964    1 3748208   35363</span>
-<span class="co">#&gt; 3      b_t 1965    1 4468920   35363</span>
-<span class="co">#&gt; 4      b_t 1966    1 4388234   35363</span>
-<span class="co">#&gt; 5      b_t 1967    1 4269797   35363</span>
-<span class="co">#&gt; 6      b_t 1968    1 3336834   35363</span></code></pre></div>
+<span class="co">#&gt; 1      b_t 1963    1 2751938   67354</span>
+<span class="co">#&gt; 2      b_t 1964    1 2860427   67354</span>
+<span class="co">#&gt; 3      b_t 1965    1 2953593   67354</span>
+<span class="co">#&gt; 4      b_t 1966    1 3044164   67354</span>
+<span class="co">#&gt; 5      b_t 1967    1 3086992   67354</span>
+<span class="co">#&gt; 6      b_t 1968    1 3085193   67354</span></code></pre></div>
 <p>From there, we can generate some standard plots of B/Bmsy (b_div_bmsy), Catch/MSY, U/Umsy, and depletion over time using <code>plot_sraplus</code>.</p>
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R">
@@ -321,7 +328,7 @@
 <span class="co">#&gt; [1] "fishlife matched supplied species"</span>
 <span class="co">#&gt; </span>
 <span class="co">#&gt; $distinct_sir_draws</span>
-<span class="co">#&gt; [1] 1998</span>
+<span class="co">#&gt; [1] 2064</span>
 <span class="co">#&gt; </span>
 <span class="co">#&gt; $sir_convergence_plot</span></code></pre></div>
 <p><img src="sraplus_files/figure-html/unnamed-chunk-10-1.png" width="700"></p>
