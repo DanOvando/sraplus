@@ -513,8 +513,7 @@ fit_sraplus <- function(driors,
     outs <- stringr::str_detect(names(sra_fit), "_t")
     
     #     sra_fit$b_t[, keepers] -> a
-    # browser()
-    
+
     tidy_fits <-
       purrr::map_df(
         purrr::keep(sra_fit, outs),

@@ -5,6 +5,11 @@
 
 using namespace Rcpp;
 
+#ifdef RCPP_USE_GLOBAL_ROSTREAM
+Rcpp::Rostream<true>&  Rcpp::Rcout = Rcpp::Rcpp_cout_get();
+Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
+#endif
+
 // sraplus
 List sraplus(NumericVector catches, NumericVector rs, NumericVector ms, NumericVector init_deps, NumericVector anchors, NumericVector qs, NumericVector sigma_procs, NumericVector drawdex, NumericVector index_t, NumericVector sigma_obs, NumericVector log_terminal_u, NumericVector log_terminal_u_cv, IntegerVector index_years, IntegerVector u_years, int draws, int n_keep, int b_ref_type, int f_ref_type, int fit_index, int use_terminal_u, int use_terminal_state, bool estimate_k, double log_terminal_ref, double sigma_dep, double plim, int use_u_prior, NumericVector u_priors, double sigma_u, double learn_rate);
 RcppExport SEXP _sraplus_sraplus(SEXP catchesSEXP, SEXP rsSEXP, SEXP msSEXP, SEXP init_depsSEXP, SEXP anchorsSEXP, SEXP qsSEXP, SEXP sigma_procsSEXP, SEXP drawdexSEXP, SEXP index_tSEXP, SEXP sigma_obsSEXP, SEXP log_terminal_uSEXP, SEXP log_terminal_u_cvSEXP, SEXP index_yearsSEXP, SEXP u_yearsSEXP, SEXP drawsSEXP, SEXP n_keepSEXP, SEXP b_ref_typeSEXP, SEXP f_ref_typeSEXP, SEXP fit_indexSEXP, SEXP use_terminal_uSEXP, SEXP use_terminal_stateSEXP, SEXP estimate_kSEXP, SEXP log_terminal_refSEXP, SEXP sigma_depSEXP, SEXP plimSEXP, SEXP use_u_priorSEXP, SEXP u_priorsSEXP, SEXP sigma_uSEXP, SEXP learn_rateSEXP) {
