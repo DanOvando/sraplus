@@ -360,8 +360,6 @@ cpue_driors <- format_driors(taxa = example_taxa,
                            years = sim$pop$year,
                            effort = sim$pop$effort,
                            effort_years = sim$pop$year,
-                           # growth_rate_prior = 0.4,
-                           # growth_rate_prior_cv = 0.1,
                            shape_prior = 1.01,
                            q_slope_prior = 0,
                            q_slope_prior_cv = 0.2)
@@ -383,8 +381,6 @@ cpue_qslope_driors <- format_driors(taxa = example_taxa,
                            years = sim$pop$year,
                            effort = sim$pop$effort,
                            effort_years = sim$pop$year,
-                           # growth_rate_prior = 0.4,
-                           # growth_rate_prior_cv = 0.1,
                            shape_prior = 1.01,
                            q_slope_prior = 0.025,
                            q_slope_prior_cv = 0.05)
@@ -414,10 +410,8 @@ As a final step, we can try adding in some fictional SAR data to our fake fisher
 cpue_sar_qslope_driors <- format_driors(taxa = example_taxa,
                            catch = sim$pop$catch,
                            years = sim$pop$year,
-                           effort = sim$pop$effort[20:25],
-                           effort_years = sim$pop$year[20:25],
-                           # growth_rate_prior = 0.4,
-                           # growth_rate_prior_cv = 0.1,
+                           effort = sim$pop$effort,
+                           effort_years = sim$pop$year,
                            shape_prior = 1.01,
                            q_slope_prior = 0.025,
                            q_slope_prior_cv = 0.25,
@@ -437,6 +431,7 @@ cpue_sar_qslope_fit <- fit_sraplus(driors = cpue_sar_qslope_driors,
                              estimate_proc_error = FALSE)
 
 plot_sraplus(cpue_sar_qslope_fit, years = cpue_sar_qslope_driors$years)
+
 ```
 
 And for good measure one more with SAR data and process error instead of qslope
@@ -448,8 +443,6 @@ cpue_sar_proc_driors <- format_driors(taxa = example_taxa,
                            years = sim$pop$year,
                            effort = sim$pop$effort,
                            effort_years = sim$pop$year,
-                           # growth_rate_prior = 0.4,
-                           # growth_rate_prior_cv = 0.1,
                            shape_prior = 1.01,
                            q_slope_prior = 0,
                            q_slope_prior_cv = 0.25,
@@ -471,7 +464,7 @@ cpue_sar_proc_fit <- fit_sraplus(driors = cpue_sar_proc_driors,
 
 ```{r}
 
-plot_sraplus(`no rocess error and no qslope ` = cpue_fit, 
+plot_sraplus(`no process error and no qslope ` = cpue_fit, 
              `no process error with qslope` =  cpue_qslope_fit, 
              `no process error with qslope and sar` = cpue_sar_qslope_fit,
              `process error and sar` = cpue_sar_proc_fit,

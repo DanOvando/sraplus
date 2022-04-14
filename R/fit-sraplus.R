@@ -77,8 +77,8 @@ fit_sraplus <- function(driors,
                         eval.max = 200,
                         iter.max = 150,
                         rel.tol = 1e-10,
-                        loopnum = 1,
-                        newtonsteps = 1,
+                        loopnum = 2,
+                        newtonsteps = 0,
                         tune_prior_predictive = TRUE,
                         index_fit_tuner = "sir",
                         refresh = 250,
@@ -911,7 +911,7 @@ fit_sraplus <- function(driors,
     } else if (engine == "tmb") {
       set.seed(seed)
       
-      fit <- TMBhelper::fit_tmb(
+      fit <- fit_tmb(
         sra_model,
         fn = sra_model$fn,
         gr = sra_model$gr,
@@ -944,7 +944,7 @@ fit_sraplus <- function(driors,
       #   ))
       
       if (fit$max_gradient > 1e-3 & try_again == TRUE) {
-        fit <- TMBhelper::fit_tmb(
+        fit <- fit_tmb(
           sra_model,
           fn = sra_model$fn,
           gr = sra_model$gr,

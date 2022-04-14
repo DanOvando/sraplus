@@ -19,6 +19,8 @@
 <![endif]-->
 </head>
 <body data-spy="scroll" data-target="#toc">
+    
+
     <div class="container template-home">
       <header><div class="navbar navbar-default navbar-fixed-top" role="navigation">
   <div class="container">
@@ -31,18 +33,12 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="index.html">sraplus</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">3.7.3</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">3.7.4</span>
       </span>
     </div>
 
     <div id="navbar" class="navbar-collapse collapse">
       <ul class="nav navbar-nav">
-<li>
-  <a href="index.html">
-    <span class="fas fa-home fa-lg"></span>
-     
-  </a>
-</li>
 <li>
   <a href="articles/sraplus.html">Get started</a>
 </li>
@@ -67,7 +63,7 @@
       </ul>
 <ul class="nav navbar-nav navbar-right">
 <li>
-  <a href="https://github.com/DanOvando/sraplus/">
+  <a href="https://github.com/DanOvando/sraplus/" class="external-link">
     <span class="fab fa-github fa-lg"></span>
      
   </a>
@@ -85,76 +81,76 @@
       </header><div class="row">
   <div class="contents col-md-9">
 
-<div id="sraplus" class="section level1">
-<div class="page-header"><h1 class="hasAnchor">
-<a href="#sraplus" class="anchor"></a>sraplus</h1></div>
+<div class="section level1">
+<div class="page-header"><h1 id="sraplus">sraplus<a class="anchor" aria-label="anchor" href="#sraplus"></a>
+</h1></div>
 <!-- [![Build Status](https://travis-ci.org/DanOvando/sraplus.svg?branch=v2.0)](https://travis-ci.org/DanOvando/sraplus) -->
 <!-- README.md is generated from README.Rmd. Please edit that file -->
-<p><code>sraplus</code> is a flexible assessment package based developed in <a href="https://onlinelibrary.wiley.com/doi/abs/10.1111/faf.12593">Ovando et al. 2021</a> At the most “data limited” end, the model approximates the behavior of catch-msy, sampling from prior distributions to obtain parameter values that given a catch history do not crash the population and satisfy supplied priors on initial and final depletion. At the most data rich end the model can be fit to an abundance index or catch-per-unit-effort data, while incorporating priors on recent stock status based on Fisheries Management Index (FMI) scores or swept-area ratio data.</p>
-<div id="installing" class="section level2">
-<h2 class="hasAnchor">
-<a href="#installing" class="anchor"></a>Installing</h2>
+<p><code>sraplus</code> is a flexible assessment package based developed in <a href="https://onlinelibrary.wiley.com/doi/abs/10.1111/faf.12593" class="external-link">Ovando et al. 2021</a> At the most “data limited” end, the model approximates the behavior of catch-msy, sampling from prior distributions to obtain parameter values that given a catch history do not crash the population and satisfy supplied priors on initial and final depletion. At the most data rich end the model can be fit to an abundance index or catch-per-unit-effort data, while incorporating priors on recent stock status based on Fisheries Management Index (FMI) scores or swept-area ratio data.</p>
+<div class="section level2">
+<h2 id="installing">Installing<a class="anchor" aria-label="anchor" href="#installing"></a>
+</h2>
 <p>This is an in-development package hosted on GitHub, so you will need to do a few things to install it.</p>
-<ol>
+<ol style="list-style-type: decimal">
 <li><p>open R</p></li>
 <li><p>If you don’t have the <code>devtools</code> package installed yet, run</p></li>
 </ol>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html">install.packages</a></span><span class="op">(</span><span class="st">"devtools"</span><span class="op">)</span></code></pre></div>
+<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"devtools"</span><span class="op">)</span></code></pre></div>
 <p>You’ll need to be connected to the internet.</p>
-<ol>
+<ol start="3" style="list-style-type: decimal">
 <li>Once <code>devtools</code> has been installed, you can then install <code>sraplus</code> by running</li>
 </ol>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu">remotes</span><span class="fu">::</span><span class="fu"><a href="https://remotes.r-lib.org/reference/install_github.html">install_github</a></span><span class="op">(</span><span class="st">"danovando/sraplus"</span><span class="op">)</span></code></pre></div>
+<code class="sourceCode R"><span class="fu">remotes</span><span class="fu">::</span><span class="fu"><a href="https://remotes.r-lib.org/reference/install_github.html" class="external-link">install_github</a></span><span class="op">(</span><span class="st">"danovando/sraplus"</span><span class="op">)</span></code></pre></div>
 <p>That’s probably going to ask you to install many other packages, agree to the prompts.</p>
-<div id="troubleshooting" class="section level3">
-<h3 class="hasAnchor">
-<a href="#troubleshooting" class="anchor"></a>Troubleshooting</h3>
+<div class="section level3">
+<h3 id="troubleshooting">Troubleshooting<a class="anchor" aria-label="anchor" href="#troubleshooting"></a>
+</h3>
 <p>Make sure you try the install with a fresh R session (go to “Session&gt;Restart R” to make sure)</p>
 <p>If you run into an error, first off try updating your R packages. From there….</p>
-<p>If your version of R is lower than 3.5, you might want to consider updating R itself. Updating from 3.51 to 3.52 shouldn’t be any hassle. BIG WARNING THOUGH, updating from say R 3.1 to 3.5 is a major update, and you’ll lose all your installed packages in the process. I recommend following the instructions <a href="https://www.datascienceriot.com/r/upgrade-R-packages/">here</a> to deal with that, but even with that fix it can take a while, so I don’t recommend doing a major R update if you’re on a deadline. There are also packages to help you with this process, specifically <a href="https://github.com/talgalili/installr/issues"><code>installR</code></a> for Windows and <a href="https://github.com/AndreaCirilloAC/updateR"><code>updateR</code></a> for Mac.</p>
+<p>If your version of R is lower than 3.5, you might want to consider updating R itself. Updating from 3.51 to 3.52 shouldn’t be any hassle. BIG WARNING THOUGH, updating from say R 3.1 to 3.5 is a major update, and you’ll lose all your installed packages in the process. I recommend following the instructions <a href="https://www.datascienceriot.com/r/upgrade-R-packages/" class="external-link">here</a> to deal with that, but even with that fix it can take a while, so I don’t recommend doing a major R update if you’re on a deadline. There are also packages to help you with this process, specifically <a href="https://github.com/talgalili/installr/issues" class="external-link"><code>installR</code></a> for Windows and <a href="https://github.com/AndreaCirilloAC/updateR" class="external-link"><code>updateR</code></a> for Mac.</p>
 <p>From there…</p>
 <ul>
-<li>On Windows, make sure you have the appropriate version of Rtools installed (<a href="https://cran.r-project.org/bin/windows/Rtools/">here</a>), most likely Rtools35 if you have R version 3.3 or higher
+<li>On Windows, make sure you have the appropriate version of Rtools installed (<a href="https://cran.r-project.org/bin/windows/Rtools/" class="external-link">here</a>), most likely Rtools35 if you have R version 3.3 or higher
 <ul>
 <li>Make sure that you select the box that says something about adding Rtools to the PATH variable</li>
 </ul>
 </li>
-<li>On macOS, there might be some issues with the your compiler. If you get an error that says something like <code>clang: error: unsupported option '-fopenmp'</code>, follow the instructions <a href="https://thecoatlessprofessor.com/programming/r-compiler-tools-for-rcpp-on-macos/">here</a>
+<li>On macOS, there might be some issues with the your compiler. If you get an error that says something like <code>clang: error: unsupported option '-fopenmp'</code>, follow the instructions <a href="https://thecoatlessprofessor.com/programming/r-compiler-tools-for-rcpp-on-macos/" class="external-link">here</a>
 </li>
 </ul>
 <p>Once you’ve tried those, restart your computer and try running</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html">install.packages</a></span><span class="op">(</span><span class="st">"devtools"</span><span class="op">)</span>
+<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"devtools"</span><span class="op">)</span>
 
-<span class="fu">remotes</span><span class="fu">::</span><span class="fu"><a href="https://remotes.r-lib.org/reference/install_github.html">install_github</a></span><span class="op">(</span><span class="st">"danovando/sraplus"</span><span class="op">)</span></code></pre></div>
+<span class="fu">remotes</span><span class="fu">::</span><span class="fu"><a href="https://remotes.r-lib.org/reference/install_github.html" class="external-link">install_github</a></span><span class="op">(</span><span class="st">"danovando/sraplus"</span><span class="op">)</span></code></pre></div>
 </div>
 </div>
 </div>
-<div id="example-use" class="section level1">
-<h1 class="hasAnchor">
-<a href="#example-use" class="anchor"></a>Example Use</h1>
+<div class="section level1">
+<h1 id="example-use">Example Use<a class="anchor" aria-label="anchor" href="#example-use"></a>
+</h1>
 <p>First, load libraries. These are the core libraries needed to run <code>sraplus</code>, all of which should have been installed for you if you didn’t already have them when you installed <code>sraplus</code>.</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org">ggplot2</a></span><span class="op">)</span>
-<span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://tidyr.tidyverse.org">tidyr</a></span><span class="op">)</span>
-<span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://dplyr.tidyverse.org">dplyr</a></span><span class="op">)</span>
-<span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://danovando.github.io/sraplus/">sraplus</a></span><span class="op">)</span>
-<span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va">tmbstan</span><span class="op">)</span>
-<span class="fu"><a href="https://rdrr.io/r/base/Sys.setenv.html">Sys.unsetenv</a></span><span class="op">(</span><span class="st">"PKG_CXXFLAGS"</span><span class="op">)</span></code></pre></div>
+<code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org" class="external-link">ggplot2</a></span><span class="op">)</span>
+<span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://tidyr.tidyverse.org" class="external-link">tidyr</a></span><span class="op">)</span>
+<span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://dplyr.tidyverse.org" class="external-link">dplyr</a></span><span class="op">)</span>
+<span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://danovando.github.io/sraplus/" class="external-link">sraplus</a></span><span class="op">)</span>
+<span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">tmbstan</span><span class="op">)</span>
+<span class="fu"><a href="https://rdrr.io/r/base/Sys.setenv.html" class="external-link">Sys.unsetenv</a></span><span class="op">(</span><span class="st">"PKG_CXXFLAGS"</span><span class="op">)</span></code></pre></div>
 <p>Once you’ve successfully installed <code>sraplus</code> you can take for a test drive with these examples. We’ll now work through a couple examples, from simple to complex, of using <code>sraplus</code></p>
-<div id="catch-only-sir-model" class="section level2">
-<h2 class="hasAnchor">
-<a href="#catch-only-sir-model" class="anchor"></a>“Catch-only” SIR model</h2>
+<div class="section level2">
+<h2 id="catch-only-sir-model">“Catch-only” SIR model<a class="anchor" aria-label="anchor" href="#catch-only-sir-model"></a>
+</h2>
 <p>For the first example we’ll use a sampling-importance-resampling (SIR) algorithm with a “catch-only” version of the model. In this mode, we use catch heuristics (in the manner of the @anderson2014 adaptation of Catch-MSY). The catch-heuristics are if catch in the first year is less than 70% of the maximum reported catch, we set an expectation of depletion in the initial year of 70% of carrying capacity. Otherwise, the expectation is 40% of carrying capacity. For final depletion, the heuristic prior is if catch in the final year is greater than 50% of maximum catch final depletion is assumed to be 60% of carrying capacity, otherwise 40% of carrying capacity.</p>
 <p>The first step in running <code>sraplus</code> is the <code><a href="reference/format_driors.html">sraplus::format_driors</a></code> (data and priors) function. In this case, we will use example data for Atlantic cod (<em>Gadus morhua</em>) that is included in the <code>sraplus</code> package.</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">example_taxa</span> <span class="op">&lt;-</span> <span class="st">"gadus morhua"</span>
 
-<span class="fu"><a href="https://rdrr.io/r/utils/data.html">data</a></span><span class="op">(</span><span class="va">cod</span><span class="op">)</span>
+<span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">cod</span><span class="op">)</span>
 
-<span class="fu"><a href="https://rdrr.io/r/utils/head.html">head</a></span><span class="op">(</span><span class="va">cod</span><span class="op">)</span>
+<span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">cod</span><span class="op">)</span>
 <span class="co">#&gt; # A tibble: 6 × 56</span>
 <span class="co">#&gt;   stockid scientificname commonname  year  catch stocklong.x TBmsybest ERmsybest</span>
 <span class="co">#&gt;   &lt;chr&gt;   &lt;chr&gt;          &lt;chr&gt;      &lt;int&gt;  &lt;dbl&gt; &lt;chr&gt;           &lt;dbl&gt;     &lt;dbl&gt;</span>
@@ -186,7 +182,7 @@
 <p><img src="reference/figures/README-c-msy-3-1.png" width="100%"></p>
 <p>From there, we pass the <code>driors</code> object to <code><a href="reference/fit_sraplus.html">sraplus::fit_sraplus</a></code>, and plot the results using <code><a href="reference/plot_sraplus.html">sraplus::plot_sraplus</a></code>. The <code>engine</code> argument specifies how the model will be fit. When not actually “fitting” to anything (rather simply sampling from priors that don’t crash the population), we recommend setting engine to “sir”. The <code>draws</code> argument tells <code>sraplus</code> how many draws from the SIR algorithm to generate, and <code>n_keep</code> how many draws to sample from the total <code>draws</code> iterations. So in this case the SIR algorithm will run 1 million iterations, and sample 2000 entries from those million in proportion to their likelihood.</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="va">sfs</span> <span class="op">&lt;-</span> <span class="fu">purrr</span><span class="fu">::</span><span class="fu"><a href="https://purrr.tidyverse.org/reference/safely.html">safely</a></span><span class="op">(</span><span class="va">fit_sraplus</span><span class="op">)</span>
+<code class="sourceCode R"><span class="va">sfs</span> <span class="op">&lt;-</span> <span class="fu">purrr</span><span class="fu">::</span><span class="fu"><a href="https://purrr.tidyverse.org/reference/safely.html" class="external-link">safely</a></span><span class="op">(</span><span class="va">fit_sraplus</span><span class="op">)</span>
 
  <span class="va">catch_only_fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/fit_sraplus.html">fit_sraplus</a></span><span class="op">(</span>driors <span class="op">=</span> <span class="va">catch_only_driors</span>,
                        engine <span class="op">=</span> <span class="st">"sir"</span>,
@@ -202,35 +198,35 @@
 <p>Running <code>fit_sraplus</code> always produces a list with two objects: <code>results</code> and <code>fit</code>. <code>results</code> is (mostly) standardized across engines set of summary outputs from the fitted model. This allows us to easily plot and compare outputs from models fit using <code>sir</code>, TMB, or stan. The <code>fit</code> object contains the actual fitted model, which will of course vary dramatically depending on what engine was used.</p>
 <p>Let’s take a quick look at the <code>results</code> object.</p>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/utils/head.html">head</a></span><span class="op">(</span><span class="va">catch_only_fit</span><span class="op">$</span><span class="va">results</span><span class="op">)</span>
+<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">catch_only_fit</span><span class="op">$</span><span class="va">results</span><span class="op">)</span>
 <span class="co">#&gt; # A tibble: 6 × 6</span>
-<span class="co">#&gt;    year variable           mean           sd       lower       upper</span>
-<span class="co">#&gt;   &lt;dbl&gt; &lt;chr&gt;             &lt;dbl&gt;        &lt;dbl&gt;       &lt;dbl&gt;       &lt;dbl&gt;</span>
-<span class="co">#&gt; 1  1963 b_div_bmsy        0.616       0.131        0.511       0.727</span>
-<span class="co">#&gt; 2  1963 b           4532156.    4248730.     1911429.    8853614.   </span>
-<span class="co">#&gt; 3  1963 c_div_msy         0.319       0.102        0.149       0.473</span>
-<span class="co">#&gt; 4  1963 crashed           0           0            0           0    </span>
-<span class="co">#&gt; 5  1963 depletion         0.400       0.0371       0.341       0.459</span>
-<span class="co">#&gt; 6  1963 index_hat_t  223792.     226070.       28757.     532730.</span></code></pre></div>
+<span class="co">#&gt;    year variable           mean           sd       lower        upper</span>
+<span class="co">#&gt;   &lt;dbl&gt; &lt;chr&gt;             &lt;dbl&gt;        &lt;dbl&gt;       &lt;dbl&gt;        &lt;dbl&gt;</span>
+<span class="co">#&gt; 1  1963 b_div_bmsy        0.620       0.0887       0.505        0.747</span>
+<span class="co">#&gt; 2  1963 b           4675690.    3264646.     2174014.    10550101.   </span>
+<span class="co">#&gt; 3  1963 c_div_msy         0.304       0.107        0.107        0.441</span>
+<span class="co">#&gt; 4  1963 crashed           0           0            0            0    </span>
+<span class="co">#&gt; 5  1963 depletion         0.408       0.0431       0.343        0.491</span>
+<span class="co">#&gt; 6  1963 index_hat_t  244423.     225457.       30486.      559945.</span></code></pre></div>
 <p><code>results</code> is organized as a dataframe tracking different variables over years. <code>mean</code> is the mean value for a given variable, <code>sd</code> the estimated standard deviation around the mean, and <code>lower</code> and <code>upper</code> being the 10th and 90th percentiles of the estimates.</p>
 <p>You can access other variables from the raw <code>fit</code> object, though this is not standardized by engine and so requires knowing how to for example get outputs out of <code>stanfit</code> objects. In the <code>catch_only_fit</code>, the <code>fit</code> object is the output of the SIR algorithm.</p>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/utils/head.html">head</a></span><span class="op">(</span><span class="va">catch_only_fit</span><span class="op">$</span><span class="va">fit</span><span class="op">)</span>
+<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">catch_only_fit</span><span class="op">$</span><span class="va">fit</span><span class="op">)</span>
 <span class="co">#&gt;   variable year draw   value draw_id</span>
-<span class="co">#&gt; 1      b_t 1963    1 2895233     271</span>
-<span class="co">#&gt; 2      b_t 1964    1 3228957     271</span>
-<span class="co">#&gt; 3      b_t 1965    1 3372671     271</span>
-<span class="co">#&gt; 4      b_t 1966    1 3725657     271</span>
-<span class="co">#&gt; 5      b_t 1967    1 3849150     271</span>
-<span class="co">#&gt; 6      b_t 1968    1 3742800     271</span></code></pre></div>
+<span class="co">#&gt; 1      b_t 1963    1 5859097   53753</span>
+<span class="co">#&gt; 2      b_t 1964    1 4931092   53753</span>
+<span class="co">#&gt; 3      b_t 1965    1 5246869   53753</span>
+<span class="co">#&gt; 4      b_t 1966    1 5690475   53753</span>
+<span class="co">#&gt; 5      b_t 1967    1 5499910   53753</span>
+<span class="co">#&gt; 6      b_t 1968    1 5945906   53753</span></code></pre></div>
 <p>From there, we can generate some standard plots of B/Bmsy (b_div_bmsy), Catch/MSY, U/Umsy, and depletion over time using <code>plot_sraplus</code>.</p>
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu">sraplus</span><span class="fu">::</span><span class="fu"><a href="reference/plot_sraplus.html">plot_sraplus</a></span><span class="op">(</span>catch_only <span class="op">=</span> <span class="va">catch_only_fit</span>, years <span class="op">=</span> <span class="va">catch_only_driors</span><span class="op">$</span><span class="va">years</span><span class="op">)</span></code></pre></div>
 <p><img src="reference/figures/README-unnamed-chunk-9-1.png" width="100%"></p>
 </div>
-<div id="fisheries-management-index-and-swept-area-ratio" class="section level2">
-<h2 class="hasAnchor">
-<a href="#fisheries-management-index-and-swept-area-ratio" class="anchor"></a>Fisheries Management Index and Swept Area Ratio</h2>
+<div class="section level2">
+<h2 id="fisheries-management-index-and-swept-area-ratio">Fisheries Management Index and Swept Area Ratio<a class="anchor" aria-label="anchor" href="#fisheries-management-index-and-swept-area-ratio"></a>
+</h2>
 <p>Now suppose that we obtain some FMI and SAR data for this fishery. We can use these values to provide updated priors on current fishing mortality rates and stock status (see full report for details on how this is accomplished). Note that the FMI and SAR values year are entirely fictional and any resemblance to any real fishery is purely coincidental!</p>
 <p>You’ll notice that we now add a few more options to format_driors. We’ll manually set priors on initial depletion, with a prior of initial biomass equal to carrying capacity (<code>initial_state = 1</code>), with a standard deviation of 0.2. We’ll explicitly tell the model not to use catch heuristics (though you don’t always need to specify this, FALSE is the default). We’ll then pass the <code>driors</code> a swept area ratio of 2 (<code>sar = 2</code>), and a named vector of FMI scores (where FMI scores range from 0 to 1). Note that FMI scores should be obtained through the formal FMI survey process and not made up on the spot. W</p>
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
@@ -242,7 +238,7 @@
   initial_state_cv <span class="op">=</span> <span class="fl">0.25</span>,
   use_heuristics <span class="op">=</span> <span class="cn">FALSE</span>,
   sar <span class="op">=</span> <span class="fl">10</span>,
-  fmi <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"research"</span> <span class="op">=</span> <span class="fl">0.5</span>, <span class="st">"management"</span> <span class="op">=</span> <span class="fl">0.5</span>, <span class="st">"socioeconomics"</span> <span class="op">=</span> <span class="fl">0.5</span>, <span class="st">'enforcement'</span> <span class="op">=</span> <span class="fl">0.5</span><span class="op">)</span>,
+  fmi <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"research"</span> <span class="op">=</span> <span class="fl">0.5</span>, <span class="st">"management"</span> <span class="op">=</span> <span class="fl">0.5</span>, <span class="st">"socioeconomics"</span> <span class="op">=</span> <span class="fl">0.5</span>, <span class="st">'enforcement'</span> <span class="op">=</span> <span class="fl">0.5</span><span class="op">)</span>,
   sar_cv <span class="op">=</span> <span class="cn">NA</span>,
   use_b_reg <span class="op">=</span> <span class="cn">FALSE</span>,
   b_ref_type <span class="op">=</span> <span class="st">"k"</span><span class="op">)</span>
@@ -284,17 +280,17 @@
 <span class="co">#&gt; [1] "fishlife matched supplied species"</span>
 <span class="co">#&gt; </span>
 <span class="co">#&gt; $distinct_sir_draws</span>
-<span class="co">#&gt; [1] 1976</span>
+<span class="co">#&gt; [1] 2044</span>
 <span class="co">#&gt; </span>
 <span class="co">#&gt; $sir_convergence_plot</span></code></pre></div>
 <p><img src="reference/figures/README-unnamed-chunk-10-1.png" width="100%"></p>
 </div>
-<div id="abundance-index-via-maximum-likelihood" class="section level2">
-<h2 class="hasAnchor">
-<a href="#abundance-index-via-maximum-likelihood" class="anchor"></a>Abundance Index via Maximum Likelihood</h2>
+<div class="section level2">
+<h2 id="abundance-index-via-maximum-likelihood">Abundance Index via Maximum Likelihood<a class="anchor" aria-label="anchor" href="#abundance-index-via-maximum-likelihood"></a>
+</h2>
 <p>We’ll now try adding in some actual data to fit to. For illustration purposes (and since we’re no longer using FMI/SAR data which can’t really be simulated), we’ll use a simulated fishery. Let’s start with a very simple example,using a simple fishery simulator built into <code>sraplus</code>.</p>
 <div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">42</span><span class="op">)</span>
+<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">42</span><span class="op">)</span>
 <span class="va">sim</span> <span class="op">&lt;-</span>
   <span class="fu"><a href="reference/sraplus_simulator.html">sraplus_simulator</a></span><span class="op">(</span>
     sigma_proc <span class="op">=</span> <span class="fl">0.05</span>,
@@ -307,13 +303,13 @@
     init_u_umsy <span class="op">=</span> <span class="fl">1</span>
   <span class="op">)</span>
 
-<span class="va">sim</span><span class="op">$</span><span class="va">pop</span> <span class="op">%&gt;%</span> 
-  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html">select</a></span><span class="op">(</span><span class="va">year</span>, <span class="va">depletion</span>,<span class="va">catch</span>, <span class="va">effort</span>,<span class="va">u</span><span class="op">)</span> <span class="op">%&gt;%</span> 
-  <span class="fu"><a href="https://tidyr.tidyverse.org/reference/gather.html">gather</a></span><span class="op">(</span><span class="va">metric</span>, <span class="va">value</span>, <span class="op">-</span><span class="va">year</span><span class="op">)</span> <span class="op">%&gt;%</span> 
-  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span><span class="va">year</span>, <span class="va">value</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span> 
-  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html">geom_point</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> 
-  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/facet_wrap.html">facet_wrap</a></span><span class="op">(</span><span class="op">~</span><span class="va">metric</span>, scales <span class="op">=</span> <span class="st">"free_y"</span><span class="op">)</span> <span class="op">+</span> 
-  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">labs</a></span><span class="op">(</span>y <span class="op">=</span> <span class="st">"Value"</span>, x <span class="op">=</span> <span class="st">"Year"</span><span class="op">)</span> <span class="op">+</span> 
+<span class="va">sim</span><span class="op">$</span><span class="va">pop</span> <span class="op"><a href="reference/pipe.html">%&gt;%</a></span> 
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="va">year</span>, <span class="va">depletion</span>,<span class="va">catch</span>, <span class="va">effort</span>,<span class="va">u</span><span class="op">)</span> <span class="op"><a href="reference/pipe.html">%&gt;%</a></span> 
+  <span class="fu"><a href="https://tidyr.tidyverse.org/reference/gather.html" class="external-link">gather</a></span><span class="op">(</span><span class="va">metric</span>, <span class="va">value</span>, <span class="op">-</span><span class="va">year</span><span class="op">)</span> <span class="op"><a href="reference/pipe.html">%&gt;%</a></span> 
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span><span class="va">year</span>, <span class="va">value</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span> 
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html" class="external-link">geom_point</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> 
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/facet_wrap.html" class="external-link">facet_wrap</a></span><span class="op">(</span><span class="op">~</span><span class="va">metric</span>, scales <span class="op">=</span> <span class="st">"free_y"</span><span class="op">)</span> <span class="op">+</span> 
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span>y <span class="op">=</span> <span class="st">"Value"</span>, x <span class="op">=</span> <span class="st">"Year"</span><span class="op">)</span> <span class="op">+</span> 
   <span class="fu">sraplus</span><span class="fu">::</span><span class="fu"><a href="reference/theme_sraplus.html">theme_sraplus</a></span><span class="op">(</span><span class="op">)</span></code></pre></div>
 <p><img src="reference/figures/README-sim-index-1-1.png" width="100%"></p>
 <p>Now, let’s pretend that we have a perfect index of abundance, which is just <code>biomass * 1e-3</code>. We pass indices to <code>srplus</code> inside <code>format_driors</code> as <code>index</code> and <code>index_years</code>, where <code>index_years</code> is a vector of the same length of <code>index</code> specifying which years index data are available. Well now use Template Model Builder (TMB) to estimate stock status based on this index of abundance. We’ll add in some priors on the growth rate and the shape of the Pella-Tomlinson model (1.01 roughly corresponds to a Fox model, where Bmsy/K ~= 0.4). Note that we now set <code>engine = "tmb"</code> to fit the model via maximum likelihood using TMB.</p>
@@ -341,13 +337,13 @@
 <p><img src="reference/figures/README-unnamed-chunk-11-3.png" width="100%"></p>
 <p>Looks good, now let’s try something a bit trickier.</p>
 </div>
-<div id="fit-bayesian-cpue-model-with-stan" class="section level2">
-<h2 class="hasAnchor">
-<a href="#fit-bayesian-cpue-model-with-stan" class="anchor"></a>Fit Bayesian CPUE model with <code>stan</code>
+<div class="section level2">
+<h2 id="fit-bayesian-cpue-model-with-stan">Fit Bayesian CPUE model with <code>stan</code>
+<a class="anchor" aria-label="anchor" href="#fit-bayesian-cpue-model-with-stan"></a>
 </h2>
 <p>We’ll now simulate a fishery with random-walk effort dynamics, increasing catchability, and process error.</p>
 <div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">42</span><span class="op">)</span>
+<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">42</span><span class="op">)</span>
 
 <span class="va">sim</span> <span class="op">&lt;-</span>
   <span class="fu"><a href="reference/sraplus_simulator.html">sraplus_simulator</a></span><span class="op">(</span>
@@ -361,13 +357,13 @@
     init_u_umsy <span class="op">=</span> <span class="fl">0.75</span>
   <span class="op">)</span>
 
-<span class="va">sim</span><span class="op">$</span><span class="va">pop</span> <span class="op">%&gt;%</span> 
-  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html">select</a></span><span class="op">(</span><span class="va">year</span>, <span class="va">depletion</span>,<span class="va">catch</span>, <span class="va">effort</span>,<span class="va">u</span><span class="op">)</span> <span class="op">%&gt;%</span> 
-  <span class="fu"><a href="https://tidyr.tidyverse.org/reference/gather.html">gather</a></span><span class="op">(</span><span class="va">metric</span>, <span class="va">value</span>, <span class="op">-</span><span class="va">year</span><span class="op">)</span> <span class="op">%&gt;%</span> 
-  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span><span class="va">year</span>, <span class="va">value</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span> 
-  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html">geom_point</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> 
-  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/facet_wrap.html">facet_wrap</a></span><span class="op">(</span><span class="op">~</span><span class="va">metric</span>, scales <span class="op">=</span> <span class="st">"free_y"</span><span class="op">)</span> <span class="op">+</span> 
-  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">labs</a></span><span class="op">(</span>y <span class="op">=</span> <span class="st">"Value"</span>, x <span class="op">=</span> <span class="st">"Year"</span><span class="op">)</span> <span class="op">+</span> 
+<span class="va">sim</span><span class="op">$</span><span class="va">pop</span> <span class="op"><a href="reference/pipe.html">%&gt;%</a></span> 
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="va">year</span>, <span class="va">depletion</span>,<span class="va">catch</span>, <span class="va">effort</span>,<span class="va">u</span><span class="op">)</span> <span class="op"><a href="reference/pipe.html">%&gt;%</a></span> 
+  <span class="fu"><a href="https://tidyr.tidyverse.org/reference/gather.html" class="external-link">gather</a></span><span class="op">(</span><span class="va">metric</span>, <span class="va">value</span>, <span class="op">-</span><span class="va">year</span><span class="op">)</span> <span class="op"><a href="reference/pipe.html">%&gt;%</a></span> 
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span><span class="va">year</span>, <span class="va">value</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span> 
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html" class="external-link">geom_point</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> 
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/facet_wrap.html" class="external-link">facet_wrap</a></span><span class="op">(</span><span class="op">~</span><span class="va">metric</span>, scales <span class="op">=</span> <span class="st">"free_y"</span><span class="op">)</span> <span class="op">+</span> 
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span>y <span class="op">=</span> <span class="st">"Value"</span>, x <span class="op">=</span> <span class="st">"Year"</span><span class="op">)</span> <span class="op">+</span> 
   <span class="fu">sraplus</span><span class="fu">::</span><span class="fu"><a href="reference/theme_sraplus.html">theme_sraplus</a></span><span class="op">(</span><span class="op">)</span></code></pre></div>
 <p><img src="reference/figures/README-cpue-fit-1-1.png" width="100%"></p>
 <p>Now suppose we no longer have a perfect index of abundance, but instead data on the catch and effort (CPUE!). But, there are a few problems with these CPUE data. First, we know from the simulation that q is increasing over time, so simply treating Catch/Effort as an index of abundance will be biased (since a unit of effort in the past is not the same as a unit of effort in the present). Second, we need to account for diminishing returns from increasing amounts of effort, and in-season losses to natural mortality. <code>sraplus</code> provides some support to these problems. <code>sraplus</code> will estimate a q. If desired it allows the user to either specify an assumed slope in catchability (where <em>q</em><sub><em>t</em></sub> = <em>q</em><sub><em>t</em> − 1</sub> × *q<strong>s</strong>l<strong>o</strong>p**e*), or to attempt to estimate <code>qslope</code> directly. Second, given values of q and qslope (and estimates of natural mortality either supplied by the user or drawn from <code>FishLife</code>), <code>sraplus</code> uses the Baranov equation to translate effort into an effective fishing mortality rate.</p>
@@ -381,8 +377,6 @@
                            years <span class="op">=</span> <span class="va">sim</span><span class="op">$</span><span class="va">pop</span><span class="op">$</span><span class="va">year</span>,
                            effort <span class="op">=</span> <span class="va">sim</span><span class="op">$</span><span class="va">pop</span><span class="op">$</span><span class="va">effort</span>,
                            effort_years <span class="op">=</span> <span class="va">sim</span><span class="op">$</span><span class="va">pop</span><span class="op">$</span><span class="va">year</span>,
-                           <span class="co"># growth_rate_prior = 0.4,</span>
-                           <span class="co"># growth_rate_prior_cv = 0.1,</span>
                            shape_prior <span class="op">=</span> <span class="fl">1.01</span>,
                            q_slope_prior <span class="op">=</span> <span class="fl">0</span>,
                            q_slope_prior_cv <span class="op">=</span> <span class="fl">0.2</span><span class="op">)</span>
@@ -404,8 +398,6 @@
                            years <span class="op">=</span> <span class="va">sim</span><span class="op">$</span><span class="va">pop</span><span class="op">$</span><span class="va">year</span>,
                            effort <span class="op">=</span> <span class="va">sim</span><span class="op">$</span><span class="va">pop</span><span class="op">$</span><span class="va">effort</span>,
                            effort_years <span class="op">=</span> <span class="va">sim</span><span class="op">$</span><span class="va">pop</span><span class="op">$</span><span class="va">year</span>,
-                           <span class="co"># growth_rate_prior = 0.4,</span>
-                           <span class="co"># growth_rate_prior_cv = 0.1,</span>
                            shape_prior <span class="op">=</span> <span class="fl">1.01</span>,
                            q_slope_prior <span class="op">=</span> <span class="fl">0.025</span>,
                            q_slope_prior_cv <span class="op">=</span> <span class="fl">0.05</span><span class="op">)</span>
@@ -430,8 +422,6 @@
                            years <span class="op">=</span> <span class="va">sim</span><span class="op">$</span><span class="va">pop</span><span class="op">$</span><span class="va">year</span>,
                            effort <span class="op">=</span> <span class="va">sim</span><span class="op">$</span><span class="va">pop</span><span class="op">$</span><span class="va">effort</span>,
                            effort_years <span class="op">=</span> <span class="va">sim</span><span class="op">$</span><span class="va">pop</span><span class="op">$</span><span class="va">year</span>,
-                           <span class="co"># growth_rate_prior = 0.4,</span>
-                           <span class="co"># growth_rate_prior_cv = 0.1,</span>
                            shape_prior <span class="op">=</span> <span class="fl">1.01</span>,
                            q_slope_prior <span class="op">=</span> <span class="fl">0.025</span>,
                            q_slope_prior_cv <span class="op">=</span> <span class="fl">0.25</span>,
@@ -449,7 +439,6 @@
                              cores <span class="op">=</span> <span class="fl">1</span>,
                              estimate_qslope <span class="op">=</span> <span class="cn">TRUE</span>,
                              estimate_proc_error <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span>
-<span class="co">#&gt; Note that `getReportCovariance=FALSE` causes an error in `TMB::sdreport` when no ADREPORTed variables are present</span>
 
 <span class="fu"><a href="reference/plot_sraplus.html">plot_sraplus</a></span><span class="op">(</span><span class="va">cpue_sar_qslope_fit</span>, years <span class="op">=</span> <span class="va">cpue_sar_qslope_driors</span><span class="op">$</span><span class="va">years</span><span class="op">)</span></code></pre></div>
 <p><img src="reference/figures/README-unnamed-chunk-14-1.png" width="100%"></p>
@@ -460,8 +449,6 @@
                            years <span class="op">=</span> <span class="va">sim</span><span class="op">$</span><span class="va">pop</span><span class="op">$</span><span class="va">year</span>,
                            effort <span class="op">=</span> <span class="va">sim</span><span class="op">$</span><span class="va">pop</span><span class="op">$</span><span class="va">effort</span>,
                            effort_years <span class="op">=</span> <span class="va">sim</span><span class="op">$</span><span class="va">pop</span><span class="op">$</span><span class="va">year</span>,
-                           <span class="co"># growth_rate_prior = 0.4,</span>
-                           <span class="co"># growth_rate_prior_cv = 0.1,</span>
                            shape_prior <span class="op">=</span> <span class="fl">1.01</span>,
                            q_slope_prior <span class="op">=</span> <span class="fl">0</span>,
                            q_slope_prior_cv <span class="op">=</span> <span class="fl">0.25</span>,
@@ -480,7 +467,7 @@
                              estimate_qslope <span class="op">=</span> <span class="cn">FALSE</span>,
                              estimate_proc_error <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></code></pre></div>
 <div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu"><a href="reference/plot_sraplus.html">plot_sraplus</a></span><span class="op">(</span>`no rocess error and no qslope ` <span class="op">=</span> <span class="va">cpue_fit</span>, 
+<code class="sourceCode R"><span class="fu"><a href="reference/plot_sraplus.html">plot_sraplus</a></span><span class="op">(</span>`no process error and no qslope ` <span class="op">=</span> <span class="va">cpue_fit</span>, 
              `no process error with qslope` <span class="op">=</span>  <span class="va">cpue_qslope_fit</span>, 
              `no process error with qslope and sar` <span class="op">=</span> <span class="va">cpue_sar_qslope_fit</span>,
              `process error and sar` <span class="op">=</span> <span class="va">cpue_sar_proc_fit</span>,
@@ -497,8 +484,8 @@
 <p><img src="reference/figures/README-unnamed-chunk-18-1.png" width="100%"></p>
 <p>Or produce a summary table that can be saved to a .csv file.</p>
 <div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu"><a href="reference/summarize_sralpus.html">summarize_sralpus</a></span><span class="op">(</span><span class="va">cpue_sar_proc_fit</span>, output <span class="op">=</span> <span class="st">"table"</span><span class="op">)</span> <span class="op">%&gt;%</span> 
-  <span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html">kable</a></span><span class="op">(</span>digits <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></code></pre></div>
+<code class="sourceCode R"><span class="fu"><a href="reference/summarize_sralpus.html">summarize_sralpus</a></span><span class="op">(</span><span class="va">cpue_sar_proc_fit</span>, output <span class="op">=</span> <span class="st">"table"</span><span class="op">)</span> <span class="op"><a href="reference/pipe.html">%&gt;%</a></span> 
+  <span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span>digits <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></code></pre></div>
 <table class="table">
 <thead><tr class="header">
 <th align="left">variable</th>
@@ -745,47 +732,60 @@
 </table>
 </div>
 </div>
-<div id="implementing-references" class="section level1">
-<h1 class="hasAnchor">
-<a href="#implementing-references" class="anchor"></a>Implementing References</h1>
-<p>Ovando, D., Hilborn, R., Monnahan, C., Rudd, M., Sharma, R., Thorson, J.T., Rousseau, Y., Ye, Y., 2021. Improving estimates of the state of global fisheries depends on better data. Fish and Fisheries n/a. <a href="https://doi.org/10.1111/faf.12593" class="uri">https://doi.org/10.1111/faf.12593</a></p>
+<div class="section level1">
+<h1 id="implementing-references">Implementing References<a class="anchor" aria-label="anchor" href="#implementing-references"></a>
+</h1>
+<p>Ovando, D., Hilborn, R., Monnahan, C., Rudd, M., Sharma, R., Thorson, J.T., Rousseau, Y., Ye, Y., 2021. Improving estimates of the state of global fisheries depends on better data. Fish and Fisheries n/a. <a href="https://doi.org/10.1111/faf.12593" class="external-link uri">https://doi.org/10.1111/faf.12593</a></p>
 </div>
 
   </div>
 
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
     <div class="links">
-<h2>Links</h2>
+<h2 data-toc-skip>Links</h2>
 <ul class="list-unstyled">
-<li>Browse source code at <br><a href="https://github.com/DanOvando/sraplus/">https://​github.com/​DanOvando/​sraplus/​</a>
-</li>
+<li><a href="https://github.com/DanOvando/sraplus/" class="external-link">Browse source code</a></li>
 </ul>
 </div>
+
 <div class="license">
-<h2>License</h2>
+<h2 data-toc-skip>License</h2>
 <ul class="list-unstyled">
 <li>
-<a href="https://opensource.org/licenses/mit-license.php">MIT</a> + file <a href="LICENSE-text.html">LICENSE</a>
+<a href="https://opensource.org/licenses/mit-license.php" class="external-link">MIT</a> + file <a href="LICENSE-text.html">LICENSE</a>
 </li>
 </ul>
 </div>
+
+
+<div class="citation">
+<h2 data-toc-skip>Citation</h2>
+<ul class="list-unstyled">
+<li><a href="authors.html#citation">Citing sraplus</a></li>
+</ul>
+</div>
+
 <div class="developers">
-<h2>Developers</h2>
+<h2 data-toc-skip>Developers</h2>
 <ul class="list-unstyled">
 <li>Dan Ovando <br><small class="roles"> Maintainer </small>  </li>
 </ul>
 </div>
+
+
 
   </div>
 </div>
 
 
       <footer><div class="copyright">
-  <p>Developed by Dan Ovando.</p>
+  <p></p>
+<p>Developed by Dan Ovando.</p>
 </div>
 
 <div class="pkgdown">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.6.1.</p>
+  <p></p>
+<p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.2.</p>
 </div>
 
       </footer>
@@ -793,6 +793,8 @@
 
   
 
+
+  
 
   </body>
 </html>

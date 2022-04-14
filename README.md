@@ -205,14 +205,14 @@ Let’s take a quick look at the `results` object.
 ``` r
 head(catch_only_fit$results)
 #> # A tibble: 6 × 6
-#>    year variable           mean           sd       lower       upper
-#>   <dbl> <chr>             <dbl>        <dbl>       <dbl>       <dbl>
-#> 1  1963 b_div_bmsy        0.616       0.131        0.511       0.727
-#> 2  1963 b           4532156.    4248730.     1911429.    8853614.   
-#> 3  1963 c_div_msy         0.319       0.102        0.149       0.473
-#> 4  1963 crashed           0           0            0           0    
-#> 5  1963 depletion         0.400       0.0371       0.341       0.459
-#> 6  1963 index_hat_t  223792.     226070.       28757.     532730.
+#>    year variable           mean           sd       lower        upper
+#>   <dbl> <chr>             <dbl>        <dbl>       <dbl>        <dbl>
+#> 1  1963 b_div_bmsy        0.620       0.0887       0.505        0.747
+#> 2  1963 b           4675690.    3264646.     2174014.    10550101.   
+#> 3  1963 c_div_msy         0.304       0.107        0.107        0.441
+#> 4  1963 crashed           0           0            0            0    
+#> 5  1963 depletion         0.408       0.0431       0.343        0.491
+#> 6  1963 index_hat_t  244423.     225457.       30486.      559945.
 ```
 
 `results` is organized as a dataframe tracking different variables over
@@ -228,12 +228,12 @@ object is the output of the SIR algorithm.
 ``` r
 head(catch_only_fit$fit)
 #>   variable year draw   value draw_id
-#> 1      b_t 1963    1 2895233     271
-#> 2      b_t 1964    1 3228957     271
-#> 3      b_t 1965    1 3372671     271
-#> 4      b_t 1966    1 3725657     271
-#> 5      b_t 1967    1 3849150     271
-#> 6      b_t 1968    1 3742800     271
+#> 1      b_t 1963    1 5859097   53753
+#> 2      b_t 1964    1 4931092   53753
+#> 3      b_t 1965    1 5246869   53753
+#> 4      b_t 1966    1 5690475   53753
+#> 5      b_t 1967    1 5499910   53753
+#> 6      b_t 1968    1 5945906   53753
 ```
 
 From there, we can generate some standard plots of B/Bmsy
@@ -333,7 +333,7 @@ sraplus::diagnose_sraplus(fit = fmi_sar_fit, driors = fmi_sar_driors )
 #> [1] "fishlife matched supplied species"
 #> 
 #> $distinct_sir_draws
-#> [1] 1976
+#> [1] 2044
 #> 
 #> $sir_convergence_plot
 ```
@@ -492,8 +492,6 @@ cpue_driors <- format_driors(taxa = example_taxa,
                            years = sim$pop$year,
                            effort = sim$pop$effort,
                            effort_years = sim$pop$year,
-                           # growth_rate_prior = 0.4,
-                           # growth_rate_prior_cv = 0.1,
                            shape_prior = 1.01,
                            q_slope_prior = 0,
                            q_slope_prior_cv = 0.2)
@@ -515,8 +513,6 @@ cpue_qslope_driors <- format_driors(taxa = example_taxa,
                            years = sim$pop$year,
                            effort = sim$pop$effort,
                            effort_years = sim$pop$year,
-                           # growth_rate_prior = 0.4,
-                           # growth_rate_prior_cv = 0.1,
                            shape_prior = 1.01,
                            q_slope_prior = 0.025,
                            q_slope_prior_cv = 0.05)
@@ -554,8 +550,6 @@ cpue_sar_qslope_driors <- format_driors(taxa = example_taxa,
                            years = sim$pop$year,
                            effort = sim$pop$effort,
                            effort_years = sim$pop$year,
-                           # growth_rate_prior = 0.4,
-                           # growth_rate_prior_cv = 0.1,
                            shape_prior = 1.01,
                            q_slope_prior = 0.025,
                            q_slope_prior_cv = 0.25,
@@ -573,7 +567,6 @@ cpue_sar_qslope_fit <- fit_sraplus(driors = cpue_sar_qslope_driors,
                              cores = 1,
                              estimate_qslope = TRUE,
                              estimate_proc_error = FALSE)
-#> Note that `getReportCovariance=FALSE` causes an error in `TMB::sdreport` when no ADREPORTed variables are present
 
 plot_sraplus(cpue_sar_qslope_fit, years = cpue_sar_qslope_driors$years)
 ```
@@ -589,8 +582,6 @@ cpue_sar_proc_driors <- format_driors(taxa = example_taxa,
                            years = sim$pop$year,
                            effort = sim$pop$effort,
                            effort_years = sim$pop$year,
-                           # growth_rate_prior = 0.4,
-                           # growth_rate_prior_cv = 0.1,
                            shape_prior = 1.01,
                            q_slope_prior = 0,
                            q_slope_prior_cv = 0.25,
@@ -611,7 +602,7 @@ cpue_sar_proc_fit <- fit_sraplus(driors = cpue_sar_proc_driors,
 ```
 
 ``` r
-plot_sraplus(`no rocess error and no qslope ` = cpue_fit, 
+plot_sraplus(`no process error and no qslope ` = cpue_fit, 
              `no process error with qslope` =  cpue_qslope_fit, 
              `no process error with qslope and sar` = cpue_sar_qslope_fit,
              `process error and sar` = cpue_sar_proc_fit,

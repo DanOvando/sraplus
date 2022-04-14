@@ -22,7 +22,7 @@ plot_prior_posterior <- function(fit, driors,
     ggplot2::ggplot() +
     ggplot2::geom_line(aes(year, value, color = metric),size = 1, show.legend = FALSE) +
     ggplot2::geom_point(aes(year, value, color = metric),size = 2, show.legend = FALSE) +
-    ggplot2::geom_pointrange(aes(year, mean, ymin = lower, ymax = upper, color = "Fit"),alpha = 0.5) +
+    ggplot2::geom_pointrange(data = tmp$fits %>% dplyr::filter(!is.na(lower)),aes(year, mean, ymin = lower, ymax = upper, color = "Fit"),alpha = 0.5) +
     ggplot2::facet_grid(metric ~ ., scales = "free_y") +
     ggplot2::scale_y_continuous(name = "") +
     ggplot2::labs(x = "Year")  +
@@ -47,7 +47,7 @@ plot_prior_posterior <- function(fit, driors,
     prior_posterior_plot <- tmp$prior_posterior %>%
     ggplot2::ggplot() +
     ggplot2::geom_pointrange(aes(
-      variable,
+      x = variable,
       y = mean,
       ymin = lower,
       ymax = upper,
