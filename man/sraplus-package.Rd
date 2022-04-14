@@ -6,6 +6,13 @@
 \alias{sraplus-package}
 \title{sraplus: Run sraplus Assessments}
 \description{
-Runs assessments in the manner of Ovando et al 2019. Allows for SIR, Maximum LIkelihood, or HMC based fitting.
+Runs assessments in the manner of Ovando et al (2021). Allows for SIR, Maximum Likelihood, or HMC based fitting.
+}
+\seealso{
+Useful links:
+\itemize{
+  \item \url{https://danovando.github.io/sraplus/,https://github.com/DanOvando/sraplus}
+}
+
 }
 \keyword{internal}
