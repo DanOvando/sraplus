@@ -82,22 +82,15 @@ remotes::install_github("danovando/sraplus")
 
 # Example Use
 
-First, load libraries. These are the core libraries needed to run
-`sraplus`, all of which should have been installed for you if you didn’t
-already have them when you installed `sraplus`.
-
-``` r
-library(ggplot2)
-library(tidyr)
-library(dplyr)
-library(sraplus)
-library(tmbstan)
-Sys.unsetenv("PKG_CXXFLAGS")
-```
-
 Once you’ve successfully installed `sraplus` you can take for a test
 drive with these examples. We’ll now work through a couple examples,
 from simple to complex, of using `sraplus`
+
+First, load `sraplus`
+
+``` r
+library(sraplus)
+```
 
 ## “Catch-only” SIR model
 
@@ -207,12 +200,12 @@ head(catch_only_fit$results)
 #> # A tibble: 6 × 6
 #>    year variable           mean           sd       lower        upper
 #>   <dbl> <chr>             <dbl>        <dbl>       <dbl>        <dbl>
-#> 1  1963 b_div_bmsy        0.620       0.0887       0.505        0.747
-#> 2  1963 b           4675690.    3264646.     2174014.    10550101.   
-#> 3  1963 c_div_msy         0.304       0.107        0.107        0.441
+#> 1  1963 b_div_bmsy        0.622       0.0962       0.511        0.760
+#> 2  1963 b           5033112.    4241864.     2160439.    10905800.   
+#> 3  1963 c_div_msy         0.310       0.110        0.117        0.451
 #> 4  1963 crashed           0           0            0            0    
-#> 5  1963 depletion         0.408       0.0431       0.343        0.491
-#> 6  1963 index_hat_t  244423.     225457.       30486.      559945.
+#> 5  1963 depletion         0.405       0.0371       0.347        0.462
+#> 6  1963 index_hat_t  256714.     314161.       26465.      724054.
 ```
 
 `results` is organized as a dataframe tracking different variables over
@@ -228,12 +221,12 @@ object is the output of the SIR algorithm.
 ``` r
 head(catch_only_fit$fit)
 #>   variable year draw   value draw_id
-#> 1      b_t 1963    1 5859097   53753
-#> 2      b_t 1964    1 4931092   53753
-#> 3      b_t 1965    1 5246869   53753
-#> 4      b_t 1966    1 5690475   53753
-#> 5      b_t 1967    1 5499910   53753
-#> 6      b_t 1968    1 5945906   53753
+#> 1      b_t 1963    1 5653930   73661
+#> 2      b_t 1964    1 5840386   73661
+#> 3      b_t 1965    1 5774552   73661
+#> 4      b_t 1966    1 5702026   73661
+#> 5      b_t 1967    1 5320278   73661
+#> 6      b_t 1968    1 5385426   73661
 ```
 
 From there, we can generate some standard plots of B/Bmsy
@@ -333,7 +326,7 @@ sraplus::diagnose_sraplus(fit = fmi_sar_fit, driors = fmi_sar_driors )
 #> [1] "fishlife matched supplied species"
 #> 
 #> $distinct_sir_draws
-#> [1] 2044
+#> [1] 1987
 #> 
 #> $sir_convergence_plot
 ```
@@ -362,17 +355,15 @@ sim <-
     init_u_umsy = 1
   )
 
-sim$pop %>% 
-  select(year, depletion,catch, effort,u) %>% 
-  gather(metric, value, -year) %>% 
-  ggplot(aes(year, value)) + 
-  geom_point() + 
-  facet_wrap(~metric, scales = "free_y") + 
-  labs(y = "Value", x = "Year") + 
-  sraplus::theme_sraplus()
+# sim$pop %>% 
+#   dplyr::select(year, depletion,catch, effort,u) %>% 
+#   gather(metric, value, -year) %>% 
+#   ggplot(aes(year, value)) + 
+#   geom_point() + 
+#   facet_wrap(~metric, scales = "free_y") + 
+#   labs(y = "Value", x = "Year") + 
+#   sraplus::theme_sraplus()
 ```
-
-<img src="man/figures/README-sim-index-1-1.png" width="100%" />
 
 Now, let’s pretend that we have a perfect index of abundance, which is
 just `biomass * 1e-3`. We pass indices to `srplus` inside
@@ -438,17 +429,15 @@ sim <-
     init_u_umsy = 0.75
   )
 
-sim$pop %>% 
-  select(year, depletion,catch, effort,u) %>% 
-  gather(metric, value, -year) %>% 
-  ggplot(aes(year, value)) + 
-  geom_point() + 
-  facet_wrap(~metric, scales = "free_y") + 
-  labs(y = "Value", x = "Year") + 
-  sraplus::theme_sraplus()
+# sim$pop %>% 
+#   select(year, depletion,catch, effort,u) %>% 
+#   gather(metric, value, -year) %>% 
+#   ggplot(aes(year, value)) + 
+#   geom_point() + 
+#   facet_wrap(~metric, scales = "free_y") + 
+#   labs(y = "Value", x = "Year") + 
+#   sraplus::theme_sraplus()
 ```
-
-<img src="man/figures/README-cpue-fit-1-1.png" width="100%" />
 
 Now suppose we no longer have a perfect index of abundance, but instead
 data on the catch and effort (CPUE!). But, there are a few problems with
@@ -635,8 +624,7 @@ summarize_sralpus(cpue_sar_proc_fit, output = "plot")
 Or produce a summary table that can be saved to a .csv file.
 
 ``` r
-summarize_sralpus(cpue_sar_proc_fit, output = "table") %>% 
-  knitr::kable(digits = 2)
+knitr::kable(summarize_sralpus(cpue_sar_proc_fit, output = "table"), digits = 2) 
 ```
 
 | variable          |   mean |    sd |  lower |  upper | year |

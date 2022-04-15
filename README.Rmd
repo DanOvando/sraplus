@@ -71,19 +71,15 @@ remotes::install_github("danovando/sraplus")
 
 # Example Use
 
-First, load libraries. These are the core libraries needed to run `sraplus`, all of which should have been installed for you if you didn't already have them when you installed `sraplus`. 
+Once you've successfully installed `sraplus` you can take for a test drive with these examples. We'll now work through a couple examples, from simple to complex, of using `sraplus`
+
+
+First, load `sraplus`
 
 ```{r}
-library(ggplot2)
-library(tidyr)
-library(dplyr)
 library(sraplus)
-library(tmbstan)
-Sys.unsetenv("PKG_CXXFLAGS")
-
 ```
 
-Once you've successfully installed `sraplus` you can take for a test drive with these examples. We'll now work through a couple examples, from simple to complex, of using `sraplus`
 
 ## "Catch-only" SIR model
 
@@ -270,14 +266,14 @@ sim <-
     init_u_umsy = 1
   )
 
-sim$pop %>% 
-  select(year, depletion,catch, effort,u) %>% 
-  gather(metric, value, -year) %>% 
-  ggplot(aes(year, value)) + 
-  geom_point() + 
-  facet_wrap(~metric, scales = "free_y") + 
-  labs(y = "Value", x = "Year") + 
-  sraplus::theme_sraplus()
+# sim$pop %>% 
+#   dplyr::select(year, depletion,catch, effort,u) %>% 
+#   gather(metric, value, -year) %>% 
+#   ggplot(aes(year, value)) + 
+#   geom_point() + 
+#   facet_wrap(~metric, scales = "free_y") + 
+#   labs(y = "Value", x = "Year") + 
+#   sraplus::theme_sraplus()
 
 ```
 
@@ -331,14 +327,14 @@ sim <-
     init_u_umsy = 0.75
   )
 
-sim$pop %>% 
-  select(year, depletion,catch, effort,u) %>% 
-  gather(metric, value, -year) %>% 
-  ggplot(aes(year, value)) + 
-  geom_point() + 
-  facet_wrap(~metric, scales = "free_y") + 
-  labs(y = "Value", x = "Year") + 
-  sraplus::theme_sraplus()
+# sim$pop %>% 
+#   select(year, depletion,catch, effort,u) %>% 
+#   gather(metric, value, -year) %>% 
+#   ggplot(aes(year, value)) + 
+#   geom_point() + 
+#   facet_wrap(~metric, scales = "free_y") + 
+#   labs(y = "Value", x = "Year") + 
+#   sraplus::theme_sraplus()
 
 ```
 
@@ -495,8 +491,7 @@ summarize_sralpus(cpue_sar_proc_fit, output = "plot")
 Or produce a summary table that can be saved to a .csv file. 
 
 ```{r}
-summarize_sralpus(cpue_sar_proc_fit, output = "table") %>% 
-  knitr::kable(digits = 2)
+knitr::kable(summarize_sralpus(cpue_sar_proc_fit, output = "table"), digits = 2) 
 ```
 
 # Implementing References

@@ -237,8 +237,8 @@ format_driors <-
       
       temp <- dplyr::tibble(
         sar = sar,
-        c_div_max_c = last(catch / max(catch)),
-        c_div_mean_c = last(catch / mean(catch)),
+        c_div_max_c = dplyr::last(catch / max(catch)),
+        c_div_mean_c = dplyr::last(catch / mean(catch)),
         isscaap_group = isscaap_group,
         sar_2 = sar ^ 2
       )
@@ -277,9 +277,9 @@ format_driors <-
     if (any(!is.na(fmi))) {
       temp <- purrr::map_df(fmi,  ~ . + 1e-6)
       
-      temp$c_div_max_c = last(catch / max(catch))
+      temp$c_div_max_c = dplyr::last(catch / max(catch))
       
-      temp$c_div_mean_c = last(catch / mean(catch))
+      temp$c_div_mean_c = dplyr::last(catch / mean(catch))
       
       temp$isscaap_group = isscaap_group
       if (f_ref_type == "fmsy") {

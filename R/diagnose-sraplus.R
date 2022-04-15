@@ -44,16 +44,16 @@ diagnose_sraplus <- function(fit, driors) {
   
   if (fit$engine == "sir") {
     diagnostics$distinct_sir_draws <-
-      fit$fit$draw_id %>% n_distinct()
+      fit$fit$draw_id %>% dplyr::n_distinct()
     
     
     foo <- function(n_draws, fit) {
       draws <- sample(unique(fit$draw_id), n_draws, replace = FALSE)
       
       fit %>%
-        filter(draw_id %in% draws) %>%
+        dplyr::filter(draw_id %in% draws) %>%
         dplyr::group_by(variable, year) %>%
-        summarise(mean_value = mean(value))
+        dplyr::summarise(mean_value = mean(value))
       
     }
     
@@ -62,18 +62,13 @@ diagnose_sraplus <- function(fit, driors) {
       dplyr::mutate(samps = purrr::map(draws, foo, fit = fit$fit)) %>%
       tidyr::unnest(cols = samps)
     
-    # sub_samps %>%
-    #   ggplot(aes(year, mean_value, color = draws, group = draws)) +
-    #   geom_line() +
-    #   facet_wrap(~variable, scales = "free_y")
-    #
     diagnostics$sir_convergence_plot <- sub_samps %>%
-      filter(year == max(year)) %>%
-      ggplot(aes(draws, mean_value)) +
-      geom_line() +
-      facet_wrap(~ variable, scales = "free_y") +
-      scale_x_continuous(name = "# of unique SIR samples Used") +
-      scale_y_continuous(name = "Mean Terminal Value") +
+      dplyr::filter(year == max(year)) %>%
+      ggplot2::ggplot(aes(draws, mean_value)) +
+      ggplot2::geom_line() +
+      ggplot2::facet_wrap(~ variable, scales = "free_y") +
+      ggplot2::scale_x_continuous(name = "# of unique SIR samples Used") +
+      ggplot2::scale_y_continuous(name = "Mean Terminal Value") +
       theme_sraplus()
     
     

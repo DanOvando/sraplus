@@ -75,15 +75,15 @@ get_prior_posterior <- function(fit, driors,
                              effort = driors$effort)
     timeseries <- timeseries %>%
       dplyr::left_join(e_frame, by = "year") %>% 
-      mutate(cpue = catch / effort)
+      dplyr::mutate(cpue = catch / effort)
     
     cpue_fit <- fit$results %>% 
       dplyr::filter(variable == "index_hat_t") %>% 
       dplyr::select(mean,lower, upper) %>% 
       dplyr::mutate(metric = "cpue",
                     year = driors$years) %>% 
-      filter(year %in% driors$effort_years) %>% 
-      mutate(
+      dplyr::filter(year %in% driors$effort_years) %>% 
+      dplyr::mutate(
         meanmean = mean(mean),
         sdmean = sd(mean)) %>% 
       dplyr::mutate(mean = (mean - meanmean) / sdmean,

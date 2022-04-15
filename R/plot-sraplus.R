@@ -42,7 +42,7 @@ plot_sraplus <- function(..., fontsize = 14,
    dplyr::group_by(variable,fit) %>% {
    # dplyr::mutate(year = seq_along(mean)) %>% {
      if (!all(is.na(years))){
-       mutate(., year = years)
+       dplyr::mutate(., year = years)
      } else {
        .
      }
