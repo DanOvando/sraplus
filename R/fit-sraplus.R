@@ -168,7 +168,8 @@ fit_sraplus <- function(driors,
     estimate_qslope = estimate_qslope,
     estimate_f = estimate_f,
     f_prior_form = driors$f_prior_form,
-    learn_rate = learn_rate
+    learn_rate = learn_rate,
+    model  = "sraplus_tmb"
   )
   
   
@@ -474,13 +475,7 @@ fit_sraplus <- function(driors,
         dplyr::group_by(bin) %>%
         dplyr::summarise(p_bin = mean(likelihood, na.rm = TRUE))
       
-      #   browser()
-      #   
-      # bin_frame %>%
-      #   ggplot(aes(bin, p_bin)) +
-      #   geom_col() +
-      #   coord_flip()
-      #
+  
       draws <- data.frame(state = state) %>%
         dplyr::mutate(bin = as.character(
           cut(
@@ -579,7 +574,7 @@ fit_sraplus <- function(driors,
       
     }
     
-    sraplus::get_tmb_model(model_name = model_name)
+    # sraplus::get_tmb_model(model_name = model_name)
     
     lower_init_dep <- log(1e-3)
     
@@ -650,7 +645,7 @@ fit_sraplus <- function(driors,
             TMB::MakeADFun(
               data = sra_data,
               parameters = temp_inits,
-              DLL = model_name,
+              DLL = "sraplus_TMBExports",
               random = randos,
               silent = TRUE,
               inner.control = list(maxit = 1e6),
@@ -665,14 +660,7 @@ fit_sraplus <- function(driors,
           itframe$terminal_dep[i] <- a$dep_t[length(a$dep_t)]
           
         }
-        # browser()
-        #
-        # itframe %>%
-        #   ggplot(aes((log_r), (log_anchor), color = pens == 0)) +
-        #   geom_point()
-        
-        #
-        # lower_anchor <- log(1.25 * max(driors$catch))
+  
         lower_anchor <-
           0.9 * min(itframe$log_anchor[(itframe$pens == 0)])
         
@@ -702,7 +690,7 @@ fit_sraplus <- function(driors,
       TMB::MakeADFun(
         data = sra_data,
         parameters = inits,
-        DLL = model_name,
+        DLL = "sraplus_TMBExports",
         random = randos,
         silent = TRUE,
         inner.control = list(maxit = 1e6),
@@ -766,7 +754,7 @@ fit_sraplus <- function(driors,
                          adapt_delta = adapt_delta),
           refresh = refresh
         )
-      
+
       draws = tidybayes::tidy_draws(fit) %>%
         dplyr::group_by(.chain, .iteration, .draw) %>%
         tidyr::nest() %>% 
@@ -822,28 +810,8 @@ fit_sraplus <- function(driors,
         
       }
       draws$stack <- stacked_draws
-      # d <- Sys.time() - a
-      
-      #       draws <- draws %>%
-      #   dplyr::mutate(
-      #     pars = purrr_map(
-      #       data,
-      #       purrr::quietly(get_posterior),
-      #       inits = inits,
-      #       sra_data = sra_data,
-      #       model_name = model_name,
-      #       randos = randos,
-      #       knockout = knockout
-      #     )
-      #   ) %>%
-      #   dplyr::select(-data)
-      # 
-      # draws$pars <- purrr::map(draws$pars, "result")
-      # 
-      
+    
       draws <- draws %>%
-        # dplyr::mutate(stack = purrr::map(pars, stack_stan)) %>%
-        # dplyr::select(-pars) %>%
         tidyr::unnest(col = stack)
       
       draws <- draws %>%
@@ -858,17 +826,6 @@ fit_sraplus <- function(driors,
           draws$variable == "log_u" ~ "log_u_div_umsy",
           TRUE ~ draws$variable
         )
-      
-      
-      # logs <- draws %>%
-      #   dplyr::ungroup() %>%
-      #   dplyr::filter(stringr::str_detect(variable, "log_")) %>%
-      #   dplyr::mutate(value = exp(value)) %>%
-      #   dplyr::mutate(variable = stringr::str_remove_all(variable, "log_"))
-      #
-      # draws <- draws %>%
-      #   dplyr::filter(!stringr::str_detect(variable, "log_")) %>%
-      #   dplyr::bind_rows(logs)
       
       out <- draws %>%
         dplyr::group_by(variable, year) %>%
@@ -904,8 +861,6 @@ fit_sraplus <- function(driors,
       rm(sra_model)
       
       rm(fit)
-      
-      # dyn.unload(TMB::dynlib(file.path("tmb", model)))
       
       
     } else if (engine == "tmb") {

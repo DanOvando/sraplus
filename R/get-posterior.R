@@ -52,7 +52,7 @@ get_posterior <-  function(draws,
     TMB::MakeADFun(
       data = sra_data,
       parameters = pars,
-      DLL = model_name,
+      DLL = "sraplus_TMBExports",
       random = randos,
       silent = TRUE,
       inner.control = list(maxit = 1e3),

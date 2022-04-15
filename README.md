@@ -21,7 +21,7 @@ do a few things to install it.
 
 1.  open R
 
-2.  If you don’t have the `devtools` package installed yet, run
+2.  If you don’t have the `remotes` package installed yet, run
 
 ``` r
 install.packages("remotes")
@@ -29,8 +29,8 @@ install.packages("remotes")
 
 You’ll need to be connected to the internet.
 
-3.  Once `devtools` has been installed, you can then install `sraplus`
-    by running
+3.  Once `remotes` has been installed, you can then install `sraplus` by
+    running
 
 ``` r
 remotes::install_github("danovando/sraplus")
@@ -62,10 +62,11 @@ and [`updateR`](https://github.com/AndreaCirilloAC/updateR) for Mac.
 From there…
 
 -   On Windows, make sure you have the appropriate version of Rtools
-    installed ([here](https://cran.r-project.org/bin/windows/Rtools/)),
-    most likely Rtools35 if you have R version 3.3 or higher
+    installed ([here](https://cran.r-project.org/bin/windows/Rtools/))
     -   Make sure that you select the box that says something about
         adding Rtools to the PATH variable
+    -   See instructions
+        [here](https://cran.r-project.org/bin/windows/Rtools/)
 -   On macOS, there might be some issues with the your compiler. If you
     get an error that says something like
     `clang: error: unsupported option '-fopenmp'`, follow the
@@ -198,14 +199,14 @@ Let’s take a quick look at the `results` object.
 ``` r
 head(catch_only_fit$results)
 #> # A tibble: 6 × 6
-#>    year variable           mean           sd       lower        upper
-#>   <dbl> <chr>             <dbl>        <dbl>       <dbl>        <dbl>
-#> 1  1963 b_div_bmsy        0.615       0.0842       0.506        0.766
-#> 2  1963 b           4829142.    4674781.     2174769.    10317674.   
-#> 3  1963 c_div_msy         0.319       0.118        0.101        0.473
-#> 4  1963 crashed           0           0            0            0    
-#> 5  1963 depletion         0.403       0.0443       0.342        0.480
-#> 6  1963 index_hat_t  254653.     247809.       18358.      654146.
+#>    year variable           mean           sd       lower       upper
+#>   <dbl> <chr>             <dbl>        <dbl>       <dbl>       <dbl>
+#> 1  1963 b_div_bmsy        0.627       0.139        0.511       0.757
+#> 2  1963 b           4974912.    5139101.     2153058.    9721345.   
+#> 3  1963 c_div_msy         0.314       0.104        0.116       0.448
+#> 4  1963 crashed           0           0            0           0    
+#> 5  1963 depletion         0.403       0.0377       0.341       0.460
+#> 6  1963 index_hat_t  268257.     390301.       21826.     690020.
 ```
 
 `results` is organized as a dataframe tracking different variables over
@@ -221,12 +222,12 @@ object is the output of the SIR algorithm.
 ``` r
 head(catch_only_fit$fit)
 #>   variable year draw   value draw_id
-#> 1      b_t 1963    1 3409563   44501
-#> 2      b_t 1964    1 3599118   44501
-#> 3      b_t 1965    1 3741963   44501
-#> 4      b_t 1966    1 3815649   44501
-#> 5      b_t 1967    1 3893348   44501
-#> 6      b_t 1968    1 4104576   44501
+#> 1      b_t 1963    1 2556285   50488
+#> 2      b_t 1964    1 2685528   50488
+#> 3      b_t 1965    1 2923522   50488
+#> 4      b_t 1966    1 3021073   50488
+#> 5      b_t 1967    1 3075740   50488
+#> 6      b_t 1968    1 3168856   50488
 ```
 
 From there, we can generate some standard plots of B/Bmsy
@@ -326,7 +327,7 @@ sraplus::diagnose_sraplus(fit = fmi_sar_fit, driors = fmi_sar_driors )
 #> [1] "fishlife matched supplied species"
 #> 
 #> $distinct_sir_draws
-#> [1] 2060
+#> [1] 2016
 #> 
 #> $sir_convergence_plot
 ```

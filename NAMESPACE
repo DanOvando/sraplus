@@ -1,4 +1,4 @@
-useDynLib(sraplus, .registration=TRUE)
+useDynLib(sraplus, .registration=TRUE); useDynLib(sraplus_TMBExports)
 importFrom(Rcpp, evalCpp)
 exportPattern("^[[:alpha:]]+")
 importFrom(magrittr,"%>%")

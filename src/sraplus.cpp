@@ -3,7 +3,8 @@ using namespace Rcpp;
 
 NumericVector popmodel(const double r, const double k, const double m,const double b0,const double plim,const int years,const double sigma_proc,const NumericVector catches){
   
-  double growth_mult;
+  // double growth_mult;
+  double growth_mult = 1;
   
   NumericVector b_t(years,0.0);
   
@@ -17,22 +18,12 @@ NumericVector popmodel(const double r, const double k, const double m,const doub
       
       growth_mult = b_t(t - 1) / (plim * k);
       
-    } else {
-      growth_mult = 1;
     }
     
     b_t(t) = (b_t(t - 1) +  growth_mult * ((r  / (m - 1)) * b_t(t - 1) * (1 - pow(b_t(t - 1) / k,m - 1)))
                 - catches(t - 1)) *  exp(R::rnorm(-pow(sigma_proc,2)/2, sigma_proc));
     
     b_t(t) = std::max(0.0,b_t(t));
-    
-    // if ((b_t(t,i) / ks(i)) > 1.2){
-    //   
-    //   b_t(t,i) = 1.2 * ks(i);
-    //   
-    // }
-    
-    // std::cout << b_t(t) << std::endl;
     
     if (b_t(t) <= 0){
       
@@ -126,8 +117,6 @@ double learn_rate
     
     
   } else {
-    
-    double growth_mult;
     
     double delta;
     
