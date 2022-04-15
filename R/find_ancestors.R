@@ -7,7 +7,7 @@
 #' @return vector of row numbers of \code{ParentChild_gz} for ancestors (including \code{child_num})
 
 #' @export
-find_ancestors = function( child_num, Database=marlin::FishBase_and_RAM, ParentChild_gz=Database$ParentChild_gz ){
+find_ancestors = function( child_num, Database=sraplus::FishBase_and_RAM, ParentChild_gz=Database$ParentChild_gz ){
   
   # Search for all ancestors in the taxonomic tree
   family_nums = child_num

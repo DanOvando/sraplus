@@ -11,7 +11,7 @@ search_species(
   Genus = "predictive",
   Species = "predictive",
   add_ancestors = TRUE,
-  Database = marlin::FishBase_and_RAM,
+  Database = sraplus::FishBase_and_RAM,
   ParentChild_gz = Database$ParentChild_gz
 )
 }

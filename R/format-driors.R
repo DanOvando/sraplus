@@ -322,7 +322,7 @@ format_driors <-
     genus_species <-
       taxa %>% stringr::str_split(" ", simplify = TRUE)
     
-    safe <- purrr::safely(marlin::search_species)
+    safe <- purrr::safely(sraplus::search_species)
     
     shh <- purrr::quietly(safe)
     
@@ -369,18 +369,18 @@ format_driors <-
       
       
       taxa_location <-
-        grep(sp, marlin::FishBase_and_RAM$ParentChild_gz[, "ChildName"])[1]
+        grep(sp, sraplus::FishBase_and_RAM$ParentChild_gz[, "ChildName"])[1]
       
       # taxa_location <-
       #   grep(sp, FishLifeData$ParentChild_gz[, "ChildName"])[1]
       #
       
-      mean_lh <- marlin::FishBase_and_RAM$beta_gv[taxa_location,]
+      mean_lh <- sraplus::FishBase_and_RAM$beta_gv[taxa_location,]
       
       # mean_lh <- FishLifeData$beta_gv[taxa_location,]
       
       cov_lh <-
-        marlin::FishBase_and_RAM$Cov_gvv[taxa_location, ,]
+        sraplus::FishBase_and_RAM$Cov_gvv[taxa_location, ,]
       
       # cov_lh <- FishLifeData$Cov_gvv[taxa_location, ,]
       
@@ -446,13 +446,13 @@ format_driors <-
       }
     } else {
       mean_lh <-
-        c("r" = median(marlin::FishBase_and_RAM$beta_gv[, "r"]),
+        c("r" = median(sraplus::FishBase_and_RAM$beta_gv[, "r"]),
           m = exp(median(
-            marlin::FishBase_and_RAM$beta_gv[, "M"]
+            sraplus::FishBase_and_RAM$beta_gv[, "M"]
           )))
       
       f_msy <-
-        exp(median(marlin::FishBase_and_RAM$beta_gv[, "ln_Fmsy"]))
+        exp(median(sraplus::FishBase_and_RAM$beta_gv[, "ln_Fmsy"]))
       
       
       r_implied <-
@@ -460,8 +460,8 @@ format_driors <-
       
       cov_lh <-
         c(
-          "r" = sd(marlin::FishBase_and_RAM$beta_gv[, "r"]),
-          m = sd(marlin::FishBase_and_RAM$beta_gv[, "M"])
+          "r" = sd(sraplus::FishBase_and_RAM$beta_gv[, "r"]),
+          m = sd(sraplus::FishBase_and_RAM$beta_gv[, "M"])
         )
       
       if (shape_prior_source == "thorson" & is.na(shape_prior)) {

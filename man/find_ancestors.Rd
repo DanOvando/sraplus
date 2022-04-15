@@ -6,7 +6,7 @@
 \usage{
 find_ancestors(
   child_num,
-  Database = marlin::FishBase_and_RAM,
+  Database = sraplus::FishBase_and_RAM,
   ParentChild_gz = Database$ParentChild_gz
 )
 }

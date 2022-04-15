@@ -19,7 +19,7 @@
 
 #' @export
 search_species = function( Class="predictive", Order="predictive", Family="predictive", Genus="predictive", Species="predictive",
-                           add_ancestors=TRUE, Database=marlin::FishBase_and_RAM, ParentChild_gz=Database$ParentChild_gz ){
+                           add_ancestors=TRUE, Database=sraplus::FishBase_and_RAM, ParentChild_gz=Database$ParentChild_gz ){
   
   # Match full taxonomy from fishbase
   Match = 1:nrow(rfishbase::fishbase)
@@ -68,7 +68,7 @@ search_species = function( Class="predictive", Order="predictive", Family="predi
   
   # Pick out ancestors
   if( add_ancestors==TRUE ){
-    Group = marlin::find_ancestors(child_num=Group, ParentChild_gz=ParentChild_gz)
+    Group = sraplus::find_ancestors(child_num=Group, ParentChild_gz=ParentChild_gz)
   }
   
   # Function to add predictive to taxon name

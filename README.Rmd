@@ -26,7 +26,7 @@ This is an in-development package hosted on GitHub, so you will need to do a few
 
 1. open R
 
-2. If you don't have the `devtools` package installed yet, run
+2. If you don't have the `remotes` package installed yet, run
 
 ```{r, eval = FALSE}
 install.packages("remotes")
@@ -34,7 +34,7 @@ install.packages("remotes")
 
 You'll need to be connected to the internet.
 
-3. Once `devtools` has been installed, you can then install `sraplus` by running
+3. Once `remotes` has been installed, you can then install `sraplus` by running
 
 ```{r, eval = FALSE}
 remotes::install_github("danovando/sraplus")
