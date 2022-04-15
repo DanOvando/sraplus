@@ -96,7 +96,7 @@
 <li><p>If you don’t have the <code>devtools</code> package installed yet, run</p></li>
 </ol>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"devtools"</span><span class="op">)</span></code></pre></div>
+<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"remotes"</span><span class="op">)</span></code></pre></div>
 <p>You’ll need to be connected to the internet.</p>
 <ol start="3" style="list-style-type: decimal">
 <li>Once <code>devtools</code> has been installed, you can then install <code>sraplus</code> by running</li>
@@ -122,7 +122,7 @@
 </ul>
 <p>Once you’ve tried those, restart your computer and try running</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"devtools"</span><span class="op">)</span>
+<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"remotes"</span><span class="op">)</span>
 
 <span class="fu">remotes</span><span class="fu">::</span><span class="fu"><a href="https://remotes.r-lib.org/reference/install_github.html" class="external-link">install_github</a></span><span class="op">(</span><span class="st">"danovando/sraplus"</span><span class="op">)</span></code></pre></div>
 </div>
@@ -197,23 +197,23 @@
 <span class="co">#&gt; # A tibble: 6 × 6</span>
 <span class="co">#&gt;    year variable           mean           sd       lower        upper</span>
 <span class="co">#&gt;   &lt;dbl&gt; &lt;chr&gt;             &lt;dbl&gt;        &lt;dbl&gt;       &lt;dbl&gt;        &lt;dbl&gt;</span>
-<span class="co">#&gt; 1  1963 b_div_bmsy        0.622       0.0962       0.511        0.760</span>
-<span class="co">#&gt; 2  1963 b           5033112.    4241864.     2160439.    10905800.   </span>
-<span class="co">#&gt; 3  1963 c_div_msy         0.310       0.110        0.117        0.451</span>
+<span class="co">#&gt; 1  1963 b_div_bmsy        0.615       0.0842       0.506        0.766</span>
+<span class="co">#&gt; 2  1963 b           4829142.    4674781.     2174769.    10317674.   </span>
+<span class="co">#&gt; 3  1963 c_div_msy         0.319       0.118        0.101        0.473</span>
 <span class="co">#&gt; 4  1963 crashed           0           0            0            0    </span>
-<span class="co">#&gt; 5  1963 depletion         0.405       0.0371       0.347        0.462</span>
-<span class="co">#&gt; 6  1963 index_hat_t  256714.     314161.       26465.      724054.</span></code></pre></div>
+<span class="co">#&gt; 5  1963 depletion         0.403       0.0443       0.342        0.480</span>
+<span class="co">#&gt; 6  1963 index_hat_t  254653.     247809.       18358.      654146.</span></code></pre></div>
 <p><code>results</code> is organized as a dataframe tracking different variables over years. <code>mean</code> is the mean value for a given variable, <code>sd</code> the estimated standard deviation around the mean, and <code>lower</code> and <code>upper</code> being the 10th and 90th percentiles of the estimates.</p>
 <p>You can access other variables from the raw <code>fit</code> object, though this is not standardized by engine and so requires knowing how to for example get outputs out of <code>stanfit</code> objects. In the <code>catch_only_fit</code>, the <code>fit</code> object is the output of the SIR algorithm.</p>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">catch_only_fit</span><span class="op">$</span><span class="va">fit</span><span class="op">)</span>
 <span class="co">#&gt;   variable year draw   value draw_id</span>
-<span class="co">#&gt; 1      b_t 1963    1 5653930   73661</span>
-<span class="co">#&gt; 2      b_t 1964    1 5840386   73661</span>
-<span class="co">#&gt; 3      b_t 1965    1 5774552   73661</span>
-<span class="co">#&gt; 4      b_t 1966    1 5702026   73661</span>
-<span class="co">#&gt; 5      b_t 1967    1 5320278   73661</span>
-<span class="co">#&gt; 6      b_t 1968    1 5385426   73661</span></code></pre></div>
+<span class="co">#&gt; 1      b_t 1963    1 3409563   44501</span>
+<span class="co">#&gt; 2      b_t 1964    1 3599118   44501</span>
+<span class="co">#&gt; 3      b_t 1965    1 3741963   44501</span>
+<span class="co">#&gt; 4      b_t 1966    1 3815649   44501</span>
+<span class="co">#&gt; 5      b_t 1967    1 3893348   44501</span>
+<span class="co">#&gt; 6      b_t 1968    1 4104576   44501</span></code></pre></div>
 <p>From there, we can generate some standard plots of B/Bmsy (b_div_bmsy), Catch/MSY, U/Umsy, and depletion over time using <code>plot_sraplus</code>.</p>
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu">sraplus</span><span class="fu">::</span><span class="fu"><a href="reference/plot_sraplus.html">plot_sraplus</a></span><span class="op">(</span>catch_only <span class="op">=</span> <span class="va">catch_only_fit</span>, years <span class="op">=</span> <span class="va">catch_only_driors</span><span class="op">$</span><span class="va">years</span><span class="op">)</span></code></pre></div>
@@ -275,7 +275,7 @@
 <span class="co">#&gt; [1] "fishlife matched supplied species"</span>
 <span class="co">#&gt; </span>
 <span class="co">#&gt; $distinct_sir_draws</span>
-<span class="co">#&gt; [1] 1987</span>
+<span class="co">#&gt; [1] 2060</span>
 <span class="co">#&gt; </span>
 <span class="co">#&gt; $sir_convergence_plot</span></code></pre></div>
 <p><img src="reference/figures/README-unnamed-chunk-10-1.png" width="100%"></p>

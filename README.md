@@ -24,7 +24,7 @@ do a few things to install it.
 2.  If you don’t have the `devtools` package installed yet, run
 
 ``` r
-install.packages("devtools")
+install.packages("remotes")
 ```
 
 You’ll need to be connected to the internet.
@@ -75,7 +75,7 @@ From there…
 Once you’ve tried those, restart your computer and try running
 
 ``` r
-install.packages("devtools")
+install.packages("remotes")
 
 remotes::install_github("danovando/sraplus")
 ```
@@ -200,12 +200,12 @@ head(catch_only_fit$results)
 #> # A tibble: 6 × 6
 #>    year variable           mean           sd       lower        upper
 #>   <dbl> <chr>             <dbl>        <dbl>       <dbl>        <dbl>
-#> 1  1963 b_div_bmsy        0.622       0.0962       0.511        0.760
-#> 2  1963 b           5033112.    4241864.     2160439.    10905800.   
-#> 3  1963 c_div_msy         0.310       0.110        0.117        0.451
+#> 1  1963 b_div_bmsy        0.615       0.0842       0.506        0.766
+#> 2  1963 b           4829142.    4674781.     2174769.    10317674.   
+#> 3  1963 c_div_msy         0.319       0.118        0.101        0.473
 #> 4  1963 crashed           0           0            0            0    
-#> 5  1963 depletion         0.405       0.0371       0.347        0.462
-#> 6  1963 index_hat_t  256714.     314161.       26465.      724054.
+#> 5  1963 depletion         0.403       0.0443       0.342        0.480
+#> 6  1963 index_hat_t  254653.     247809.       18358.      654146.
 ```
 
 `results` is organized as a dataframe tracking different variables over
@@ -221,12 +221,12 @@ object is the output of the SIR algorithm.
 ``` r
 head(catch_only_fit$fit)
 #>   variable year draw   value draw_id
-#> 1      b_t 1963    1 5653930   73661
-#> 2      b_t 1964    1 5840386   73661
-#> 3      b_t 1965    1 5774552   73661
-#> 4      b_t 1966    1 5702026   73661
-#> 5      b_t 1967    1 5320278   73661
-#> 6      b_t 1968    1 5385426   73661
+#> 1      b_t 1963    1 3409563   44501
+#> 2      b_t 1964    1 3599118   44501
+#> 3      b_t 1965    1 3741963   44501
+#> 4      b_t 1966    1 3815649   44501
+#> 5      b_t 1967    1 3893348   44501
+#> 6      b_t 1968    1 4104576   44501
 ```
 
 From there, we can generate some standard plots of B/Bmsy
@@ -326,7 +326,7 @@ sraplus::diagnose_sraplus(fit = fmi_sar_fit, driors = fmi_sar_driors )
 #> [1] "fishlife matched supplied species"
 #> 
 #> $distinct_sir_draws
-#> [1] 1987
+#> [1] 2060
 #> 
 #> $sir_convergence_plot
 ```

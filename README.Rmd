@@ -29,7 +29,7 @@ This is an in-development package hosted on GitHub, so you will need to do a few
 2. If you don't have the `devtools` package installed yet, run
 
 ```{r, eval = FALSE}
-install.packages("devtools")
+install.packages("remotes")
 ```
 
 You'll need to be connected to the internet.
@@ -61,7 +61,7 @@ Once you've tried those, restart your computer and try running
 
 ```{r, eval = FALSE}
 
-install.packages("devtools")
+install.packages("remotes")
 
 remotes::install_github("danovando/sraplus")
 
