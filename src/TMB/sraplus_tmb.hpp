@@ -1,4 +1,10 @@
-#include <TMB.hpp>
+/// @file sraplus_tmb.hpp
+
+#ifndef sraplus_tmb_hpp
+#define sraplus_tmb_hpp
+
+#undef TMB_OBJECTIVE_PTR
+#define TMB_OBJECTIVE_PTR obj
 
 template<class Type>
 Type growfoo(Type r, Type m, Type b, Type plim)
@@ -49,8 +55,7 @@ vector<Type> popmodel(Type r, Type m, Type k, Type b0, vector<Type> catches, vec
 }
 
 template<class Type>
-Type objective_function<Type>::operator() ()
-{
+Type sraplus_tmb(objective_function<Type>* obj){
   
   //// data and all that ////
   
@@ -698,3 +703,9 @@ Type objective_function<Type>::operator() ()
   
   return nll;
 }
+
+#undef TMB_OBJECTIVE_PTR
+#define TMB_OBJECTIVE_PTR this
+
+#endif
+
