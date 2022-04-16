@@ -19,7 +19,7 @@ all: $(SHLIB)
 $(SHLIB): tmblib
 
 tmblib: 
-	ls
+	ls -a
 	(cd TMB; $(R_HOME)/bin$(R_ARCH_BIN)/Rscript \
 	--no-save --no-restore compile.R '$(TMB_FLAGS)')
 
