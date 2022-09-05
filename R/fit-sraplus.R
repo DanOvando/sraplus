@@ -1,7 +1,8 @@
 #' Run sraplus
 #'
-#' The main function for taking an object created by \code{format_driors} and fitting a
+#' The main function for taking an object created by \code{format_driors} and fitting a surplus production
 #' model using \code{sraplus}
+#' 
 #'
 #' @param driors a list of driors passed from sraplus::format_driors
 #' @param include_fit logical indicating whether to return the fitted object
@@ -24,23 +25,23 @@
 #' @param estimate_proc_error logical indicating whether to estimate process errors.
 #' If FALSE process errors are not included in the model
 #' @param ci confidence/credible interval range for summaries
-#' @param estimate_k
-#' @param estimate_f
-#' @param learn_rate
-#' @param analytical_q
-#' @param use_baranov
-#' @param include_m
-#' @param try_again
-#' @param eps
-#' @param max_time
-#' @param eval.max
-#' @param iter.max
-#' @param rel.tol
-#' @param loopnum
-#' @param newtonsteps
-#' @param tune_prior_predictive
-#' @param refresh
-#' @param ...
+#' @param estimate_k estimate carrying capacity
+#' @param estimate_f estimate fishing mortality
+#' @param learn_rate learn_rate for HMC
+#' @param analytical_q use analytical q instead of empirical
+#' @param use_baranov use baranov catch equation
+#' @param include_m include natural mortality (deprecated)
+#' @param try_again try fit again with adjusted starting guess
+#' @param eps eps for nlminb
+#' @param max_time max_time for nlminb 
+#' @param eval.max eval.max for nlminb
+#' @param iter.max iter.max for nlminb
+#' @param rel.tol for nlminb
+#' @param loopnum for nlminb
+#' @param newtonsteps for TMBhelper
+#' @param tune_prior_predictive tune prior predictive to resolve borel's paradox
+#' @param refresh refresh rate for Stan
+#' @param ... additional parameters
 #'
 #' @return a fitted sraplus object
 #' @export
@@ -87,8 +88,9 @@ fit_sraplus <- function(driors,
                         thin_draws = FALSE,
                         thin_rate = 0.5,
                         ...) {
-  opts <- list(...)
+  opts <- list(...) # collect additional parameters
   
+  # in case TMB gets stuck
   if (max_time < Inf) {
     setTimeLimit(elapsed = max_time * 60, transient = TRUE)
     
@@ -96,19 +98,20 @@ fit_sraplus <- function(driors,
   knockout <-
     list() #parameters to knockout from TMB estimation using TMB::map
   
-  index_years <- driors$index_years
+  index_years <- driors$index_years # years for which an abundance index is available
   
-  effort_years <- driors$effort_years
+  effort_years <- driors$effort_years # years for which an effort index is available
   
-  time <- length(driors$catch)
+  time <- length(driors$catch) # number of time steps with catch data
   
   if (all(is.na(driors$effort))) {
     index_t = driors$index
     
   } else {
-    index_t = rep(0, length(driors$effort))
+    index_t = rep(0, length(driors$effort)) # prepare for effort based index
   }
 
+  # correct for log-transformation bias
   if (log_bias_correct){
     log_terminal_u <- driors$log_terminal_u - driors$log_terminal_u_cv^2/2
       
@@ -117,6 +120,7 @@ fit_sraplus <- function(driors,
     log_terminal_u <- driors$log_terminal_u
   }
   
+  # set up data needed to run SRA
   sra_data <- list(
     catch_t = driors$catch,
     index_t = index_t,
@@ -172,7 +176,7 @@ fit_sraplus <- function(driors,
     model  = "sraplus_tmb"
   )
   
-  
+  # prepare catchability priors
   if (sra_data$fit_index == 1 & sra_data$calc_cpue == 0 & is.na(driors$q_prior)) {
     q_prior = pmin(1e-2, median((sra_data$index_t / sra_data$catch_t[sra_data$index_years])))
     
@@ -195,12 +199,11 @@ fit_sraplus <- function(driors,
   
   sra_data$q_prior_cv = driors$q_prior_cv
   
+  # initial parameter values
   inits <- list(
     log_anchor = ifelse(estimate_k, log(driors$k_prior), log(0.42)),
     log_r = log(driors$growth_rate_prior),
-    # q = q_guess,
     log_q = log(q_prior),
-    # sigma_obs = (driors$sigma_obs_prior),
     log_sigma_obs = log(driors$sigma_obs_prior),
     log_init_dep = log(0.99),
     log_sigma_ratio = log(driors$sigma_ratio_prior + 1e-6),
@@ -217,6 +220,7 @@ fit_sraplus <- function(driors,
     )
   )
   
+  # knockout things not being estimated 
   if (estimate_initial_state == 0) {
     knockout$log_init_dep <- NA
   }
@@ -234,18 +238,14 @@ fit_sraplus <- function(driors,
   
   if (sra_data$fit_index == 0) {
     knockout$log_q <- NA
-    # knockout$q <- NA
-    
+
     knockout$log_sigma_obs <- NA
-    
-    # knockout$sigma_obs <- NA
     
   }
   
-  # knockout$log_init_dep = NA
-  
   if (sra_data$fit_index == 0 & sra_data$use_u_prior == 0) {
-    knockout$log_sigma_ratio <- NA
+    
+     knockout$log_sigma_ratio <- NA
     
     knockout$log_proc_errors <- rep(NA, time - 1)
     
@@ -254,9 +254,7 @@ fit_sraplus <- function(driors,
     inits$log_proc_errors <- rep(0, time - 1)
     
     randos <- NULL
-    # randos <- "inv_f_t"
-    
-    # randos <- "log_f_t"
+
   }
   
   if (estimate_shape == FALSE) {
@@ -284,6 +282,7 @@ fit_sraplus <- function(driors,
   }
   
   
+  # deal with lack of process errors
   if (estimate_proc_error == FALSE) {
     knockout$log_proc_errors <- rep(NA, time - 1)
     
@@ -295,7 +294,7 @@ fit_sraplus <- function(driors,
     
   }
   
-  knockout <- purrr::map(knockout, as.factor)
+  knockout <- purrr::map(knockout, as.factor) # knockout parameters that aren't being estimated
   # fit models
   if (sra_data$fit_index == 0 |
       engine == "sir" | index_fit_tuner == "sir") {
@@ -307,11 +306,9 @@ fit_sraplus <- function(driors,
     if (sra_data$use_terminal_state == 0 &
         sra_data$use_terminal_u == 0 &
         sra_data$use_u_prior == 0 & is.na(driors$terminal_state)) {
-      # stop(
-      #   "Trying to run SIR without priors on terminal status or fishing mortality! Specify one or both of these"
-      # )
     }
     
+    # setup candidate pool of parameter values for SIR
     if (estimate_k == TRUE) {
       anchors <- rlnorm(draws,
                         sra_data$log_k_prior,
@@ -444,24 +441,7 @@ fit_sraplus <- function(driors,
       
       
       state_breaks <- seq(0, 10, by = .01)
-      
-      # state_bins <-
-      #   cut(state_breaks,
-      #       state_breaks,
-      #       include.lowest = FALSE,
-      #       right = FALSE)
-      
-      # edge_p <-
-      #   pnorm(log(state_breaks),
-      #         log(driors$terminal_state),
-      #         driors$terminal_state_cv)
-      # 
-      # p_bin <- dplyr::lead(edge_p) - (edge_p)
-      # 
-      # bin_frame <- data.frame(bin = state_bins, p_bin = p_bin) %>%
-      #   dplyr::mutate(bin = as.character(bin))
-      # 
-      
+
         bin_frame <-
         data.frame(state = state, likelihood = sra_fit$likelihood) %>%
         dplyr::mutate(bin = as.character(
@@ -507,8 +487,6 @@ fit_sraplus <- function(driors,
 
     outs <- stringr::str_detect(names(sra_fit), "_t")
     
-    #     sra_fit$b_t[, keepers] -> a
-
     tidy_fits <-
       purrr::map_df(
         purrr::keep(sra_fit, outs),
@@ -562,7 +540,6 @@ fit_sraplus <- function(driors,
     
     out$fit$year <- out$fit$year - 1 + min(driors$years)
     
-    # index_tests <- sra_fit$index_hat[, sra_fit$keepers]
   }
   
   if (engine != "sir") {
@@ -675,9 +652,7 @@ fit_sraplus <- function(driors,
                                    itframe$terminal_dep < 0.95])
         
       }
-      # lower_anchor <- -Inf
-      #
-      # upper_anchor <- Inf
+
     } else {
       lower_anchor = log(1e-3)
       
@@ -702,7 +677,6 @@ fit_sraplus <- function(driors,
     lower = rep(-Inf, length(sra_model$par)) %>%
       purrr::set_names(names(sra_model$par))
     
-    # lower['q'] <- 1e-10
     lower['log_anchor'] <- lower_anchor
     
     upper = rep(Inf, length(sra_model$par)) %>%
@@ -710,15 +684,8 @@ fit_sraplus <- function(driors,
     
     upper['log_anchor'] <- upper_anchor
     
-    # upper["log_init_dep"] <- log(1.5)
-    
-    # if (estimate_proc_error == FALSE & estimate_initial_state == TRUE){
-    
     if (estimate_initial_state == TRUE) {
       upper["log_init_dep"] <- log(1.05)
-      
-      
-      # lower["log_init_dep"] <- lower_init_dep
       
     }
     
@@ -768,8 +735,6 @@ fit_sraplus <- function(driors,
         
         
       }
-
-      # a <- Sys.time()
 
       if (.Platform$OS.type == "windows"){
       
@@ -881,22 +846,6 @@ fit_sraplus <- function(driors,
           rel.tol = rel.tol
         )
       )
-      # 
-      # fit2 <-
-      #   nlminb(
-      #     sra_model$par,
-      #     sra_model$fn,
-      #     sra_model$gr,
-      #     loopnum = loopnum,
-      #     newtonsteps = newtonsteps,
-      #     lower = lower,
-      #     upper = upper,
-      #     getsd = FALSE,
-      #     control = list(
-      #       eval.max = eval.max,
-      #       iter.max = iter.max,
-      #       rel.tol = rel.tol
-      #   ))
       
       if (fit$max_gradient > 1e-3 & try_again == TRUE) {
         fit <- fit_tmb(
@@ -987,17 +936,6 @@ fit_sraplus <- function(driors,
     
     
   } # close tmb or stan else
-  
-  
-  if (cleanup == TRUE) {
-    model_path <-
-      file.path(getwd(),
-                paste(model_name, utils::packageVersion("sraplus"), sep = '_v'))
-    
-    # dyn.unload(TMB::dynlib(file.path(model_path, model_name)))
-    
-    unlink(model_path, recursive = TRUE)
-  }
   
   out$engine <- engine
   

@@ -16,7 +16,7 @@ plot_prior_posterior <- function(fit, driors,
   tmp <- sraplus::get_prior_posterior(fit = fit, driors = driors, draws = draws, prob = prob)
   
   
-  if (tmp$any_fits){
+  if (tmp$any_fits & any(!is.na(tmp$fits$lower))){
     
     timeseries_plot <-  tmp$fits %>% 
     ggplot2::ggplot() +
@@ -57,8 +57,7 @@ plot_prior_posterior <- function(fit, driors,
     ggplot2::facet_wrap( ~ variable, scales = "free") +
     ggplot2::theme_classic() + 
     ggplot2::theme(legend.position = "top")
-  
-  
+
   patchwork::wrap_plots(timeseries_plot,
                         prior_posterior_plot, widths = c(1, 2))
   
