@@ -87,6 +87,7 @@ fit_sraplus <- function(driors,
                         workers = workers,
                         thin_draws = FALSE,
                         thin_rate = 0.5,
+                        catch_cv = 0.01,
                         ...) {
   opts <- list(...) # collect additional parameters
   
@@ -173,6 +174,7 @@ fit_sraplus <- function(driors,
     estimate_f = estimate_f,
     f_prior_form = driors$f_prior_form,
     learn_rate = learn_rate,
+    catch_cv = catch_cv,
     model  = "sraplus_tmb"
   )
   

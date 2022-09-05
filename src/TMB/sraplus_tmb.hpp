@@ -153,6 +153,7 @@ Type sraplus_tmb(objective_function<Type>* obj){
   
   DATA_SCALAR(sigma_obs_prior_cv);
   
+  DATA_SCALAR(catch_cv);
   
   //// parameters ////
   
@@ -423,7 +424,7 @@ Type sraplus_tmb(objective_function<Type>* obj){
         
       }
        
-      nll -= dnorm(log(catch_t(t) + 1e-3), log(temp_catch_t(t) + 1e-3), Type(0.01), true);
+      nll -= dnorm(log(catch_t(t) + 1e-3), log(temp_catch_t(t) + 1e-3), catch_cv, true);
       
     }
     

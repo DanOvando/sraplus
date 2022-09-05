@@ -2,10 +2,6 @@ library(tidyverse)
 
 library(sraplus)
 
-# library(tmbstan)
-
-Sys.unsetenv("PKG_CXXFLAGS")
-
 example_taxa <- "gadus morhua"
 
 
