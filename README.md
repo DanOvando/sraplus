@@ -4,7 +4,7 @@
 <!-- [![Build Status](https://travis-ci.org/DanOvando/sraplus.svg?branch=v2.0)](https://travis-ci.org/DanOvando/sraplus) -->
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-`sraplus` is a flexible assessment package based developed in [Ovando et
+`sraplus` is a flexible assessment package developed for [Ovando et
 al. 2021](https://onlinelibrary.wiley.com/doi/abs/10.1111/faf.12593) At
 the most “data limited” end, the model approximates the behavior of
 catch-msy, sampling from prior distributions to obtain parameter values
@@ -205,14 +205,14 @@ Let’s take a quick look at the `results` object.
 
 head(catch_only_fit$results)
 #> # A tibble: 6 × 6
-#>    year variable           mean           sd       lower        upper
-#>   <dbl> <chr>             <dbl>        <dbl>       <dbl>        <dbl>
-#> 1  1963 b_div_bmsy        0.606       0.0679       0.485        0.729
-#> 2  1963 b           4790800.    3456301.     2282987.    10659649.   
-#> 3  1963 c_div_msy         0.324       0.122        0.102        0.501
-#> 4  1963 crashed           0           0            0            0    
-#> 5  1963 depletion         0.399       0.0407       0.330        0.459
-#> 6  1963 index_hat_t  243347.     236865.       24172.      560343.
+#>    year variable           mean           sd        lower        upper
+#>   <dbl> <chr>             <dbl>        <dbl>        <dbl>        <dbl>
+#> 1  1963 b_div_bmsy        0.603       0.0671       0.506         0.732
+#> 2  1963 b           4901539.    4202559.     2359912.     12502963.   
+#> 3  1963 c_div_msy         0.318       0.112        0.0965        0.456
+#> 4  1963 crashed           0           0            0             0    
+#> 5  1963 depletion         0.398       0.0371       0.341         0.465
+#> 6  1963 index_hat_t  230310.     227807.       25521.       705955.
 ```
 
 `results` is organized as a dataframe tracking different variables over
@@ -228,12 +228,12 @@ object is the output of the SIR algorithm.
 ``` r
 head(catch_only_fit$fit)
 #>   variable year draw   value draw_id
-#> 1      b_t 1963    1 4318547   76682
-#> 2      b_t 1964    1 4281119   76682
-#> 3      b_t 1965    1 4298052   76682
-#> 4      b_t 1966    1 4433532   76682
-#> 5      b_t 1967    1 4430503   76682
-#> 6      b_t 1968    1 4495026   76682
+#> 1      b_t 1963    1 3601506   99624
+#> 2      b_t 1964    1 3695928   99624
+#> 3      b_t 1965    1 3775263   99624
+#> 4      b_t 1966    1 3776927   99624
+#> 5      b_t 1967    1 3834834   99624
+#> 6      b_t 1968    1 3805887   99624
 ```
 
 From there, we can generate some standard plots of B/Bmsy (b_div_bmsy),
@@ -335,7 +335,7 @@ sraplus::diagnose_sraplus(fit = fmi_sar_fit, driors = fmi_sar_driors )
 #> [1] "fishlife matched supplied species"
 #> 
 #> $distinct_sir_draws
-#> [1] 2034
+#> [1] 2029
 #> 
 #> $sir_convergence_plot
 ```
