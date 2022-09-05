@@ -6,7 +6,6 @@ inst/doc
 *.Rproj
 *.so
 *.Rhistory
-tmb/
 vignettes/tmb/
 tests/testthat/tmb/
 sraplus_tmb_*/

@@ -5,7 +5,3 @@ sraplus <- function(catches, rs, ms, init_deps, anchors, qs, sigma_procs, drawde
     .Call(`_sraplus_sraplus`, catches, rs, ms, init_deps, anchors, qs, sigma_procs, drawdex, index_t, sigma_obs, log_terminal_u, log_terminal_u_cv, index_years, u_years, draws, n_keep, b_ref_type, f_ref_type, fit_index, use_terminal_u, use_terminal_state, estimate_k, log_terminal_ref, sigma_dep, plim, use_u_prior, u_priors, sigma_u, learn_rate)
 }
 
-sraplus_reserve <- function(catches, rs, ms, init_deps, ks, qs, sigma_procs, drawdex, index_t, sigma_obs, log_final_u, log_final_u_cv, index_years, u_years, draws, n_keep, b_ref_type, f_ref_type, fit_index, use_final_u, use_final_state, log_final_ref, sigma_dep, plim, use_u_prior, u_priors, sigma_u) {
-    .Call(`_sraplus_sraplus_reserve`, catches, rs, ms, init_deps, ks, qs, sigma_procs, drawdex, index_t, sigma_obs, log_final_u, log_final_u_cv, index_years, u_years, draws, n_keep, b_ref_type, f_ref_type, fit_index, use_final_u, use_final_state, log_final_ref, sigma_dep, plim, use_u_prior, u_priors, sigma_u)
-}
-

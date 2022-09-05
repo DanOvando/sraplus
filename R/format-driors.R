@@ -97,7 +97,16 @@ format_driors <-
            prob = 0.9,
            use_fmsy_based_r = FALSE,
            use_catch_priors = FALSE) {
-    # require(kknn)
+
+    # make sure vectors are in ascending year order
+    
+    year_order <- sort(years)
+    
+    year_index <- match(years, year_order)
+    
+    year <- sort(years)
+    
+    catch <- catch[year_index]
     
     if (use_b_reg == TRUE |
         (is.na(initial_state) &

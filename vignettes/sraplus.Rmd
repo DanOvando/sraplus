@@ -27,15 +27,15 @@ This is an in-development package hosted on GitHub, so you will need to do a few
 
 1. open R
 
-2. If you don't have the `devtools` package installed yet, run
+2. If you don't have the `remotes` package installed yet, run
 
 ```{r, eval = FALSE}
-install.packages("devtools")
+install.packages("remotes")
 ```
 
 You'll need to be connected to the internet.
 
-3. Once `devtools` has been installed, you can then install `sraplus` by running
+3. Once `remotes` has been installed, you can then install `sraplus` by running
 
 ```{r, eval = FALSE}
 remotes::install_github("danovando/sraplus")
@@ -53,8 +53,9 @@ If your version of R is lower than 3.5, you might want to consider updating R it
 
 From there...
 
-- On Windows, make sure you have the appropriate version of Rtools installed ([here](https://cran.r-project.org/bin/windows/Rtools/)), most likely Rtools35 if you have R version 3.3 or higher
+- On Windows, make sure you have the appropriate version of Rtools installed ([here](https://cran.r-project.org/bin/windows/Rtools/))
   - Make sure that you select the box that says something about adding Rtools to the PATH variable
+  - See instructions [here](https://cran.r-project.org/bin/windows/Rtools/)
 
 - On macOS, there might be some issues with the your compiler. If you get an error that says something like `clang: error: unsupported option '-fopenmp'`, follow the instructions [here](https://thecoatlessprofessor.com/programming/r-compiler-tools-for-rcpp-on-macos/)
 
@@ -62,7 +63,7 @@ Once you've tried those, restart your computer and try running
 
 ```{r, eval = FALSE}
 
-install.packages("devtools")
+install.packages("remotes")
 
 remotes::install_github("danovando/sraplus")
 
@@ -72,19 +73,15 @@ remotes::install_github("danovando/sraplus")
 
 # Example Use
 
-First, load libraries. These are the core libraries needed to run `sraplus`, all of which should have been installed for you if you didn't already have them when you installed `sraplus`. 
+Once you've successfully installed `sraplus` you can take for a test drive with these examples. We'll now work through a couple examples, from simple to complex, of using `sraplus`
+
+
+First, load `sraplus`
 
 ```{r}
-library(ggplot2)
-library(tidyr)
-library(dplyr)
 library(sraplus)
-library(tmbstan)
-Sys.unsetenv("PKG_CXXFLAGS")
-
 ```
 
-Once you've successfully installed `sraplus` you can take for a test drive with these examples. We'll now work through a couple examples, from simple to complex, of using `sraplus`
 
 ## "Catch-only" SIR model
 
@@ -271,14 +268,14 @@ sim <-
     init_u_umsy = 1
   )
 
-sim$pop %>% 
-  select(year, depletion,catch, effort,u) %>% 
-  gather(metric, value, -year) %>% 
-  ggplot(aes(year, value)) + 
-  geom_point() + 
-  facet_wrap(~metric, scales = "free_y") + 
-  labs(y = "Value", x = "Year") + 
-  sraplus::theme_sraplus()
+# sim$pop %>% 
+#   dplyr::select(year, depletion,catch, effort,u) %>% 
+#   gather(metric, value, -year) %>% 
+#   ggplot(aes(year, value)) + 
+#   geom_point() + 
+#   facet_wrap(~metric, scales = "free_y") + 
+#   labs(y = "Value", x = "Year") + 
+#   sraplus::theme_sraplus()
 
 ```
 
@@ -332,14 +329,14 @@ sim <-
     init_u_umsy = 0.75
   )
 
-sim$pop %>% 
-  select(year, depletion,catch, effort,u) %>% 
-  gather(metric, value, -year) %>% 
-  ggplot(aes(year, value)) + 
-  geom_point() + 
-  facet_wrap(~metric, scales = "free_y") + 
-  labs(y = "Value", x = "Year") + 
-  sraplus::theme_sraplus()
+# sim$pop %>% 
+#   select(year, depletion,catch, effort,u) %>% 
+#   gather(metric, value, -year) %>% 
+#   ggplot(aes(year, value)) + 
+#   geom_point() + 
+#   facet_wrap(~metric, scales = "free_y") + 
+#   labs(y = "Value", x = "Year") + 
+#   sraplus::theme_sraplus()
 
 ```
 
@@ -361,8 +358,6 @@ cpue_driors <- format_driors(taxa = example_taxa,
                            years = sim$pop$year,
                            effort = sim$pop$effort,
                            effort_years = sim$pop$year,
-                           # growth_rate_prior = 0.4,
-                           # growth_rate_prior_cv = 0.1,
                            shape_prior = 1.01,
                            q_slope_prior = 0,
                            q_slope_prior_cv = 0.2)
@@ -384,8 +379,6 @@ cpue_qslope_driors <- format_driors(taxa = example_taxa,
                            years = sim$pop$year,
                            effort = sim$pop$effort,
                            effort_years = sim$pop$year,
-                           # growth_rate_prior = 0.4,
-                           # growth_rate_prior_cv = 0.1,
                            shape_prior = 1.01,
                            q_slope_prior = 0.025,
                            q_slope_prior_cv = 0.05)
@@ -417,8 +410,6 @@ cpue_sar_qslope_driors <- format_driors(taxa = example_taxa,
                            years = sim$pop$year,
                            effort = sim$pop$effort,
                            effort_years = sim$pop$year,
-                           # growth_rate_prior = 0.4,
-                           # growth_rate_prior_cv = 0.1,
                            shape_prior = 1.01,
                            q_slope_prior = 0.025,
                            q_slope_prior_cv = 0.25,
@@ -438,6 +429,7 @@ cpue_sar_qslope_fit <- fit_sraplus(driors = cpue_sar_qslope_driors,
                              estimate_proc_error = FALSE)
 
 plot_sraplus(cpue_sar_qslope_fit, years = cpue_sar_qslope_driors$years)
+
 ```
 
 And for good measure one more with SAR data and process error instead of qslope
@@ -449,8 +441,6 @@ cpue_sar_proc_driors <- format_driors(taxa = example_taxa,
                            years = sim$pop$year,
                            effort = sim$pop$effort,
                            effort_years = sim$pop$year,
-                           # growth_rate_prior = 0.4,
-                           # growth_rate_prior_cv = 0.1,
                            shape_prior = 1.01,
                            q_slope_prior = 0,
                            q_slope_prior_cv = 0.25,
@@ -472,7 +462,7 @@ cpue_sar_proc_fit <- fit_sraplus(driors = cpue_sar_proc_driors,
 
 ```{r}
 
-plot_sraplus(`no rocess error and no qslope ` = cpue_fit, 
+plot_sraplus(`no process error and no qslope ` = cpue_fit, 
              `no process error with qslope` =  cpue_qslope_fit, 
              `no process error with qslope and sar` = cpue_sar_qslope_fit,
              `process error and sar` = cpue_sar_proc_fit,
@@ -503,8 +493,7 @@ summarize_sralpus(cpue_sar_proc_fit, output = "plot")
 Or produce a summary table that can be saved to a .csv file. 
 
 ```{r}
-summarize_sralpus(cpue_sar_proc_fit, output = "table") %>% 
-  knitr::kable(digits = 2)
+knitr::kable(summarize_sralpus(cpue_sar_proc_fit, output = "table"), digits = 2) 
 ```
 
 # Implementing References

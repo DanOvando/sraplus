@@ -4,7 +4,7 @@
 <!-- [![Build Status](https://travis-ci.org/DanOvando/sraplus.svg?branch=v2.0)](https://travis-ci.org/DanOvando/sraplus) -->
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-`sraplus` is a flexible assessment package based developed in [Ovando et
+`sraplus` is a flexible assessment package developed for [Ovando et
 al. 2021](https://onlinelibrary.wiley.com/doi/abs/10.1111/faf.12593) At
 the most “data limited” end, the model approximates the behavior of
 catch-msy, sampling from prior distributions to obtain parameter values
@@ -21,7 +21,7 @@ do a few things to install it.
 
 1.  open R
 
-2.  If you don’t have the `devtools` package installed yet, run
+2.  If you don’t have the `remotes` package installed yet, run
 
 ``` r
 install.packages("remotes")
@@ -29,8 +29,8 @@ install.packages("remotes")
 
 You’ll need to be connected to the internet.
 
-3.  Once `devtools` has been installed, you can then install `sraplus`
-    by running
+3.  Once `remotes` has been installed, you can then install `sraplus` by
+    running
 
 ``` r
 remotes::install_github("danovando/sraplus")
@@ -42,7 +42,7 @@ to the prompts.
 ### Troubleshooting
 
 Make sure you try the install with a fresh R session (go to
-“Session&gt;Restart R” to make sure)
+“Session\>Restart R” to make sure)
 
 If you run into an error, first off try updating your R packages. From
 there….
@@ -62,10 +62,11 @@ and [`updateR`](https://github.com/AndreaCirilloAC/updateR) for Mac.
 From there…
 
 -   On Windows, make sure you have the appropriate version of Rtools
-    installed ([here](https://cran.r-project.org/bin/windows/Rtools/)),
-    most likely Rtools35 if you have R version 3.3 or higher
+    installed ([here](https://cran.r-project.org/bin/windows/Rtools/))
     -   Make sure that you select the box that says something about
         adding Rtools to the PATH variable
+    -   See instructions
+        [here](https://cran.r-project.org/bin/windows/Rtools/)
 -   On macOS, there might be some issues with the your compiler. If you
     get an error that says something like
     `clang: error: unsupported option '-fopenmp'`, follow the
@@ -75,6 +76,7 @@ From there…
 Once you’ve tried those, restart your computer and try running
 
 ``` r
+
 install.packages("remotes")
 
 remotes::install_github("danovando/sraplus")
@@ -110,27 +112,28 @@ The first step in running `sraplus` is the `sraplus::format_driors`
 Atlantic cod (*Gadus morhua*) that is included in the `sraplus` package.
 
 ``` r
+
 example_taxa <- "gadus morhua"
 
 data(cod)
 
 head(cod)
 #> # A tibble: 6 × 56
-#>   stockid scientificname commonname  year  catch stocklong.x TBmsybest ERmsybest
-#>   <chr>   <chr>          <chr>      <int>  <dbl> <chr>           <dbl>     <dbl>
-#> 1 CODIII… Gadus morhua   Atlantic …  1963 118000 Atlantic c…   971321.     0.455
-#> 2 CODIII… Gadus morhua   Atlantic …  1964 144000 Atlantic c…   971321.     0.455
-#> 3 CODIII… Gadus morhua   Atlantic …  1965 198000 Atlantic c…   971321.     0.455
-#> 4 CODIII… Gadus morhua   Atlantic …  1966 241000 Atlantic c…   971321.     0.455
-#> 5 CODIII… Gadus morhua   Atlantic …  1967 287000 Atlantic c…   971321.     0.455
-#> 6 CODIII… Gadus morhua   Atlantic …  1968 292000 Atlantic c…   971321.     0.455
-#> # … with 48 more variables: MSYbest <dbl>, TBmgtbest <dbl>, ERmgtbest <dbl>,
-#> #   TBmsy <dbl>, SSBmsy <dbl>, Nmsy <dbl>, MSY <dbl>, Fmsy <dbl>, ERmsy <dbl>,
-#> #   TBmgt <dbl>, SSBmgt <dbl>, Fmgt <dbl>, ERmgt <dbl>, TB0 <dbl>, SSB0 <dbl>,
-#> #   M <dbl>, TBlim <dbl>, SSBlim <dbl>, Flim <dbl>, ERlim <dbl>,
-#> #   b_v_bmsy <dbl>, u_v_umsy <dbl>, exploitation_rate <dbl>, effort <dbl>,
-#> #   total_biomass <dbl>, ss_biomass <dbl>, tsn <chr>, areaid <chr>,
-#> #   stocklong.y <chr>, region <chr>, primary_country <chr>, …
+#>   stockid   scien…¹ commo…²  year  catch stock…³ TBmsy…⁴ ERmsy…⁵ MSYbest TBmgt…⁶
+#>   <chr>     <chr>   <chr>   <int>  <dbl> <chr>     <dbl>   <dbl>   <dbl>   <dbl>
+#> 1 CODIIIaW… Gadus … Atlant…  1963 118000 Atlant… 971321.   0.455 267310. 436865.
+#> 2 CODIIIaW… Gadus … Atlant…  1964 144000 Atlant… 971321.   0.455 267310. 436865.
+#> 3 CODIIIaW… Gadus … Atlant…  1965 198000 Atlant… 971321.   0.455 267310. 436865.
+#> 4 CODIIIaW… Gadus … Atlant…  1966 241000 Atlant… 971321.   0.455 267310. 436865.
+#> 5 CODIIIaW… Gadus … Atlant…  1967 287000 Atlant… 971321.   0.455 267310. 436865.
+#> 6 CODIIIaW… Gadus … Atlant…  1968 292000 Atlant… 971321.   0.455 267310. 436865.
+#> # … with 46 more variables: ERmgtbest <dbl>, TBmsy <dbl>, SSBmsy <dbl>,
+#> #   Nmsy <dbl>, MSY <dbl>, Fmsy <dbl>, ERmsy <dbl>, TBmgt <dbl>, SSBmgt <dbl>,
+#> #   Fmgt <dbl>, ERmgt <dbl>, TB0 <dbl>, SSB0 <dbl>, M <dbl>, TBlim <dbl>,
+#> #   SSBlim <dbl>, Flim <dbl>, ERlim <dbl>, b_v_bmsy <dbl>, u_v_umsy <dbl>,
+#> #   exploitation_rate <dbl>, effort <dbl>, total_biomass <dbl>,
+#> #   ss_biomass <dbl>, tsn <chr>, areaid <chr>, stocklong.y <chr>, region <chr>,
+#> #   primary_country <chr>, primary_FAOarea <chr>, inmyersdb <chr>, …
 ```
 
 From there, we’ll pass the catch data, and the years corresponding to
@@ -141,6 +144,7 @@ any estimates of stock status are simply a transformation of your prior
 beliefs expressed through the catch heuristics.
 
 ``` r
+
 
 catch_only_driors <- format_driors(
   taxa = example_taxa,
@@ -154,6 +158,7 @@ You can take a look at the information in the `catch_only_driors` object
 by using `sraplus::plot_driors`
 
 ``` r
+
 plot_driors(catch_only_driors)
 ```
 
@@ -170,6 +175,7 @@ in this case the SIR algorithm will run 1 million iterations, and sample
 2000 entries from those million in proportion to their likelihood.
 
 ``` r
+
 sfs <- purrr::safely(fit_sraplus)
 
  catch_only_fit <- fit_sraplus(driors = catch_only_driors,
@@ -196,16 +202,17 @@ dramatically depending on what engine was used.
 Let’s take a quick look at the `results` object.
 
 ``` r
+
 head(catch_only_fit$results)
 #> # A tibble: 6 × 6
-#>    year variable           mean           sd       lower        upper
-#>   <dbl> <chr>             <dbl>        <dbl>       <dbl>        <dbl>
-#> 1  1963 b_div_bmsy        0.615       0.0842       0.506        0.766
-#> 2  1963 b           4829142.    4674781.     2174769.    10317674.   
-#> 3  1963 c_div_msy         0.319       0.118        0.101        0.473
-#> 4  1963 crashed           0           0            0            0    
-#> 5  1963 depletion         0.403       0.0443       0.342        0.480
-#> 6  1963 index_hat_t  254653.     247809.       18358.      654146.
+#>    year variable           mean           sd        lower        upper
+#>   <dbl> <chr>             <dbl>        <dbl>        <dbl>        <dbl>
+#> 1  1963 b_div_bmsy        0.603       0.0671       0.506         0.732
+#> 2  1963 b           4901539.    4202559.     2359912.     12502963.   
+#> 3  1963 c_div_msy         0.318       0.112        0.0965        0.456
+#> 4  1963 crashed           0           0            0             0    
+#> 5  1963 depletion         0.398       0.0371       0.341         0.465
+#> 6  1963 index_hat_t  230310.     227807.       25521.       705955.
 ```
 
 `results` is organized as a dataframe tracking different variables over
@@ -221,19 +228,19 @@ object is the output of the SIR algorithm.
 ``` r
 head(catch_only_fit$fit)
 #>   variable year draw   value draw_id
-#> 1      b_t 1963    1 3409563   44501
-#> 2      b_t 1964    1 3599118   44501
-#> 3      b_t 1965    1 3741963   44501
-#> 4      b_t 1966    1 3815649   44501
-#> 5      b_t 1967    1 3893348   44501
-#> 6      b_t 1968    1 4104576   44501
+#> 1      b_t 1963    1 3601506   99624
+#> 2      b_t 1964    1 3695928   99624
+#> 3      b_t 1965    1 3775263   99624
+#> 4      b_t 1966    1 3776927   99624
+#> 5      b_t 1967    1 3834834   99624
+#> 6      b_t 1968    1 3805887   99624
 ```
 
-From there, we can generate some standard plots of B/Bmsy
-(b\_div\_bmsy), Catch/MSY, U/Umsy, and depletion over time using
-`plot_sraplus`.
+From there, we can generate some standard plots of B/Bmsy (b_div_bmsy),
+Catch/MSY, U/Umsy, and depletion over time using `plot_sraplus`.
 
 ``` r
+
 sraplus::plot_sraplus(catch_only = catch_only_fit, years = catch_only_driors$years)
 ```
 
@@ -248,8 +255,8 @@ this is accomplished). Note that the FMI and SAR values year are
 entirely fictional and any resemblance to any real fishery is purely
 coincidental!
 
-You’ll notice that we now add a few more options to format\_driors.
-We’ll manually set priors on initial depletion, with a prior of initial
+You’ll notice that we now add a few more options to format_driors. We’ll
+manually set priors on initial depletion, with a prior of initial
 biomass equal to carrying capacity (`initial_state = 1`), with a
 standard deviation of 0.2. We’ll explicitly tell the model not to use
 catch heuristics (though you don’t always need to specify this, FALSE is
@@ -259,6 +266,7 @@ from 0 to 1). Note that FMI scores should be obtained through the formal
 FMI survey process and not made up on the spot. W
 
 ``` r
+
 fmi_sar_driors <- format_driors(
   taxa = example_taxa,
   catch = cod$catch,
@@ -321,12 +329,13 @@ the posterior, and a plot of the mean terminal values as a function of
 the number of unique samples used. n
 
 ``` r
+
 sraplus::diagnose_sraplus(fit = fmi_sar_fit, driors = fmi_sar_driors )
 #> $fishlife_match
 #> [1] "fishlife matched supplied species"
 #> 
 #> $distinct_sir_draws
-#> [1] 2060
+#> [1] 2029
 #> 
 #> $sir_convergence_plot
 ```
@@ -342,6 +351,7 @@ very simple example,using a simple fishery simulator built into
 `sraplus`.
 
 ``` r
+
 set.seed(42)
 sim <-
   sraplus_simulator(
@@ -391,6 +401,7 @@ plot_driors(index_driors)
 <img src="man/figures/README-unnamed-chunk-11-1.png" width="100%" />
 
 ``` r
+
 index_fit <- fit_sraplus(driors = index_driors,
                       engine = "tmb",
                       model = "sraplus_tmb", 
@@ -402,6 +413,7 @@ plot_sraplus(index = index_fit,years = index_driors$years)
 <img src="man/figures/README-unnamed-chunk-11-2.png" width="100%" />
 
 ``` r
+
 plot_prior_posterior(index_fit, index_driors)
 ```
 
@@ -415,6 +427,7 @@ We’ll now simulate a fishery with random-walk effort dynamics,
 increasing catchability, and process error.
 
 ``` r
+
 set.seed(42)
 
 sim <-
@@ -449,24 +462,24 @@ returns from increasing amounts of effort, and in-season losses to
 natural mortality. `sraplus` provides some support to these problems.
 `sraplus` will estimate a q. If desired it allows the user to either
 specify an assumed slope in catchability (where
-*q*<sub>*t*</sub> = *q*<sub>*t* − 1</sub> × *q**s**l**o**p**e*), or to
-attempt to estimate `qslope` directly. Second, given values of q and
-qslope (and estimates of natural mortality either supplied by the user
-or drawn from `FishLife`), `sraplus` uses the Baranov equation to
+![q_t = q\_{t-1} \times qslope](https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&space;%5Cbg_white&space;q_t%20%3D%20q_%7Bt-1%7D%20%5Ctimes%20qslope "q_t = q_{t-1} \times qslope")),
+or to attempt to estimate `qslope` directly. Second, given values of q
+and qslope (and estimates of natural mortality either supplied by the
+user or drawn from `FishLife`), `sraplus` uses the Baranov equation to
 translate effort into an effective fishing mortality rate.
 
 **One important note**. By default, `sraplus` includes estimation of
 process error. When running a simplified CPUE like this, the model can’t
-really handle estimating both process error and a q\_slope\_prior (since
+really handle estimating both process error and a q_slope_prior (since
 the persistent trend in the CPUE values caused by the qslope can be
 soaked into the process error or the qslope). So, you need to provide a
-VERY imformative prior on the q\_slope\_prior parameter if you’re going
-to try and estimate (i.e. fix the q\_slope\_prior parameter), or turn
-off process error (inside `fit_sraplus` set
-`estimate_proc_error = FALSE`) (the recommended option in this case).
+VERY imformative prior on the q_slope_prior parameter if you’re going to
+try and estimate (i.e. fix the q_slope_prior parameter), or turn off
+process error (inside `fit_sraplus` set `estimate_proc_error = FALSE`)
+(the recommended option in this case).
 
 By now the order of operations should be pretty familiar: pass things to
-driors, then driors to fit\_sraplus. In this case, instead of passing an
+driors, then driors to fit_sraplus. In this case, instead of passing an
 index, we pass effort data, and effort years.
 
 Just to explore functionality of `sraplus`, we’ll fit the model using
@@ -475,6 +488,7 @@ versions, one trying to estimate qslope, and one not. Note that we can
 pass standard `rstan` options to `fit_sraplus`.
 
 ``` r
+
 
 cpue_driors <- format_driors(taxa = example_taxa,
                            catch = sim$pop$catch,
@@ -519,6 +533,7 @@ cpue_qslope_fit <- fit_sraplus(driors = cpue_qslope_driors,
 ```
 
 ``` r
+
 plot_sraplus(`CPUE fit no qslope` = cpue_fit, `CPUE fit with qslope` =  cpue_qslope_fit, years = cpue_driors$years)
 ```
 
@@ -566,6 +581,7 @@ And for good measure one more with SAR data and process error instead of
 qslope
 
 ``` r
+
 cpue_sar_proc_driors <- format_driors(taxa = example_taxa,
                            catch = sim$pop$catch,
                            years = sim$pop$year,
@@ -591,6 +607,7 @@ cpue_sar_proc_fit <- fit_sraplus(driors = cpue_sar_proc_driors,
 ```
 
 ``` r
+
 plot_sraplus(`no process error and no qslope ` = cpue_fit, 
              `no process error with qslope` =  cpue_qslope_fit, 
              `no process error with qslope and sar` = cpue_sar_qslope_fit,
@@ -607,6 +624,7 @@ store the results
 for selected parameters
 
 ``` r
+
 plot_prior_posterior(cpue_sar_proc_fit, cpue_sar_proc_driors)
 ```
 
@@ -627,37 +645,37 @@ Or produce a summary table that can be saved to a .csv file.
 knitr::kable(summarize_sralpus(cpue_sar_proc_fit, output = "table"), digits = 2) 
 ```
 
-| variable          |   mean |    sd |  lower |  upper | year |
-|:------------------|-------:|------:|-------:|-------:|-----:|
-| sigma\_proc       |   0.27 |  0.05 |   0.20 |   0.34 |    1 |
-| sigma\_obs        |   0.27 |  0.04 |   0.20 |   0.34 |    1 |
-| log\_sigma\_ratio |  -0.01 |  0.05 |  -0.09 |   0.07 |    1 |
-| sigma\_ratio      |   0.99 |  0.05 |   0.91 |   1.07 |    1 |
-| log\_ihat         |   4.18 |  0.05 |   4.10 |   4.27 |   25 |
-| log\_b\_div\_bmsy |  -1.34 |  0.14 |  -1.56 |  -1.12 |   25 |
-| log\_b            |   4.18 |  0.05 |   4.10 |   4.27 |   25 |
-| log\_depletion    |  -2.33 |  0.14 |  -2.55 |  -2.11 |   25 |
-| log\_u\_div\_umsy |   1.23 |  0.16 |   0.97 |   1.49 |   25 |
-| log\_c\_div\_msy  |  -0.11 |  0.12 |  -0.30 |   0.09 |   25 |
-| u\_t              |   1.15 |  0.06 |   1.05 |   1.24 |   25 |
-| proc\_errors      |   0.62 |  0.15 |   0.39 |   0.86 |   24 |
-| plim              |   0.05 |  0.00 |   0.05 |   0.05 |    1 |
-| b\_to\_k          |   0.37 |  0.00 |   0.37 |   0.37 |    1 |
-| crashed           |   0.00 |  0.00 |   0.00 |   0.00 |    1 |
-| index\_hat\_t     |  65.67 |  3.33 |  60.35 |  70.99 |   25 |
-| r                 |   0.34 |  0.05 |   0.26 |   0.42 |    1 |
-| m                 |   1.01 |  0.00 |   1.01 |   1.01 |    1 |
-| umsy              |   0.33 |  0.05 |   0.25 |   0.42 |    1 |
-| k                 | 677.15 | 83.88 | 543.09 | 811.21 |    1 |
-| q\_t              |   0.01 |  0.00 |   0.00 |   0.01 |   25 |
-| q\_slope          |   0.00 |  0.00 |   0.00 |   0.00 |    1 |
-| sigma\_ratio      |   0.99 |  0.05 |   0.92 |   1.07 |    1 |
-| ihat              |  65.67 |  0.05 |  60.56 |  71.21 |   25 |
-| b\_div\_bmsy      |   0.26 |  0.14 |   0.21 |   0.33 |   25 |
-| b                 |  65.67 |  0.05 |  60.56 |  71.21 |   25 |
-| depletion         |   0.10 |  0.14 |   0.08 |   0.12 |   25 |
-| u\_div\_umsy      |   3.43 |  0.16 |   2.65 |   4.44 |   25 |
-| c\_div\_msy       |   0.90 |  0.12 |   0.74 |   1.10 |   25 |
+| variable        |   mean |    sd |  lower |  upper | year |
+|:----------------|-------:|------:|-------:|-------:|-----:|
+| sigma_proc      |   0.27 |  0.05 |   0.19 |   0.34 |    1 |
+| sigma_obs       |   0.27 |  0.04 |   0.20 |   0.34 |    1 |
+| log_sigma_ratio |  -0.01 |  0.05 |  -0.09 |   0.07 |    1 |
+| sigma_ratio     |   0.99 |  0.05 |   0.91 |   1.07 |    1 |
+| log_ihat        |   4.18 |  0.05 |   4.10 |   4.27 |   25 |
+| log_b\_div_bmsy |  -1.33 |  0.14 |  -1.55 |  -1.10 |   25 |
+| log_b           |   4.18 |  0.05 |   4.10 |   4.27 |   25 |
+| log_depletion   |  -2.32 |  0.14 |  -2.54 |  -2.10 |   25 |
+| log_u\_div_umsy |   1.22 |  0.16 |   0.96 |   1.49 |   25 |
+| log_c\_div_msy  |  -0.10 |  0.12 |  -0.30 |   0.09 |   25 |
+| u_t             |   1.15 |  0.06 |   1.05 |   1.24 |   25 |
+| proc_errors     |   0.62 |  0.15 |   0.39 |   0.86 |   24 |
+| plim            |   0.05 |  0.00 |   0.05 |   0.05 |    1 |
+| b_to_k          |   0.37 |  0.00 |   0.37 |   0.37 |    1 |
+| crashed         |   0.00 |  0.00 |   0.00 |   0.00 |    1 |
+| index_hat_t     |  65.69 |  3.33 |  60.37 |  71.01 |   25 |
+| r               |   0.34 |  0.05 |   0.26 |   0.43 |    1 |
+| m               |   1.01 |  0.00 |   1.01 |   1.01 |    1 |
+| umsy            |   0.34 |  0.05 |   0.25 |   0.42 |    1 |
+| k               | 669.02 | 85.21 | 532.84 | 805.19 |    1 |
+| q_t             |   0.01 |  0.00 |   0.00 |   0.01 |   25 |
+| q_slope         |   0.00 |  0.00 |   0.00 |   0.00 |    1 |
+| sigma_ratio     |   0.99 |  0.05 |   0.92 |   1.07 |    1 |
+| ihat            |  65.69 |  0.05 |  60.58 |  71.24 |   25 |
+| b_div_bmsy      |   0.27 |  0.14 |   0.21 |   0.33 |   25 |
+| b               |  65.69 |  0.05 |  60.58 |  71.24 |   25 |
+| depletion       |   0.10 |  0.14 |   0.08 |   0.12 |   25 |
+| u_div_umsy      |   3.40 |  0.16 |   2.61 |   4.42 |   25 |
+| c_div_msy       |   0.90 |  0.12 |   0.74 |   1.10 |   25 |
 
 # Implementing References
 
