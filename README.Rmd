@@ -48,7 +48,7 @@ Make sure you try the install with a fresh R session (go to "Session>Restart R" 
 
 If you run into an error, first off try updating your R packages. From there....
 
-If your version of R is lower than 3.5, you might want to consider updating R itself. Updating from 3.51 to 3.52 shouldn't be any hassle. BIG WARNING THOUGH, updating from say R 3.1 to 3.5 is a major update, and you'll lose all your installed packages in the process. I recommend following the instructions [here](https://www.datascienceriot.com/r/upgrade-R-packages/) to deal with that, but even with that fix it can take a while, so I don't recommend doing a major R update if you're on a deadline. There are also packages to help you with this process, specifically [`installR`](https://github.com/talgalili/installr/issues) for Windows and [`updateR`](https://github.com/AndreaCirilloAC/updateR) for Mac. 
+If your version of R is lower than 4.0, you might want to consider updating R itself. Updating from 3.51 to 3.52 shouldn't be any hassle. BIG WARNING THOUGH, updating from say R 3.1 to 3.5 is a major update, and you'll lose all your installed packages in the process. I recommend following the instructions [here](https://www.datascienceriot.com/r/upgrade-R-packages/) to deal with that, but even with that fix it can take a while, so I don't recommend doing a major R update if you're on a deadline. There are also packages to help you with this process, specifically [`installR`](https://github.com/talgalili/installr/issues) for Windows and [`updateR`](https://github.com/AndreaCirilloAC/updateR) for Mac. 
 
 From there...
 

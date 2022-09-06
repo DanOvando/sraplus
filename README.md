@@ -47,7 +47,7 @@ Make sure you try the install with a fresh R session (go to
 If you run into an error, first off try updating your R packages. From
 there….
 
-If your version of R is lower than 3.5, you might want to consider
+If your version of R is lower than 4.0, you might want to consider
 updating R itself. Updating from 3.51 to 3.52 shouldn’t be any hassle.
 BIG WARNING THOUGH, updating from say R 3.1 to 3.5 is a major update,
 and you’ll lose all your installed packages in the process. I recommend
@@ -205,14 +205,14 @@ Let’s take a quick look at the `results` object.
 
 head(catch_only_fit$results)
 #> # A tibble: 6 × 6
-#>    year variable           mean           sd        lower        upper
-#>   <dbl> <chr>             <dbl>        <dbl>        <dbl>        <dbl>
-#> 1  1963 b_div_bmsy        0.603       0.0671       0.506         0.732
-#> 2  1963 b           4901539.    4202559.     2359912.     12502963.   
-#> 3  1963 c_div_msy         0.318       0.112        0.0965        0.456
-#> 4  1963 crashed           0           0            0             0    
-#> 5  1963 depletion         0.398       0.0371       0.341         0.465
-#> 6  1963 index_hat_t  230310.     227807.       25521.       705955.
+#>    year variable           mean           sd        lower       upper
+#>   <dbl> <chr>             <dbl>        <dbl>        <dbl>       <dbl>
+#> 1  1963 b_div_bmsy        0.615       0.113        0.499        0.726
+#> 2  1963 b           5219224.    5406781.     1951895.     9795225.   
+#> 3  1963 c_div_msy         0.295       0.111        0.0604       0.447
+#> 4  1963 crashed           0           0            0            0    
+#> 5  1963 depletion         0.396       0.0429       0.332        0.461
+#> 6  1963 index_hat_t  255133.     279435.       26352.      752854.
 ```
 
 `results` is organized as a dataframe tracking different variables over
@@ -227,13 +227,13 @@ object is the output of the SIR algorithm.
 
 ``` r
 head(catch_only_fit$fit)
-#>   variable year draw   value draw_id
-#> 1      b_t 1963    1 3601506   99624
-#> 2      b_t 1964    1 3695928   99624
-#> 3      b_t 1965    1 3775263   99624
-#> 4      b_t 1966    1 3776927   99624
-#> 5      b_t 1967    1 3834834   99624
-#> 6      b_t 1968    1 3805887   99624
+#>   variable year draw    value draw_id
+#> 1      b_t 1963    1  6841904   37065
+#> 2      b_t 1964    1  8849197   37065
+#> 3      b_t 1965    1  8265235   37065
+#> 4      b_t 1966    1  9950598   37065
+#> 5      b_t 1967    1  9658066   37065
+#> 6      b_t 1968    1 11518129   37065
 ```
 
 From there, we can generate some standard plots of B/Bmsy (b_div_bmsy),
@@ -335,7 +335,7 @@ sraplus::diagnose_sraplus(fit = fmi_sar_fit, driors = fmi_sar_driors )
 #> [1] "fishlife matched supplied species"
 #> 
 #> $distinct_sir_draws
-#> [1] 2029
+#> [1] 2011
 #> 
 #> $sir_convergence_plot
 ```
@@ -665,6 +665,7 @@ knitr::kable(summarize_sralpus(cpue_sar_proc_fit, output = "table"), digits = 2)
 | index_hat_t     |  65.69 |  3.33 |  60.37 |  71.01 |   25 |
 | r               |   0.34 |  0.05 |   0.26 |   0.43 |    1 |
 | m               |   1.01 |  0.00 |   1.01 |   1.01 |    1 |
+| msy             |  83.53 | 10.29 |  67.09 |  99.98 |    1 |
 | umsy            |   0.34 |  0.05 |   0.25 |   0.42 |    1 |
 | k               | 669.02 | 85.21 | 532.84 | 805.19 |    1 |
 | q_t             |   0.01 |  0.00 |   0.00 |   0.01 |   25 |

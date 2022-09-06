@@ -681,7 +681,7 @@ Type sraplus_tmb(objective_function<Type>* obj){
   
   ADREPORT(m);
   
-  REPORT(msy);
+  ADREPORT(msy);
   
   ADREPORT(umsy);
   
