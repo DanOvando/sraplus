@@ -3,7 +3,7 @@
 #' @param fit 
 #' @param output 
 #'
-#' @return
+#' @return a summary of key sraplus outputs
 #' @export
 #'
 summarize_sralpus <- function(fit, output = "table"){

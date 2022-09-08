@@ -387,11 +387,12 @@ cpue_qslope_fit <- fit_sraplus(driors = cpue_qslope_driors,
                              model = "sraplus_tmb",
                              adapt_delta = 0.9,
                              max_treedepth = 10,
-                             n_keep = 1000,
-                             chains = 1, 
-                             cores = 1,
+                             n_keep = 2000,
+                             chains = 4, 
+                             cores = 4,
                              estimate_qslope = TRUE,
-                             estimate_proc_error = FALSE)
+                             estimate_proc_error = FALSE,
+                             non_centered = FALSE)
 
 ```
 
@@ -500,4 +501,6 @@ Ovando, D., Hilborn, R., Monnahan, C., Rudd, M., Sharma, R., Thorson, J.T., Rous
 
 
 
+# Importannt Note
 
+This package uses the [`TMBtools`](https://github.com/mlysy/TMBtools). If you make modifications to the core model in `src/TMB/sraplus_tmb.hpp`, you need to run `TMBtools::export_models()` prior to building the package. 

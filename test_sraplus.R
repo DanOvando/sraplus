@@ -405,7 +405,8 @@ index_bayes_fit <- fit_sraplus(driors = index_driors,
                          adapt_delta = 0.95,
                          analytical_q = FALSE,
                          max_treedepth = 12,
-                         thin_draws = TRUE)
+                         thin_draws = TRUE,
+                         non_centered = TRUE)
 
 plot_sraplus(index_bayes_fit)
 
@@ -440,7 +441,8 @@ effort_bayes_fit <- fit_sraplus(driors = effort_driors,
                                adapt_delta = 0.95,
                                analytical_q = FALSE,
                                max_treedepth = 12,
-                               thin_draws = TRUE)
+                               thin_draws = TRUE,
+                               non_centered = TRUE)
 
 
 effort_ml_fit <- fit_sraplus(driors = effort_driors,

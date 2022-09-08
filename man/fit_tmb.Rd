@@ -33,13 +33,7 @@ fit_tmb(
 
 \item{startpar}{Starting values for fixed effects (default NULL uses \code{obj$par})}
 
-\item{lower}{
-    vectors of lower and upper bounds, replicated to be as long as
-    \code{start}.  If unspecified, all parameters are assumed to be
-    unconstrained.
-  }
-
-\item{upper}{
+\item{lower, upper}{
     vectors of lower and upper bounds, replicated to be as long as
     \code{start}.  If unspecified, all parameters are assumed to be
     unconstrained.

@@ -16,7 +16,7 @@ get_prior_posterior(fit, driors, draws = 1000, prob = 0.9)
 \item{prob}{}
 }
 \value{
-
+a list of prior-posterior comparisons
 }
 \description{
 plot_prior_posterior

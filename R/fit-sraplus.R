@@ -41,6 +41,15 @@
 #' @param newtonsteps for TMBhelper
 #' @param tune_prior_predictive tune prior predictive to resolve borel's paradox
 #' @param refresh refresh rate for Stan
+#' @param estimate_q estimate catchability coefficient or leave fixed
+#' @param estimate_initial_state 
+#' @param index_fit_tuner "sir" tunes priors for index fit
+#' @param log_bias_correct correct for log-transformation bias
+#' @param workers number of workers for parallel processing of stan outputs
+#' @param thin_draws true or false thing draws
+#' @param thin_rate thinning rate
+#' @param catch_cv assumed CV for catch data when estimating catches rather than treating as data
+#' @param non_centered use centered or non-centered form for process errors
 #' @param ... additional parameters
 #'
 #' @return a fitted sraplus object
@@ -84,13 +93,13 @@ fit_sraplus <- function(driors,
                         index_fit_tuner = "sir",
                         refresh = 250,
                         log_bias_correct = TRUE,
-                        workers = workers,
+                        workers = 1,
                         thin_draws = FALSE,
                         thin_rate = 0.5,
                         catch_cv = 0.01,
+                        non_centered = FALSE,
                         ...) {
   opts <- list(...) # collect additional parameters
-  
   # in case TMB gets stuck
   if (max_time < Inf) {
     setTimeLimit(elapsed = max_time * 60, transient = TRUE)
@@ -175,7 +184,8 @@ fit_sraplus <- function(driors,
     f_prior_form = driors$f_prior_form,
     learn_rate = learn_rate,
     catch_cv = catch_cv,
-    model  = "sraplus_tmb"
+    model  = "sraplus_tmb",
+    non_centered = non_centered
   )
   
   # prepare catchability priors
@@ -758,6 +768,7 @@ fit_sraplus <- function(driors,
       } else {
         
         doParallel::registerDoParallel(cores = workers)
+
         
         stacked_draws <- foreach::foreach(i = 1:nrow(draws), .export = c("sraplus","purrr")) %dopar% {
           

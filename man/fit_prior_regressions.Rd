@@ -45,7 +45,7 @@ fit_prior_regressions(
 \item{...}{}
 }
 \value{
-
+list with fitted object
 }
 \description{
 fir-sraplus-regressions

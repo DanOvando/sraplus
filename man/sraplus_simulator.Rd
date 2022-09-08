@@ -39,7 +39,7 @@ sraplus_simulator(
 \item{years}{}
 }
 \value{
-
+a simulation from the sraplus operating model
 }
 \description{
 sraplus fishery simulator
