@@ -37,7 +37,7 @@ format_driors(
   k_prior = NA,
   k_prior_cv = 2,
   sigma_ratio_prior = 1,
-  sigma_ratio_prior_cv = 0.05,
+  sigma_ratio_prior_cv = 0.01,
   shape_prior = NA,
   shape_prior_cv = 0.25,
   q_prior = 0.001,
@@ -117,7 +117,9 @@ when \code{initial_state} is 1, implies either B/K = 1 or B/Bmsy = 1}
 
 \item{k_prior_cv}{CV of prior on carrying capacity}
 
-\item{sigma_ratio_prior_cv}{}
+\item{sigma_ratio_prior}{prior on the ratio of process to observation error}
+
+\item{sigma_ratio_prior_cv}{cv on prior on the ratio of process to observation error}
 
 \item{shape_prior}{prior on shape parameter of Pella-Tomlinson model}
 

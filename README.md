@@ -205,14 +205,14 @@ Let’s take a quick look at the `results` object.
 
 head(catch_only_fit$results)
 #> # A tibble: 6 × 6
-#>    year variable           mean           sd        lower       upper
-#>   <dbl> <chr>             <dbl>        <dbl>        <dbl>       <dbl>
-#> 1  1963 b_div_bmsy        0.615       0.113        0.499        0.726
-#> 2  1963 b           5219224.    5406781.     1951895.     9795225.   
-#> 3  1963 c_div_msy         0.295       0.111        0.0604       0.447
-#> 4  1963 crashed           0           0            0            0    
-#> 5  1963 depletion         0.396       0.0429       0.332        0.461
-#> 6  1963 index_hat_t  255133.     279435.       26352.      752854.
+#>    year variable           mean           sd        lower        upper
+#>   <dbl> <chr>             <dbl>        <dbl>        <dbl>        <dbl>
+#> 1  1963 b_div_bmsy        0.598       0.0783       0.498         0.714
+#> 2  1963 b           5297474.    4660189.     1875180.     11409267.   
+#> 3  1963 c_div_msy         0.304       0.119        0.0718        0.449
+#> 4  1963 crashed           0           0            0             0    
+#> 5  1963 depletion         0.393       0.0400       0.335         0.460
+#> 6  1963 index_hat_t  265984.     342741.       22159.       787844.
 ```
 
 `results` is organized as a dataframe tracking different variables over
@@ -227,13 +227,13 @@ object is the output of the SIR algorithm.
 
 ``` r
 head(catch_only_fit$fit)
-#>   variable year draw    value draw_id
-#> 1      b_t 1963    1  6841904   37065
-#> 2      b_t 1964    1  8849197   37065
-#> 3      b_t 1965    1  8265235   37065
-#> 4      b_t 1966    1  9950598   37065
-#> 5      b_t 1967    1  9658066   37065
-#> 6      b_t 1968    1 11518129   37065
+#>   variable year draw   value draw_id
+#> 1      b_t 1963    1 4602483   18214
+#> 2      b_t 1964    1 4665580   18214
+#> 3      b_t 1965    1 4669336   18214
+#> 4      b_t 1966    1 4798243   18214
+#> 5      b_t 1967    1 4953921   18214
+#> 6      b_t 1968    1 4855429   18214
 ```
 
 From there, we can generate some standard plots of B/Bmsy (b_div_bmsy),
@@ -335,7 +335,7 @@ sraplus::diagnose_sraplus(fit = fmi_sar_fit, driors = fmi_sar_driors )
 #> [1] "fishlife matched supplied species"
 #> 
 #> $distinct_sir_draws
-#> [1] 2011
+#> [1] 2072
 #> 
 #> $sir_convergence_plot
 ```
@@ -525,11 +525,12 @@ cpue_qslope_fit <- fit_sraplus(driors = cpue_qslope_driors,
                              model = "sraplus_tmb",
                              adapt_delta = 0.9,
                              max_treedepth = 10,
-                             n_keep = 1000,
-                             chains = 1, 
-                             cores = 1,
+                             n_keep = 2000,
+                             chains = 4, 
+                             cores = 4,
                              estimate_qslope = TRUE,
-                             estimate_proc_error = FALSE)
+                             estimate_proc_error = FALSE,
+                             non_centered = FALSE)
 ```
 
 ``` r
@@ -647,36 +648,36 @@ knitr::kable(summarize_sralpus(cpue_sar_proc_fit, output = "table"), digits = 2)
 
 | variable        |   mean |    sd |  lower |  upper | year |
 |:----------------|-------:|------:|-------:|-------:|-----:|
-| sigma_proc      |   0.27 |  0.05 |   0.19 |   0.34 |    1 |
-| sigma_obs       |   0.27 |  0.04 |   0.20 |   0.34 |    1 |
-| log_sigma_ratio |  -0.01 |  0.05 |  -0.09 |   0.07 |    1 |
-| sigma_ratio     |   0.99 |  0.05 |   0.91 |   1.07 |    1 |
-| log_ihat        |   4.18 |  0.05 |   4.10 |   4.27 |   25 |
-| log_b\_div_bmsy |  -1.33 |  0.14 |  -1.55 |  -1.10 |   25 |
-| log_b           |   4.18 |  0.05 |   4.10 |   4.27 |   25 |
-| log_depletion   |  -2.32 |  0.14 |  -2.54 |  -2.10 |   25 |
-| log_u\_div_umsy |   1.22 |  0.16 |   0.96 |   1.49 |   25 |
-| log_c\_div_msy  |  -0.10 |  0.12 |  -0.30 |   0.09 |   25 |
-| u_t             |   1.15 |  0.06 |   1.05 |   1.24 |   25 |
-| proc_errors     |   0.62 |  0.15 |   0.39 |   0.86 |   24 |
+| sigma_proc      |   0.22 |  0.04 |   0.16 |   0.29 |    1 |
+| sigma_obs       |   0.22 |  0.04 |   0.16 |   0.29 |    1 |
+| log_sigma_ratio |   0.00 |  0.01 |  -0.02 |   0.02 |    1 |
+| sigma_ratio     |   1.00 |  0.01 |   0.98 |   1.02 |    1 |
+| log_ihat        |   4.19 |  0.05 |   4.11 |   4.27 |   25 |
+| log_b\_div_bmsy |  -1.03 |  0.15 |  -1.28 |  -0.79 |   25 |
+| log_b           |   4.19 |  0.05 |   4.11 |   4.27 |   25 |
+| log_depletion   |  -2.03 |  0.15 |  -2.27 |  -1.78 |   25 |
+| log_u\_div_umsy |   0.89 |  0.17 |   0.61 |   1.16 |   25 |
+| log_c\_div_msy  |  -0.15 |  0.09 |  -0.29 |  -0.01 |   25 |
+| u_t             |   1.14 |  0.06 |   1.05 |   1.23 |   25 |
+| proc_errors     |   0.67 |  0.13 |   0.45 |   0.88 |   24 |
 | plim            |   0.05 |  0.00 |   0.05 |   0.05 |    1 |
 | b_to_k          |   0.37 |  0.00 |   0.37 |   0.37 |    1 |
 | crashed         |   0.00 |  0.00 |   0.00 |   0.00 |    1 |
-| index_hat_t     |  65.69 |  3.33 |  60.37 |  71.01 |   25 |
-| r               |   0.34 |  0.05 |   0.26 |   0.43 |    1 |
+| index_hat_t     |  66.00 |  3.35 |  60.65 |  71.36 |   25 |
+| r               |   0.48 |  0.08 |   0.35 |   0.60 |    1 |
 | m               |   1.01 |  0.00 |   1.01 |   1.01 |    1 |
-| msy             |  83.53 | 10.29 |  67.09 |  99.98 |    1 |
-| umsy            |   0.34 |  0.05 |   0.25 |   0.42 |    1 |
-| k               | 669.02 | 85.21 | 532.84 | 805.19 |    1 |
+| msy             |  87.16 |  7.60 |  75.01 |  99.30 |    1 |
+| umsy            |   0.47 |  0.08 |   0.35 |   0.59 |    1 |
+| k               | 501.06 | 71.18 | 387.29 | 614.82 |    1 |
 | q_t             |   0.01 |  0.00 |   0.00 |   0.01 |   25 |
 | q_slope         |   0.00 |  0.00 |   0.00 |   0.00 |    1 |
-| sigma_ratio     |   0.99 |  0.05 |   0.92 |   1.07 |    1 |
-| ihat            |  65.69 |  0.05 |  60.58 |  71.24 |   25 |
-| b_div_bmsy      |   0.27 |  0.14 |   0.21 |   0.33 |   25 |
-| b               |  65.69 |  0.05 |  60.58 |  71.24 |   25 |
-| depletion       |   0.10 |  0.14 |   0.08 |   0.12 |   25 |
-| u_div_umsy      |   3.40 |  0.16 |   2.61 |   4.42 |   25 |
-| c_div_msy       |   0.90 |  0.12 |   0.74 |   1.10 |   25 |
+| sigma_ratio     |   1.00 |  0.01 |   0.98 |   1.02 |    1 |
+| ihat            |  66.00 |  0.05 |  60.86 |  71.58 |   25 |
+| b_div_bmsy      |   0.36 |  0.15 |   0.28 |   0.45 |   25 |
+| b               |  66.00 |  0.05 |  60.86 |  71.58 |   25 |
+| depletion       |   0.13 |  0.15 |   0.10 |   0.17 |   25 |
+| u_div_umsy      |   2.43 |  0.17 |   1.85 |   3.18 |   25 |
+| c_div_msy       |   0.86 |  0.09 |   0.75 |   0.99 |   25 |
 
 # Implementing References
 
@@ -684,3 +685,10 @@ Ovando, D., Hilborn, R., Monnahan, C., Rudd, M., Sharma, R., Thorson,
 J.T., Rousseau, Y., Ye, Y., 2021. Improving estimates of the state of
 global fisheries depends on better data. Fish and Fisheries n/a.
 <https://doi.org/10.1111/faf.12593>
+
+# Importannt Note
+
+This package uses the [`TMBtools`](https://github.com/mlysy/TMBtools).
+If you make modifications to the core model in
+`src/TMB/sraplus_tmb.hpp`, you need to run `TMBtools::export_models()`
+prior to building the package.

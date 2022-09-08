@@ -13,7 +13,7 @@
 #' @param post_draws 
 #' @param ... 
 #'
-#' @return
+#' @return list with fitted object
 #' @export
 #'
 fit_prior_regressions <-

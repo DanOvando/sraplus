@@ -5,7 +5,7 @@
 #' @param draws 
 #' @param prob 
 #'
-#' @return
+#' @return a list of prior-posterior comparisons
 #' @export
 #'
 get_prior_posterior <- function(fit, driors,

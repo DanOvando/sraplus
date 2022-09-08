@@ -12,7 +12,7 @@ summarize_sralpus(fit, output = "table")
 \item{output}{}
 }
 \value{
-
+a summary of key sraplus outputs
 }
 \description{
 provide summary of sraplus fit

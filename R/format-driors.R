@@ -40,8 +40,8 @@
 #' @param q_slope_prior_cv the cv on the prior on q_slope
 #' @param isscaap_group the isscaap group of the stock. If NA will try and find
 #' @param prob the probability range of the posterior predictive to use in construction of the priors
-#' @param sigma_ratio_prior
-#' @param sigma_ratio_prior_cv
+#' @param sigma_ratio_prior prior on the ratio of process to observation error
+#' @param sigma_ratio_prior_cv cv on prior on the ratio of process to observation error
 #'
 #' @return a list of data and priors
 #' @export
@@ -84,7 +84,7 @@ format_driors <-
            k_prior = NA,
            k_prior_cv = 2,
            sigma_ratio_prior = 1,
-           sigma_ratio_prior_cv = 0.05,
+           sigma_ratio_prior_cv = 0.01,
            shape_prior = NA,
            shape_prior_cv = 0.25,
            q_prior = 1e-3,

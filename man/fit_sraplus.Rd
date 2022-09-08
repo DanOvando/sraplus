@@ -43,9 +43,11 @@ fit_sraplus(
   index_fit_tuner = "sir",
   refresh = 250,
   log_bias_correct = TRUE,
-  workers = workers,
+  workers = 1,
   thin_draws = FALSE,
   thin_rate = 0.5,
+  catch_cv = 0.01,
+  non_centered = FALSE,
   ...
 )
 }
@@ -84,17 +86,67 @@ If FALSE shape parameter is held at the initial value, either default or supplie
 \item{estimate_qslope}{logical indicating whether to estimate a slope parameter for q in CPUE fitting.
 If FALSE q_slope is held at the initial value, either default or supplied. if TRUE, \code{estimate_proc_error} should be set to FALSE}
 
+\item{estimate_q}{estimate catchability coefficient or leave fixed}
+
 \item{estimate_proc_error}{logical indicating whether to estimate process errors.
 If FALSE process errors are not included in the model}
 
+\item{estimate_initial_state}{}
+
+\item{estimate_k}{estimate carrying capacity}
+
+\item{estimate_f}{estimate fishing mortality}
+
+\item{learn_rate}{learn_rate for HMC}
+
+\item{analytical_q}{use analytical q instead of empirical}
+
+\item{use_baranov}{use baranov catch equation}
+
+\item{include_m}{include natural mortality (deprecated)}
+
 \item{ci}{confidence/credible interval range for summaries}
 
-\item{...}{}
+\item{try_again}{try fit again with adjusted starting guess}
+
+\item{eps}{eps for nlminb}
+
+\item{max_time}{max_time for nlminb}
+
+\item{eval.max}{eval.max for nlminb}
+
+\item{iter.max}{iter.max for nlminb}
+
+\item{rel.tol}{for nlminb}
+
+\item{loopnum}{for nlminb}
+
+\item{newtonsteps}{for TMBhelper}
+
+\item{tune_prior_predictive}{tune prior predictive to resolve borel's paradox}
+
+\item{index_fit_tuner}{"sir" tunes priors for index fit}
+
+\item{refresh}{refresh rate for Stan}
+
+\item{log_bias_correct}{correct for log-transformation bias}
+
+\item{workers}{number of workers for parallel processing of stan outputs}
+
+\item{thin_draws}{true or false thing draws}
+
+\item{thin_rate}{thinning rate}
+
+\item{catch_cv}{assumed CV for catch data when estimating catches rather than treating as data}
+
+\item{non_centered}{use centered or non-centered form for process errors}
+
+\item{...}{additional parameters}
 }
 \value{
 a fitted sraplus object
 }
 \description{
-The main function for taking an object created by \code{format_driors} and fitting a
+The main function for taking an object created by \code{format_driors} and fitting a surplus production
 model using \code{sraplus}
 }

@@ -155,6 +155,8 @@ Type sraplus_tmb(objective_function<Type>* obj){
   
   DATA_SCALAR(catch_cv);
   
+  DATA_INTEGER(non_centered);
+  
   //// parameters ////
   
   PARAMETER(log_init_dep);
@@ -234,9 +236,21 @@ Type sraplus_tmb(objective_function<Type>* obj){
   
   vector<Type> proc_errors(time - 1);
   
-  proc_errors = exp(log_proc_errors);
+  if (non_centered == 1){
+    
+    proc_errors = exp(log_proc_errors * sigma_proc  - pow(sigma_proc,2)/2);
+    
+    
+  } else {
+    
+    proc_errors = exp(log_proc_errors  - pow(sigma_proc,2)/2);
+    
+    
+  }
   
-  // proc_errors = exp(log_proc_errors - pow(sigma_proc,2)/2);
+  // proc_errors = exp(log_proc_errors);
+  
+  // proc_errors = exp(log_proc_errors * sigma_proc  - pow(sigma_proc,2)/2);
   
   // proc_errors = exp(log_proc_errors * sigma_proc - pow(sigma_proc,2)/2);
   
@@ -499,9 +513,17 @@ Type sraplus_tmb(objective_function<Type>* obj){
     
     for (int t = 0; t < (time - 1); t++){
       
-      nll -= dnorm(log_proc_errors(t), -pow(sigma_proc,2)/2, sigma_proc, true);
+      if (non_centered == 1){
+        
+        nll -= dnorm(log_proc_errors(t), Type(0), Type(1), true);
+        
+      } else{
+        
+        nll -= dnorm(log_proc_errors(t), Type(0), sigma_proc, true);
+        
+      }
+      // nll -= dnorm(log_proc_errors(t),Type(0), sigma_proc, true);
       
-      // nll -= dnorm(log_proc_errors(t), Type(0), Type(1), true);
       
       
     }

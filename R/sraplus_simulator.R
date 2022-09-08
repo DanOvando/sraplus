@@ -11,7 +11,7 @@
 #' @param init_u_umsy 
 #' @param years 
 #'
-#' @return
+#' @return a simulation from the sraplus operating model
 #' @export
 #'
 sraplus_simulator <-
