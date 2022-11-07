@@ -63,7 +63,7 @@ format_driors <-
            effort = NA,
            b_ref_type = "k",
            f_ref_type = "fmsy",
-           index_years = 1,
+           index_years = NA,
            effort_years = NA,
            use_heuristics = FALSE,
            use_b_reg = FALSE,
@@ -585,6 +585,8 @@ format_driors <-
       
     }
     
+    # at the moment can only use index data or effort data, so if effort data is provided index_years are
+    # ovewritten by effort years
     if (!all(is.na(effort_years))) {
       index_years = effort_years
       

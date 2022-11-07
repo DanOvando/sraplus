@@ -205,14 +205,14 @@ Let’s take a quick look at the `results` object.
 
 head(catch_only_fit$results)
 #> # A tibble: 6 × 6
-#>    year variable           mean           sd        lower        upper
-#>   <dbl> <chr>             <dbl>        <dbl>        <dbl>        <dbl>
-#> 1  1963 b_div_bmsy        0.598       0.0783       0.498         0.714
-#> 2  1963 b           5297474.    4660189.     1875180.     11409267.   
-#> 3  1963 c_div_msy         0.304       0.119        0.0718        0.449
-#> 4  1963 crashed           0           0            0             0    
-#> 5  1963 depletion         0.393       0.0400       0.335         0.460
-#> 6  1963 index_hat_t  265984.     342741.       22159.       787844.
+#>    year variable           mean           sd       lower        upper
+#>   <dbl> <chr>             <dbl>        <dbl>       <dbl>        <dbl>
+#> 1  1963 b_div_bmsy        0.623       0.0845       0.499        0.790
+#> 2  1963 b           4704106.    3773624.     2113628.    10041129.   
+#> 3  1963 c_div_msy         0.306       0.100        0.128        0.441
+#> 4  1963 crashed           0           0            0            0    
+#> 5  1963 depletion         0.403       0.0440       0.333        0.470
+#> 6  1963 index_hat_t  232080.     262370.       26575.      591762.
 ```
 
 `results` is organized as a dataframe tracking different variables over
@@ -228,12 +228,12 @@ object is the output of the SIR algorithm.
 ``` r
 head(catch_only_fit$fit)
 #>   variable year draw   value draw_id
-#> 1      b_t 1963    1 4602483   18214
-#> 2      b_t 1964    1 4665580   18214
-#> 3      b_t 1965    1 4669336   18214
-#> 4      b_t 1966    1 4798243   18214
-#> 5      b_t 1967    1 4953921   18214
-#> 6      b_t 1968    1 4855429   18214
+#> 1      b_t 1963    1 4640558   74102
+#> 2      b_t 1964    1 4735028   74102
+#> 3      b_t 1965    1 4824115   74102
+#> 4      b_t 1966    1 4759478   74102
+#> 5      b_t 1967    1 4789011   74102
+#> 6      b_t 1968    1 4883291   74102
 ```
 
 From there, we can generate some standard plots of B/Bmsy (b_div_bmsy),
@@ -335,7 +335,7 @@ sraplus::diagnose_sraplus(fit = fmi_sar_fit, driors = fmi_sar_driors )
 #> [1] "fishlife matched supplied species"
 #> 
 #> $distinct_sir_draws
-#> [1] 2072
+#> [1] 2057
 #> 
 #> $sir_convergence_plot
 ```
@@ -686,9 +686,9 @@ J.T., Rousseau, Y., Ye, Y., 2021. Improving estimates of the state of
 global fisheries depends on better data. Fish and Fisheries n/a.
 <https://doi.org/10.1111/faf.12593>
 
-# Importannt Note
+# Important Note on Building the Package
 
-This package uses the [`TMBtools`](https://github.com/mlysy/TMBtools).
-If you make modifications to the core model in
+This package uses the [`TMBtools`](https://github.com/mlysy/TMBtools)
+package. If you make modifications to the core model in
 `src/TMB/sraplus_tmb.hpp`, you need to run `TMBtools::export_models()`
-prior to building the package.
+prior to building the package in order for your changes to be reflected.

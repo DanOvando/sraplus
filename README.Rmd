@@ -279,7 +279,7 @@ sim <-
 ```
 
 
-Now, let's pretend that we have a perfect index of abundance, which is just `biomass * 1e-3`. We pass indices to `srplus` inside `format_driors` as `index` and `index_years`, where `index_years` is a vector of the same length of `index` specifying which years index data are available. Well now use Template Model Builder (TMB) to estimate stock status based on this index of abundance. We'll add in some priors on the growth rate and the shape of the Pella-Tomlinson model (1.01 roughly corresponds to a Fox model, where Bmsy/K ~= 0.4). Note that we now set `engine = "tmb"` to fit the model via maximum likelihood using TMB.
+Now, let's pretend that we have a perfect index of abundance, which is just `biomass * 1e-3`. We pass indices to `sraplus` inside `format_driors` as `index` and `index_years`, where `index_years` is a vector of the same length of `index` specifying which years index data are available. Well now use Template Model Builder (TMB) to estimate stock status based on this index of abundance. We'll add in some priors on the growth rate and the shape of the Pella-Tomlinson model (1.01 roughly corresponds to a Fox model, where Bmsy/K ~= 0.4). Note that we now set `engine = "tmb"` to fit the model via maximum likelihood using TMB.
 
 ```{r}
 index_driors <- format_driors(
@@ -328,14 +328,6 @@ sim <-
     init_u_umsy = 0.75
   )
 
-# sim$pop %>% 
-#   select(year, depletion,catch, effort,u) %>% 
-#   gather(metric, value, -year) %>% 
-#   ggplot(aes(year, value)) + 
-#   geom_point() + 
-#   facet_wrap(~metric, scales = "free_y") + 
-#   labs(y = "Value", x = "Year") + 
-#   sraplus::theme_sraplus()
 
 ```
 
@@ -501,6 +493,6 @@ Ovando, D., Hilborn, R., Monnahan, C., Rudd, M., Sharma, R., Thorson, J.T., Rous
 
 
 
-# Importannt Note
+# Important Note on Building the Package
 
-This package uses the [`TMBtools`](https://github.com/mlysy/TMBtools). If you make modifications to the core model in `src/TMB/sraplus_tmb.hpp`, you need to run `TMBtools::export_models()` prior to building the package. 
+This package uses the [`TMBtools`](https://github.com/mlysy/TMBtools) package. If you make modifications to the core model in `src/TMB/sraplus_tmb.hpp`, you need to run `TMBtools::export_models()` prior to building the package in order for your changes to be reflected. 
