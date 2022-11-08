@@ -187,7 +187,7 @@ sfs <- purrr::safely(fit_sraplus)
                        max_time = Inf,
                        tune_prior_predictive = FALSE)
  
- sraplus::plot_sraplus(catch_only = catch_only_fit, years = catch_only_driors$years)
+ sraplus::plot_sraplus(catch_only = catch_only_fit)
 ```
 
 <img src="man/figures/README-unnamed-chunk-6-1.png" width="100%" />
@@ -207,12 +207,12 @@ head(catch_only_fit$results)
 #> # A tibble: 6 × 6
 #>    year variable           mean           sd       lower       upper
 #>   <dbl> <chr>             <dbl>        <dbl>       <dbl>       <dbl>
-#> 1  1963 b_div_bmsy        0.617       0.0849       0.501       0.777
-#> 2  1963 b           4634712.    3401943.     2120449.    9038899.   
-#> 3  1963 c_div_msy         0.302       0.111        0.117       0.458
+#> 1  1963 b_div_bmsy        0.616       0.0843       0.495       0.756
+#> 2  1963 b           4606126.    4533220.     2208838.    8996789.   
+#> 3  1963 c_div_msy         0.312       0.101        0.107       0.461
 #> 4  1963 crashed           0           0            0           0    
-#> 5  1963 depletion         0.397       0.0376       0.337       0.450
-#> 6  1963 index_hat_t  243334.     284744.       11874.     654311.
+#> 5  1963 depletion         0.402       0.0397       0.343       0.477
+#> 6  1963 index_hat_t  222014.     255390.       13755.     546064.
 ```
 
 `results` is organized as a dataframe tracking different variables over
@@ -228,12 +228,12 @@ object is the output of the SIR algorithm.
 ``` r
 head(catch_only_fit$fit)
 #>   variable year draw   value draw_id
-#> 1      b_t 1963    1 5087216   91744
-#> 2      b_t 1964    1 5158110   91744
-#> 3      b_t 1965    1 7538965   91744
-#> 4      b_t 1966    1 7753104   91744
-#> 5      b_t 1967    1 7345095   91744
-#> 6      b_t 1968    1 8407142   91744
+#> 1      b_t 1963    1 2683442   21163
+#> 2      b_t 1964    1 2810188   21163
+#> 3      b_t 1965    1 2859159   21163
+#> 4      b_t 1966    1 2993687   21163
+#> 5      b_t 1967    1 2973050   21163
+#> 6      b_t 1968    1 2887932   21163
 ```
 
 From there, we can generate some standard plots of B/Bmsy (b_div_bmsy),
@@ -312,8 +312,7 @@ fmi_sar_fit <- fit_sraplus(
 )
 
 plot_sraplus(fmi_sar = fmi_sar_fit,
-             catch_only = catch_only_fit,
-             years = fmi_sar_driors$years)
+             catch_only = catch_only_fit)
 ```
 
 <img src="man/figures/README-fmi-sar-2-1.png" width="100%" />
@@ -335,7 +334,7 @@ sraplus::diagnose_sraplus(fit = fmi_sar_fit, driors = fmi_sar_driors )
 #> [1] "fishlife matched supplied species"
 #> 
 #> $distinct_sir_draws
-#> [1] 1981
+#> [1] 2024
 #> 
 #> $sir_convergence_plot
 ```
@@ -526,7 +525,7 @@ cpue_qslope_fit <- fit_sraplus(driors = cpue_qslope_driors,
 
 ``` r
 
-plot_sraplus(`CPUE fit no qslope` = cpue_fit, `CPUE fit with qslope` =  cpue_qslope_fit, years = cpue_driors$years)
+plot_sraplus(`CPUE fit no qslope` = cpue_fit, `CPUE fit with qslope` =  cpue_qslope_fit)
 ```
 
 <img src="man/figures/README-unnamed-chunk-13-1.png" width="100%" />
@@ -564,7 +563,7 @@ cpue_sar_qslope_fit <- fit_sraplus(driors = cpue_sar_qslope_driors,
                              estimate_qslope = TRUE,
                              estimate_proc_error = FALSE)
 
-plot_sraplus(cpue_sar_qslope_fit, years = cpue_sar_qslope_driors$years)
+plot_sraplus(cpue_sar_qslope_fit)
 ```
 
 <img src="man/figures/README-unnamed-chunk-14-1.png" width="100%" />
@@ -603,8 +602,7 @@ cpue_sar_proc_fit <- fit_sraplus(driors = cpue_sar_proc_driors,
 plot_sraplus(`no process error and no qslope ` = cpue_fit, 
              `no process error with qslope` =  cpue_qslope_fit, 
              `no process error with qslope and sar` = cpue_sar_qslope_fit,
-             `process error and sar` = cpue_sar_proc_fit,
-             years = cpue_driors$years)
+             `process error and sar` = cpue_sar_proc_fit)
 ```
 
 <img src="man/figures/README-unnamed-chunk-16-1.png" width="100%" />
@@ -617,7 +615,6 @@ plot_sraplus(`no process error and no qslope ` = cpue_fit,
              `no process error with qslope` =  cpue_qslope_fit, 
              `no process error with qslope and sar` = cpue_sar_qslope_fit,
              `process error and sar` = cpue_sar_proc_fit,
-             years = cpue_driors$years,
              kobe = TRUE)
 ```
 
