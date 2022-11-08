@@ -33,7 +33,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="index.html">sraplus</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">3.7.4</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">3.7.5</span>
       </span>
     </div>
 
@@ -183,7 +183,7 @@
 <span>                       max_time <span class="op">=</span> <span class="cn">Inf</span>,</span>
 <span>                       tune_prior_predictive <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
 <span> </span>
-<span> <span class="fu">sraplus</span><span class="fu">::</span><span class="fu"><a href="reference/plot_sraplus.html">plot_sraplus</a></span><span class="op">(</span>catch_only <span class="op">=</span> <span class="va">catch_only_fit</span>, years <span class="op">=</span> <span class="va">catch_only_driors</span><span class="op">$</span><span class="va">years</span><span class="op">)</span></span></code></pre></div>
+<span> <span class="fu">sraplus</span><span class="fu">::</span><span class="fu"><a href="reference/plot_sraplus.html">plot_sraplus</a></span><span class="op">(</span>catch_only <span class="op">=</span> <span class="va">catch_only_fit</span><span class="op">)</span></span></code></pre></div>
 <p><img src="reference/figures/README-unnamed-chunk-6-1.png" width="100%"></p>
 <p>Running <code>fit_sraplus</code> always produces a list with two objects: <code>results</code> and <code>fit</code>. <code>results</code> is (mostly) standardized across engines set of summary outputs from the fitted model. This allows us to easily plot and compare outputs from models fit using <code>sir</code>, TMB, or stan. The <code>fit</code> object contains the actual fitted model, which will of course vary dramatically depending on what engine was used.</p>
 <p>Let’s take a quick look at the <code>results</code> object.</p>
@@ -193,23 +193,23 @@
 <span><span class="co">#&gt; # A tibble: 6 × 6</span></span>
 <span><span class="co">#&gt;    year variable           mean           sd       lower       upper</span></span>
 <span><span class="co">#&gt;   &lt;dbl&gt; &lt;chr&gt;             &lt;dbl&gt;        &lt;dbl&gt;       &lt;dbl&gt;       &lt;dbl&gt;</span></span>
-<span><span class="co">#&gt; 1  1963 b_div_bmsy        0.617       0.0849       0.501       0.777</span></span>
-<span><span class="co">#&gt; 2  1963 b           4634712.    3401943.     2120449.    9038899.   </span></span>
-<span><span class="co">#&gt; 3  1963 c_div_msy         0.302       0.111        0.117       0.458</span></span>
+<span><span class="co">#&gt; 1  1963 b_div_bmsy        0.616       0.0843       0.495       0.756</span></span>
+<span><span class="co">#&gt; 2  1963 b           4606126.    4533220.     2208838.    8996789.   </span></span>
+<span><span class="co">#&gt; 3  1963 c_div_msy         0.312       0.101        0.107       0.461</span></span>
 <span><span class="co">#&gt; 4  1963 crashed           0           0            0           0    </span></span>
-<span><span class="co">#&gt; 5  1963 depletion         0.397       0.0376       0.337       0.450</span></span>
-<span><span class="co">#&gt; 6  1963 index_hat_t  243334.     284744.       11874.     654311.</span></span></code></pre></div>
+<span><span class="co">#&gt; 5  1963 depletion         0.402       0.0397       0.343       0.477</span></span>
+<span><span class="co">#&gt; 6  1963 index_hat_t  222014.     255390.       13755.     546064.</span></span></code></pre></div>
 <p><code>results</code> is organized as a dataframe tracking different variables over years. <code>mean</code> is the mean value for a given variable, <code>sd</code> the estimated standard deviation around the mean, and <code>lower</code> and <code>upper</code> being the 10th and 90th percentiles of the estimates.</p>
 <p>You can access other variables from the raw <code>fit</code> object, though this is not standardized by engine and so requires knowing how to for example get outputs out of <code>stanfit</code> objects. In the <code>catch_only_fit</code>, the <code>fit</code> object is the output of the SIR algorithm.</p>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">catch_only_fit</span><span class="op">$</span><span class="va">fit</span><span class="op">)</span></span>
 <span><span class="co">#&gt;   variable year draw   value draw_id</span></span>
-<span><span class="co">#&gt; 1      b_t 1963    1 5087216   91744</span></span>
-<span><span class="co">#&gt; 2      b_t 1964    1 5158110   91744</span></span>
-<span><span class="co">#&gt; 3      b_t 1965    1 7538965   91744</span></span>
-<span><span class="co">#&gt; 4      b_t 1966    1 7753104   91744</span></span>
-<span><span class="co">#&gt; 5      b_t 1967    1 7345095   91744</span></span>
-<span><span class="co">#&gt; 6      b_t 1968    1 8407142   91744</span></span></code></pre></div>
+<span><span class="co">#&gt; 1      b_t 1963    1 2683442   21163</span></span>
+<span><span class="co">#&gt; 2      b_t 1964    1 2810188   21163</span></span>
+<span><span class="co">#&gt; 3      b_t 1965    1 2859159   21163</span></span>
+<span><span class="co">#&gt; 4      b_t 1966    1 2993687   21163</span></span>
+<span><span class="co">#&gt; 5      b_t 1967    1 2973050   21163</span></span>
+<span><span class="co">#&gt; 6      b_t 1968    1 2887932   21163</span></span></code></pre></div>
 <p>From there, we can generate some standard plots of B/Bmsy (b_div_bmsy), Catch/MSY, U/Umsy, and depletion over time using <code>plot_sraplus</code>.</p>
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
@@ -263,8 +263,7 @@
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="reference/plot_sraplus.html">plot_sraplus</a></span><span class="op">(</span>fmi_sar <span class="op">=</span> <span class="va">fmi_sar_fit</span>,</span>
-<span>             catch_only <span class="op">=</span> <span class="va">catch_only_fit</span>,</span>
-<span>             years <span class="op">=</span> <span class="va">fmi_sar_driors</span><span class="op">$</span><span class="va">years</span><span class="op">)</span></span></code></pre></div>
+<span>             catch_only <span class="op">=</span> <span class="va">catch_only_fit</span><span class="op">)</span></span></code></pre></div>
 <p><img src="reference/figures/README-fmi-sar-2-1.png" width="100%"></p>
 <p>You can also use the function <code><a href="reference/diagnose_sraplus.html">sraplus::diagnose_sraplus</a></code> to look at some brief diagnostics of the model fit. Note that these diagnostics are not exhaustive, and users should carefully assess the quality of any model fits on their own as well. <code>diagnose_sraplus</code> will inform the user whether <code>FishLife</code> found an exact match for the species, and provide some summary diagnostics for each model type (SIR, TMB, or Stan). For the SIR case, the diagnostics include the number of unique samples in the posterior, and a plot of the mean terminal values as a function of the number of unique samples used. n</p>
 <div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
@@ -274,7 +273,7 @@
 <span><span class="co">#&gt; [1] "fishlife matched supplied species"</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $distinct_sir_draws</span></span>
-<span><span class="co">#&gt; [1] 1981</span></span>
+<span><span class="co">#&gt; [1] 2024</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $sir_convergence_plot</span></span></code></pre></div>
 <p><img src="reference/figures/README-unnamed-chunk-10-1.png" width="100%"></p>
@@ -403,7 +402,7 @@
 <span>                             non_centered <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
 <div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
-<span><span class="fu"><a href="reference/plot_sraplus.html">plot_sraplus</a></span><span class="op">(</span>`CPUE fit no qslope` <span class="op">=</span> <span class="va">cpue_fit</span>, `CPUE fit with qslope` <span class="op">=</span>  <span class="va">cpue_qslope_fit</span>, years <span class="op">=</span> <span class="va">cpue_driors</span><span class="op">$</span><span class="va">years</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu"><a href="reference/plot_sraplus.html">plot_sraplus</a></span><span class="op">(</span>`CPUE fit no qslope` <span class="op">=</span> <span class="va">cpue_fit</span>, `CPUE fit with qslope` <span class="op">=</span>  <span class="va">cpue_qslope_fit</span><span class="op">)</span></span></code></pre></div>
 <p><img src="reference/figures/README-unnamed-chunk-13-1.png" width="100%"></p>
 <p>As a final step, we can try adding in some fictional SAR data to our fake fishery, just to see how it works. We can weight the SAR data using the <code>sar_cv</code> input. Leaving <code>sar_cv = NA</code> uses the srandard deviation from the posterior predictive of the fitted relationahip between SAR and U/Umsy contained in the model. In other words, setting <code>sar_cv = NA</code> lets the data tell you how much weight to assign to the SAR data. You can however overwrite this if desired and pass a stronger weight to the SAR data if desired.</p>
 <div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
@@ -430,7 +429,7 @@
 <span>                             estimate_qslope <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>                             estimate_proc_error <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
 <span></span>
-<span><span class="fu"><a href="reference/plot_sraplus.html">plot_sraplus</a></span><span class="op">(</span><span class="va">cpue_sar_qslope_fit</span>, years <span class="op">=</span> <span class="va">cpue_sar_qslope_driors</span><span class="op">$</span><span class="va">years</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu"><a href="reference/plot_sraplus.html">plot_sraplus</a></span><span class="op">(</span><span class="va">cpue_sar_qslope_fit</span><span class="op">)</span></span></code></pre></div>
 <p><img src="reference/figures/README-unnamed-chunk-14-1.png" width="100%"></p>
 <p>And for good measure one more with SAR data and process error instead of qslope</p>
 <div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
@@ -462,8 +461,7 @@
 <span><span class="fu"><a href="reference/plot_sraplus.html">plot_sraplus</a></span><span class="op">(</span>`no process error and no qslope ` <span class="op">=</span> <span class="va">cpue_fit</span>, </span>
 <span>             `no process error with qslope` <span class="op">=</span>  <span class="va">cpue_qslope_fit</span>, </span>
 <span>             `no process error with qslope and sar` <span class="op">=</span> <span class="va">cpue_sar_qslope_fit</span>,</span>
-<span>             `process error and sar` <span class="op">=</span> <span class="va">cpue_sar_proc_fit</span>,</span>
-<span>             years <span class="op">=</span> <span class="va">cpue_driors</span><span class="op">$</span><span class="va">years</span><span class="op">)</span></span></code></pre></div>
+<span>             `process error and sar` <span class="op">=</span> <span class="va">cpue_sar_proc_fit</span><span class="op">)</span></span></code></pre></div>
 <p><img src="reference/figures/README-unnamed-chunk-16-1.png" width="100%"></p>
 <p>You can also produce Kobe plots by simply setting <code>kobe = TRUE</code> in <code>plot_sralpus</code></p>
 <div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
@@ -471,7 +469,6 @@
 <span>             `no process error with qslope` <span class="op">=</span>  <span class="va">cpue_qslope_fit</span>, </span>
 <span>             `no process error with qslope and sar` <span class="op">=</span> <span class="va">cpue_sar_qslope_fit</span>,</span>
 <span>             `process error and sar` <span class="op">=</span> <span class="va">cpue_sar_proc_fit</span>,</span>
-<span>             years <span class="op">=</span> <span class="va">cpue_driors</span><span class="op">$</span><span class="va">years</span>,</span>
 <span>             kobe <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
 <p><img src="reference/figures/README-unnamed-chunk-17-1.png" width="100%"></p>
 <p>We can also use several built-in processing functions to display and store the results</p>
