@@ -8,7 +8,9 @@ plot_sraplus(
   ...,
   fontsize = 14,
   years = NA,
-  plotvars = c("b_div_bmsy", "c_div_msy", "depletion", "u_div_umsy")
+  plotvars = c("b_div_bmsy", "c_div_msy", "depletion", "u_div_umsy"),
+  kobe = FALSE,
+  max_kobe_val = 4
 )
 }
 \arguments{
@@ -16,9 +18,13 @@ plot_sraplus(
 
 \item{fontsize}{font size for plots}
 
-\item{years}{the years that the model fit applies to}
+\item{years}{replacement vector of years for plotting if desired}
 
 \item{plotvars}{variables to plot}
+
+\item{kobe}{FALSE to return ribbons plot. TRUE to plot a Kobe plot}
+
+\item{max_kobe_val}{the max value for the x and y axes of the Kobe plot}
 }
 \value{
 a ggplot object

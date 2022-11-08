@@ -151,6 +151,9 @@ test <- names(bayes_fit$fit)
 plot_sraplus(ml_fit = ml_fit, bayes_fit = bayes_fit,years = ml_driors$years)
 
 
+plot_sraplus(ml_fit = ml_fit, bayes_fit = bayes_fit,kobe = TRUE)
+
+
 # test u priors
 
 u_driors <- format_driors(

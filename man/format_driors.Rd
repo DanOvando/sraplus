@@ -21,7 +21,7 @@ format_driors(
   effort = NA,
   b_ref_type = "k",
   f_ref_type = "fmsy",
-  index_years = 1,
+  index_years = NA,
   effort_years = NA,
   use_heuristics = FALSE,
   use_b_reg = FALSE,

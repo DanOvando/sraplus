@@ -1,3 +1,4 @@
+# manuall generated due to TMB installation fun
 useDynLib(sraplus, .registration=TRUE); useDynLib(sraplus_TMBExports)
 importFrom(Rcpp, evalCpp)
 exportPattern("^[[:alpha:]]+")

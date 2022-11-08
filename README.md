@@ -205,14 +205,14 @@ Let’s take a quick look at the `results` object.
 
 head(catch_only_fit$results)
 #> # A tibble: 6 × 6
-#>    year variable           mean           sd       lower        upper
-#>   <dbl> <chr>             <dbl>        <dbl>       <dbl>        <dbl>
-#> 1  1963 b_div_bmsy        0.623       0.0845       0.499        0.790
-#> 2  1963 b           4704106.    3773624.     2113628.    10041129.   
-#> 3  1963 c_div_msy         0.306       0.100        0.128        0.441
-#> 4  1963 crashed           0           0            0            0    
-#> 5  1963 depletion         0.403       0.0440       0.333        0.470
-#> 6  1963 index_hat_t  232080.     262370.       26575.      591762.
+#>    year variable           mean           sd       lower       upper
+#>   <dbl> <chr>             <dbl>        <dbl>       <dbl>       <dbl>
+#> 1  1963 b_div_bmsy        0.617       0.0849       0.501       0.777
+#> 2  1963 b           4634712.    3401943.     2120449.    9038899.   
+#> 3  1963 c_div_msy         0.302       0.111        0.117       0.458
+#> 4  1963 crashed           0           0            0           0    
+#> 5  1963 depletion         0.397       0.0376       0.337       0.450
+#> 6  1963 index_hat_t  243334.     284744.       11874.     654311.
 ```
 
 `results` is organized as a dataframe tracking different variables over
@@ -228,12 +228,12 @@ object is the output of the SIR algorithm.
 ``` r
 head(catch_only_fit$fit)
 #>   variable year draw   value draw_id
-#> 1      b_t 1963    1 4640558   74102
-#> 2      b_t 1964    1 4735028   74102
-#> 3      b_t 1965    1 4824115   74102
-#> 4      b_t 1966    1 4759478   74102
-#> 5      b_t 1967    1 4789011   74102
-#> 6      b_t 1968    1 4883291   74102
+#> 1      b_t 1963    1 5087216   91744
+#> 2      b_t 1964    1 5158110   91744
+#> 3      b_t 1965    1 7538965   91744
+#> 4      b_t 1966    1 7753104   91744
+#> 5      b_t 1967    1 7345095   91744
+#> 6      b_t 1968    1 8407142   91744
 ```
 
 From there, we can generate some standard plots of B/Bmsy (b_div_bmsy),
@@ -335,7 +335,7 @@ sraplus::diagnose_sraplus(fit = fmi_sar_fit, driors = fmi_sar_driors )
 #> [1] "fishlife matched supplied species"
 #> 
 #> $distinct_sir_draws
-#> [1] 2057
+#> [1] 1981
 #> 
 #> $sir_convergence_plot
 ```
@@ -376,7 +376,7 @@ sim <-
 ```
 
 Now, let’s pretend that we have a perfect index of abundance, which is
-just `biomass * 1e-3`. We pass indices to `srplus` inside
+just `biomass * 1e-3`. We pass indices to `sraplus` inside
 `format_driors` as `index` and `index_years`, where `index_years` is a
 vector of the same length of `index` specifying which years index data
 are available. Well now use Template Model Builder (TMB) to estimate
@@ -441,15 +441,6 @@ sim <-
     m = 1.01,
     init_u_umsy = 0.75
   )
-
-# sim$pop %>% 
-#   select(year, depletion,catch, effort,u) %>% 
-#   gather(metric, value, -year) %>% 
-#   ggplot(aes(year, value)) + 
-#   geom_point() + 
-#   facet_wrap(~metric, scales = "free_y") + 
-#   labs(y = "Value", x = "Year") + 
-#   sraplus::theme_sraplus()
 ```
 
 Now suppose we no longer have a perfect index of abundance, but instead
@@ -618,6 +609,20 @@ plot_sraplus(`no process error and no qslope ` = cpue_fit,
 
 <img src="man/figures/README-unnamed-chunk-16-1.png" width="100%" />
 
+You can also produce Kobe plots by simply setting `kobe = TRUE` in
+`plot_sralpus`
+
+``` r
+plot_sraplus(`no process error and no qslope ` = cpue_fit, 
+             `no process error with qslope` =  cpue_qslope_fit, 
+             `no process error with qslope and sar` = cpue_sar_qslope_fit,
+             `process error and sar` = cpue_sar_proc_fit,
+             years = cpue_driors$years,
+             kobe = TRUE)
+```
+
+<img src="man/figures/README-unnamed-chunk-17-1.png" width="100%" />
+
 We can also use several built-in processing functions to display and
 store the results
 
@@ -629,7 +634,7 @@ for selected parameters
 plot_prior_posterior(cpue_sar_proc_fit, cpue_sar_proc_driors)
 ```
 
-<img src="man/figures/README-unnamed-chunk-17-1.png" width="100%" />
+<img src="man/figures/README-unnamed-chunk-18-1.png" width="100%" />
 
 We can plot a summary of the most recent status estimates, along with
 key outcomes such as MSY
@@ -638,7 +643,7 @@ key outcomes such as MSY
 summarize_sralpus(cpue_sar_proc_fit, output = "plot")
 ```
 
-<img src="man/figures/README-unnamed-chunk-18-1.png" width="100%" />
+<img src="man/figures/README-unnamed-chunk-19-1.png" width="100%" />
 
 Or produce a summary table that can be saved to a .csv file.
 

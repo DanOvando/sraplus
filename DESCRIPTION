@@ -1,7 +1,7 @@
 Package: sraplus
 Type: Package
 Title: Run sraplus Assessments
-Version: 3.7.4
+Version: 3.7.5
 Date: "Updated `r Sys.Date()`"
 Author: Dan Ovando
 Maintainer: Dan Ovando <danovan@uw.edu>
@@ -37,6 +37,7 @@ Suggests:
 VignetteBuilder: knitr
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.2.0
+Encoding: UTF-8
 LazyData: true
 URL: https://danovando.github.io/sraplus/,https://github.com/DanOvando/sraplus
 Depends: 

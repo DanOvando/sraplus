@@ -141,7 +141,7 @@ sfs <- purrr::safely(fit_sraplus)
                        max_time = Inf,
                        tune_prior_predictive = FALSE)
  
- sraplus::plot_sraplus(catch_only = catch_only_fit, years = catch_only_driors$years)
+ sraplus::plot_sraplus(catch_only = catch_only_fit)
 
 
 ```
@@ -231,8 +231,7 @@ fmi_sar_fit <- fit_sraplus(
 )
 
 plot_sraplus(fmi_sar = fmi_sar_fit,
-             catch_only = catch_only_fit,
-             years = fmi_sar_driors$years)
+             catch_only = catch_only_fit)
 
 
 
@@ -390,7 +389,7 @@ cpue_qslope_fit <- fit_sraplus(driors = cpue_qslope_driors,
 
 ```{r}
 
-plot_sraplus(`CPUE fit no qslope` = cpue_fit, `CPUE fit with qslope` =  cpue_qslope_fit, years = cpue_driors$years)
+plot_sraplus(`CPUE fit no qslope` = cpue_fit, `CPUE fit with qslope` =  cpue_qslope_fit)
 
 ```
 
@@ -420,7 +419,7 @@ cpue_sar_qslope_fit <- fit_sraplus(driors = cpue_sar_qslope_driors,
                              estimate_qslope = TRUE,
                              estimate_proc_error = FALSE)
 
-plot_sraplus(cpue_sar_qslope_fit, years = cpue_sar_qslope_driors$years)
+plot_sraplus(cpue_sar_qslope_fit)
 
 ```
 
@@ -457,8 +456,17 @@ cpue_sar_proc_fit <- fit_sraplus(driors = cpue_sar_proc_driors,
 plot_sraplus(`no process error and no qslope ` = cpue_fit, 
              `no process error with qslope` =  cpue_qslope_fit, 
              `no process error with qslope and sar` = cpue_sar_qslope_fit,
+             `process error and sar` = cpue_sar_proc_fit)
+```
+
+You can also produce Kobe plots by simply setting `kobe = TRUE` in `plot_sralpus`
+
+```{r}
+plot_sraplus(`no process error and no qslope ` = cpue_fit, 
+             `no process error with qslope` =  cpue_qslope_fit, 
+             `no process error with qslope and sar` = cpue_sar_qslope_fit,
              `process error and sar` = cpue_sar_proc_fit,
-             years = cpue_driors$years)
+             kobe = TRUE)
 
 
 ```
