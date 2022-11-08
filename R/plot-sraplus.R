@@ -112,6 +112,7 @@ plot_sraplus <- function(..., fontsize = 14,
       ggplot2::geom_vline(xintercept = 1, linetype = 2) +
       ggplot2::geom_spoke(aes(b_div_bmsy, u_div_umsy, angle = angle, radius = radius, color = year)) +
       ggplot2::geom_point(aes(b_div_bmsy, u_div_umsy, fill = year), size = 3, shape = 21) +
+      ggplot2::geom_point(data = segments %>% dplyr::filter(year == max(year)),aes(b_div_bmsy, u_div_umsy, fill = year), size = 3, shape = 21, fill = "red") +
       ggplot2::facet_wrap(~fit) +
       ggplot2::scale_fill_viridis_c(name = "Year", option = "plasma", direction = -1) +
       ggplot2::scale_color_viridis_c(name = "Year",option = "plasma", direction = -1) +
